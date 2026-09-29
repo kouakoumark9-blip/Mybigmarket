@@ -359,3 +359,39 @@ h1,h2,h3,h4,h5,h6{font-family:var(--font-display);font-weight:700;line-height:1.
 .detail-add-row form{display:flex;flex:1;min-width:0}.detail-add-row form .button{width:100%}
 @media(max-width:720px){.messages-heading{align-items:flex-start;flex-direction:column;margin:8px 0 15px}.messages-heading>.button{min-height:39px}.messages-layout{grid-template-columns:1fr;min-height:520px}.messages-list{border-right:0;border-bottom:1px solid #eeeae4;max-height:220px;overflow:auto}.messages-list h2{position:sticky;top:0;z-index:1;background:#fcfbf9}.messages-inbox-item{gap:10px;padding:12px}.messages-inbox-item time{display:none}.messages-inbox-copy b{font-size:12px}.messages-inbox-copy>span{font-size:11px}.messages-chat-head{align-items:flex-start;padding:12px}.messages-chat-head>a{font-size:10px}.messages-bubbles{min-height:220px;padding:12px}.message-bubble{max-width:90%;font-size:12px}.message-compose{padding:12px}.messages-chat-page{min-height:520px}.messages-chat-page .messages-bubbles{min-height:300px}.messages-empty{padding:18px 13px}.detail-add-row{flex-wrap:wrap}.detail-add-row>.button,.detail-add-row form{flex-basis:100%}}
 .messages-chat-tools{display:flex;align-items:center;gap:13px}.messages-refresh{display:inline-flex;align-items:center;gap:5px;padding:6px 8px;border:1px solid #e7e2d9;border-radius:7px;background:#fff;color:#6d796f;font-size:10px;font-weight:650}.messages-refresh:hover{border-color:#c8a47f;color:#8e5c30}.messages-chat-tools>a{flex:0 0 auto;color:#9a6235;font-size:11px;font-weight:700}@media(max-width:720px){.messages-chat-tools{gap:6px;flex-direction:column;align-items:flex-end}.messages-chat-tools>a{font-size:9px}.messages-refresh{font-size:9px;padding:5px 7px}}
+
+/* High-contrast white canvas requested for mybigmarket; keep product prices accented. */
+:root{--canvas:#fff;--surface:#fff;--ink:#111;--muted:#333;--line:#d7d7d7;--shadow:0 5px 18px rgba(0,0,0,.055)}
+html,body{background:#fff!important;color:#111!important}
+body{color:#111;font-weight:450}
+.site-header,.main-nav,.top-strip,.page-space,.site-footer{background:#fff!important;color:#111!important}
+.top-strip{border-color:#e2e2e2!important}
+.main-nav,.main-nav-inner{color:#111!important}
+.site-footer{border-top:1px solid #ddd}
+.footer-grid>div>b,.footer-grid>div>a:not(.brand),.footer-contact span,.footer-grid>div:first-child p,.footer-bottom{color:#111!important}
+.brand,.brand>span:last-child,.footer-brand{color:#111!important}
+.brand-mark,.footer-brand .brand-mark{color:#fff!important}
+.market-category-panel,.buyer-toolbox,.market-benefits,.service-row,.category-rail,.announcement,.promo-tile,.market-promo,.marketplace-context-bar,.group-order-banner,.product-card,.filter-panel,.catalog-toolbar,.detail-visual,.detail-panel,.cart-panel,.checkout-panel,.account-panel,.dashboard-panel,.summary-card,.auth-card,.seller-card,.seller-profile-banner,.dashboard-link,.how-guide-card,.stat-card,.wallet-card,.admin-table-wrap,.catalog-intro-card,.catalog-intro-cta,.product-description-panel,.messages-layout,.messages-list,.messages-chat,.messages-chat-head,.message-compose,.messages-chat-page{background:#fff!important}
+.how-section,.how-steps li{background:#fff!important;color:#111!important;border:1px solid #ddd}
+.marketplace-hero-banner{background:#fff!important}
+.marketplace-hero-banner:before,.hero-banner:before{background:linear-gradient(90deg,rgba(255,255,255,.99) 0%,rgba(255,255,255,.95) 40%,rgba(255,255,255,.66) 68%,rgba(255,255,255,.18) 100%)!important}
+.market-promo-sand,.market-promo-blue,.market-promo-peach,.promo-sand,.promo-blue,.promo-peach{background:#fff!important;border:1px solid #ddd}
+.group-order-banner{background:#fff!important;border-color:#d7d7d7}
+.product-visual{border:1px solid #e4e4e4}
+.product-description-details>div,.product-description-note,.messages-bubbles,.messages-list{background:#fff!important}
+.message-thread-link:hover,.message-thread-link.active{background:#f3f3f3!important}
+.messages-first-hint,.demo-message-notice,.messages-notice,.protected-banner,.checkout-demo-warning,.demo-note{background:#fff!important;color:#111!important;border-color:#cfcfcf}
+.page-title,h1,h2,h3,h4,h5,h6,.section-heading h2,.how-intro h2,.hero-copy h1,.marketplace-hero-copy h1,.group-order-banner h2,.product-card-title,.detail-panel h1,.sourcing-intro .page-title{color:#111!important}
+p,small,label,li,time,.page-subtitle,.breadcrumbs,.section-heading p,.detail-category,.detail-price-note,.detail-description,.detail-facts>div,.detail-seller small,.detail-help,.product-card-category,.product-card-title,.product-card-meta,.product-seller,.product-card-foot,.service-row small,.marketplace-context-bar,.market-category-copy b,.market-category-copy small,.market-promo>span,.market-promo>b,.market-promo>i,.buyer-toolbox-welcome b,.buyer-toolbox-welcome small,.buyer-toolbox-copy,.market-benefits b,.market-benefits small,.group-order-banner p,.how-intro p,.how-steps b,.how-steps small,.catalog-toolbar,.catalog-intro-overview p,.catalog-intro-cta>b,.catalog-intro-cta>small,.catalog-category-chips a,.product-description-top>p,.product-description-details span,.product-description-details b,.product-description-note,.messages-heading,.messages-inbox-copy b,.messages-inbox-copy>span,.messages-inbox-copy small,.messages-inbox-item time,.messages-empty p,.messages-empty-small,.messages-list h2,.message-thread-link b,.message-thread-link span,.message-thread-link small,.messages-chat-head b,.messages-chat-head span,.messages-first-hint,.message-bubble,.message-bubble>b,.message-bubble time,.message-compose label,.message-compose small,.messages-blank,.messages-blank b,.messages-blank span,.footer-grid,.footer-bottom{color:#111!important}
+.detail-panel,.product-description-panel,.catalog-intro-card,.cart-panel,.checkout-panel,.account-panel,.dashboard-panel,.filter-panel,.catalog-toolbar,.seller-card,.messages-inbox-item,.messages-chat-page{border-color:#d7d7d7!important}
+.text-link,.breadcrumbs a,.main-nav a,.header-action,.header-action small,.top-strip,.footer-grid a{color:#111!important}
+.button-primary,.button-primary *,.search-form button,.brand-mark{color:#fff!important}
+.button-outline{color:#111!important;background:#fff!important;border-color:#aaa!important}
+.product-card-price,.product-card-price span,.detail-price,.cart-line-price,.summary-row.total{color:#a9552c!important}
+.detail-rating,.product-card-meta span:first-child{color:#b87916!important}
+.catalog-intro-points span,.catalog-intro-points svg,.product-description-note svg,.messages-refresh svg{color:#111!important}
+.field label,.field input,.field select,.field textarea,.search-form input{color:#111!important}
+.field input::placeholder,.field textarea::placeholder,.search-form input::placeholder{color:#555!important;opacity:1}
+@media(max-width:720px){.site-footer,.how-section,.marketplace-context-bar,.market-promo,.group-order-banner{background:#fff!important}.marketplace-hero-banner:before{background:linear-gradient(90deg,rgba(255,255,255,.99) 0%,rgba(255,255,255,.94) 62%,rgba(255,255,255,.62) 100%)!important}}
+/* Enforce legible near-black content throughout page bodies; specific accents/prices above stay intact. */
+main :not(svg):not(svg *){color:#111!important}
