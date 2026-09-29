@@ -90,12 +90,11 @@ Le script signe l’événement avec `MOCK_WEBHOOK_SECRET`. Après validation HM
 
 1. Créez deux branches/bases Neon (développement/staging et production). Copiez l’URL PostgreSQL pooled avec SSL activé.
 2. Créez deux magasins Vercel Blob : un **public** pour les photos produit, un **privé** pour les justificatifs KYC. Copiez leurs jetons dans `BLOB_PUBLIC_READ_WRITE_TOKEN` et `BLOB_PRIVATE_READ_WRITE_TOKEN`.
-3. Le code source est rattaché au dépôt `https://github.com/kouakoumark9-blip/Mybigmarket.git`. Après avoir configuré vos identifiants GitHub, poussez les mises à jour depuis la racine du projet :
+3. Le dépôt GitHub du projet est `https://github.com/kouakoumark9-blip/Mybigmarket.git`. Après avoir configuré vos identifiants GitHub, si le remote `origin` est absent, ajoutez-le puis poussez la branche `main` depuis la racine :
 
    ```bash
-   git add .
-   git commit -m "Update mybigmarket"
-   git push origin main
+   git remote add origin https://github.com/kouakoumark9-blip/Mybigmarket.git
+   git push -u origin main
    ```
 
 4. Dans Vercel, importez le dépôt GitHub. Ce dépôt doit avoir `package.json` à sa racine; laissez **Root Directory** à `./` (valeur par défaut). Framework Preset : Next.js; Node.js : 22.
