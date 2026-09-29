@@ -1,0 +1,11 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import { desc, eq } from "drizzle-orm";
+import { LockKeyhole, Wallet } from "lucide-react";
+import { requireRole } from "@/lib/access";
+import { getDb } from "@/lib/db";
+import { payouts, wallets } from "@/lib/db/schema";
+import { formatXof } from "@/lib/demo-data";
+
+export const metadata:Metadata={title:"Portefeuille vendeur"};
+export default async function SellerWalletPage(){const user=await requireRole("seller");const db=getDb();const [wallet]=await db.select().from(wallets).where(eq(wallets.sellerId,user.id)).limit(1);const requests=await db.select().from(payouts).where(eq(payouts.sellerId,user.id)).orderBy(desc(payouts.createdAt)).limit(20);return <main className="shell page-space"><div className="breadcrumbs"><Link href="/vendeur">Espace vendeur</Link><span>›</span><span>Portefeuille</span></div><h1 className="page-title">Mon portefeuille</h1><p className="page-subtitle">Consultez les montants en attente et les retraits.</p><div className="wallet-overview"><div className="wallet-card"><Wallet size={22}/><span>Solde disponible</span><b>{formatXof(wallet?.balanceXof||0)}</b></div><div className="wallet-card wallet-pending"><LockKeyhole size={22}/><span>Fonds en attente de livraison</span><b>{formatXof(wallet?.pendingXof||0)}</b></div></div><div className="protected-banner"><LockKeyhole size={16}/><span>Les paiements réels vers les vendeurs ne sont pas branchés. Les sommes visibles ici ne représentent aucun transfert bancaire. Les retraits seront activés après validation d’un prestataire et de son mécanisme de payout.</span></div><section className="admin-section"><div className="section-heading"><div><span className="eyebrow">HISTORIQUE</span><h2>Demandes de retrait</h2></div></div>{requests.length===0?<div className="account-panel empty-admin">Aucune demande de retrait.</div>:<div className="admin-table-wrap"><table className="admin-table"><thead><tr><th>Date</th><th>Montant</th><th>Méthode</th><th>Statut</th></tr></thead><tbody>{requests.map((request)=><tr key={request.id}><td>{new Intl.DateTimeFormat("fr-FR",{dateStyle:"medium"}).format(request.createdAt)}</td><td>{formatXof(request.amountXof)}</td><td>{request.method}</td><td>{request.status}</td></tr>)}</tbody></table></div>}</section></main>}
