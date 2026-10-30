@@ -867,3 +867,10 @@ main .catalog-category-product-grid .product-card-price{color:#ff8000!important}
 .brand{gap:0!important}
 .brand-mark{flex:0 0 26px;margin-right:0}
 @media(max-width:760px){.brand{gap:0!important}.brand-mark{flex-basis:24px;margin-right:0}}
+
+/* Render the full brand name as one wordmark: Mybigmarket. */
+.brand{gap:0!important;white-space:nowrap}
+.brand-wordmark{display:inline-block;color:#202428;font-size:1em;font-weight:inherit;line-height:1;letter-spacing:inherit}
+.brand-initial{display:inline-block;color:#ff8000!important;font-size:1.28em;font-style:italic;font-weight:900;line-height:.8;letter-spacing:-.09em;vertical-align:-.05em;margin-right:-.015em}
+.brand-wordmark small{display:block;margin-top:5px;color:#89919a!important;font-size:9px;font-weight:700;letter-spacing:2px;line-height:1}
+@media(max-width:760px){.brand-wordmark small{display:none}.brand-initial{font-size:1.25em}}
