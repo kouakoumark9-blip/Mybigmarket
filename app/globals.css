@@ -874,3 +874,8 @@ main .catalog-category-product-grid .product-card-price{color:#ff8000!important}
 .brand-initial{display:inline-block;color:#ff8000!important;font-size:1.28em;font-style:italic;font-weight:900;line-height:.8;letter-spacing:-.09em;vertical-align:-.05em;margin-right:-.015em}
 .brand-wordmark small{display:block;margin-top:5px;color:#89919a!important;font-size:9px;font-weight:700;letter-spacing:2px;line-height:1}
 @media(max-width:760px){.brand-wordmark small{display:none}.brand-initial{font-size:1.25em}}
+
+/* Final logo refinement: one clean Mybigmarket wordmark, without overlapping glyphs. */
+.brand-wordmark{font-family:"Inter",Arial,sans-serif;font-size:1em;font-weight:750;line-height:1;letter-spacing:-.045em;color:#17191c!important;white-space:nowrap}
+.brand-initial{font-family:inherit;font-size:1em;font-style:normal;font-weight:850;line-height:inherit;letter-spacing:inherit;vertical-align:baseline;margin-right:0;color:#ff8000!important}
+@media(max-width:760px){.brand-wordmark{letter-spacing:-.04em}.brand-initial{font-size:1em}}
