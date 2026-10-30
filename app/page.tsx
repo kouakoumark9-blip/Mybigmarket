@@ -25,17 +25,17 @@ export default async function HomePage() {
       <div className="market-context-links"><span className="country-context"><MapPin size={13}/> Côte d’Ivoire · XOF / FCFA</span><Link href="/comment-ca-marche">Guide d’achat <ArrowRight size={14}/></Link></div>
     </div>
 
-    <nav className="catalog-mode-tabs" aria-label="Explorer mybigmarket">
-      <Link className="is-active" href="/produits">Produits</Link>
-      <Link href="/vendeurs">Vendeurs</Link>
-      <Link href="/demande-de-devis">Achats de gros</Link>
-    </nav>
-
-    <form action="/produits" className="catalog-search-bar" role="search">
-      <Search size={19}/>
-      <input name="q" aria-label="Rechercher dans le catalogue" placeholder="Que recherchez-vous ? Ex. sacs, téléphones, maison…"/>
-      <button type="submit">Rechercher <ArrowRight size={16}/></button>
-    </form>
+    <section className="catalog-search-hero" aria-label="Rechercher et explorer">
+      <nav className="catalog-mode-tabs" aria-label="Explorer mybigmarket">
+        <Link className="is-active" href="/produits">Produits</Link>
+        <Link href="/vendeurs">Vendeurs</Link>
+        <Link href="/demande-de-devis">Achats de gros</Link>
+      </nav>
+      <form action="/produits" className="catalog-search-bar" role="search">
+        <div className="catalog-search-input"><Search size={20}/><input name="q" aria-label="Rechercher dans le catalogue" placeholder="Que recherchez-vous ? Ex. sacs, téléphones, maison…"/></div>
+        <div className="catalog-search-submit-row"><span><PackageCheck size={15}/> Prix en FCFA · Minimum de commande indiqué sur les offres</span><button type="submit">Rechercher <ArrowRight size={16}/></button></div>
+      </form>
+    </section>
 
     <section className="catalog-welcome-row" aria-label="Bienvenue">
       <h1>Bienvenue sur <span>mybigmarket</span></h1>
