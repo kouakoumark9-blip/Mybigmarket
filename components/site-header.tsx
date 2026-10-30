@@ -3,12 +3,14 @@
 import Link from "next/link";
 import { useState } from "react";
 import { usePathname } from "next/navigation";
-import { Search, ShoppingBag, UserRound, Menu, X, Store, MessageCircle, MapPin, UserRoundPlus, Home, Grid2X2, ClipboardList } from "lucide-react";
+import { Search, ShoppingBag, UserRound, Menu, X, Store, MessageCircle, MapPin, UserRoundPlus, Home, Grid2X2, ClipboardList, Heart } from "lucide-react";
 import { categories } from "@/lib/demo-data";
 import { useCart } from "@/components/cart-provider";
+import { useFavorites } from "@/components/favorites-provider";
 
 export function SiteHeader() {
   const { count } = useCart();
+  const { count: favoritesCount } = useFavorites();
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   return <>
@@ -32,6 +34,7 @@ export function SiteHeader() {
           <Link href="/vendeurs" onClick={() => setMobileOpen(false)}>Vendeurs</Link>
           <Link href="/demande-de-devis" onClick={() => setMobileOpen(false)}>Demander un devis</Link>
           <Link href="/messages" onClick={() => setMobileOpen(false)}><MessageCircle size={15}/> Messages</Link>
+          <Link href="/favoris" className={pathname.startsWith("/favoris") ? "active" : ""} onClick={() => setMobileOpen(false)}><Heart size={15}/> Favoris{favoritesCount > 0 && <span className="favorite-nav-count">{favoritesCount}</span>}</Link>
           <Link className="nav-seller-mobile" href="/inscription" onClick={() => setMobileOpen(false)}><UserRoundPlus size={15}/> Créer un compte</Link>
           <Link className="nav-seller-mobile" href="/compte/demandes" onClick={() => setMobileOpen(false)}>Mes demandes de devis</Link>
           <Link className="nav-seller-mobile" href="/vendeur" onClick={() => setMobileOpen(false)}><Store size={15}/> Espace vendeur</Link>

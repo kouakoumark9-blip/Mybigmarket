@@ -7,6 +7,7 @@ import type { DemoProduct } from "@/lib/demo-data";
 import { formatXof } from "@/lib/demo-data";
 import { useCart } from "@/components/cart-provider";
 import { CompareProductButton } from "@/components/product-compare";
+import { FavoriteToggleButton } from "@/components/favorites-provider";
 
 const productVisuals: Record<string, LucideIcon> = {
   "sac-cabas-urbain": ShoppingBag,
@@ -46,7 +47,7 @@ export function ProductCard({ product, compact = false }: { product: DemoProduct
       <ProductVisual product={product}/>
     </Link>
     <div className="product-card-info">
-      <div className="product-card-category">{product.category}</div>
+      <div className="product-card-category-row"><div className="product-card-category">{product.category}</div><FavoriteToggleButton product={product}/></div>
       <Link href={`/produits/${product.slug}`} className="product-card-title">{product.title}</Link>
       <div className="product-card-price">{formatXof(product.priceXof)} <span>/ unité</span></div>
       <div className="product-card-meta"><span className="delivery-estimate"><Clock3 size={12}/> Délai estimé : 30 j</span></div>
