@@ -1,10 +1,16 @@
 import Link from "next/link";
-import { ArrowDownWideNarrow, ArrowRight, BadgeCheck, Boxes, CircleHelp, ClipboardList, MapPin, PackageCheck, SlidersHorizontal, Sparkles, Truck } from "lucide-react";
+import { ArrowDownWideNarrow, ArrowRight, BadgeCheck, Boxes, CircleHelp, ClipboardList, House, MapPin, PackageCheck, Shirt, Smartphone, SlidersHorizontal, Tag, Truck, type LucideIcon } from "lucide-react";
 import { categories } from "@/lib/demo-data";
 import { getCatalogProducts } from "@/lib/catalog";
 import { ProductCard } from "@/components/product-card";
 
 export const dynamic = "force-dynamic";
+
+const categoryIcons: Record<string, LucideIcon> = {
+  "mode-accessoires": Shirt,
+  electronique: Smartphone,
+  "maison-cuisine": House,
+};
 
 export default async function HomePage() {
   const products = await getCatalogProducts();
@@ -15,19 +21,19 @@ export default async function HomePage() {
   return <main className="shell marketplace-home marketplace-catalog-home">
     <div className="marketplace-context-bar catalog-context">
       <span><i className="announcement-dot"/> Précommandes ouvertes <b>Chine <span>→</span> Abidjan</b></span>
-      <div className="market-context-links"><span className="country-context">🇨🇮 Côte d’Ivoire · XOF / FCFA</span><Link href="/comment-ca-marche">Comment ça marche ? <ArrowRight size={14}/></Link></div>
+      <div className="market-context-links"><span className="country-context"><MapPin size={13}/> Côte d’Ivoire · XOF / FCFA</span><Link href="/comment-ca-marche">Comment ça marche ? <ArrowRight size={14}/></Link></div>
     </div>
 
     <nav className="catalog-category-nav" aria-label="Catégories de produits">
       <Link className="catalog-category-all" href="/produits"><SlidersHorizontal size={15}/> Tous les produits</Link>
-      {categories.map((category) => <Link key={category.slug} href={`/produits?categorie=${category.slug}`}><span>{category.icon}</span>{category.name}</Link>)}
+      {categories.map((category) => { const CategoryIcon = categoryIcons[category.slug] ?? Boxes; return <Link key={category.slug} href={`/produits?categorie=${category.slug}`}><CategoryIcon size={15} strokeWidth={1.7}/>{category.name}</Link>; })}
       <Link href="/demande-de-devis">Achats de gros · devis</Link>
       <Link href="/vendeur">Vendre sur mybigmarket</Link>
     </nav>
 
     <section className="home-conversion-hero" aria-labelledby="home-hero-title">
       <div className="home-conversion-copy">
-        <span className="home-conversion-kicker"><Sparkles size={14}/> VOS ACHATS CHINE → CÔTE D’IVOIRE</span>
+        <span className="home-conversion-kicker"><Tag size={14}/> PRÉCOMMANDE · CHINE → CÔTE D’IVOIRE</span>
         <h1 id="home-hero-title">Trouvez votre prochain coup de cœur.<br/><em>On vous guide jusqu’à Abidjan.</em></h1>
         <p>Comparez les offres, vérifiez le prix en FCFA, la quantité minimale et le délai estimatif avant de choisir.</p>
         <div className="home-conversion-actions">
