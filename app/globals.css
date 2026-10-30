@@ -662,3 +662,9 @@ body{font-size:18px}
 @media(max-width:760px){.brand small{display:none}.catalog-layout .catalog-search{display:none}}
 
 .catalog-mobile-controls{display:contents}
+
+/* Consistent customer-facing delivery estimate treatment. */
+.product-card-meta,.product-card-meta span,.detail-facts,.detail-facts>div,.detail-facts span,.detail-facts svg,.product-description-details,.product-description-details span,.product-description-details b,.cart-line small{color:#111!important}
+@media(max-width:760px){html{scroll-padding-top:112px;overflow-x:clip}body{overflow-x:clip;overscroll-behavior-x:none}.site-header{position:sticky;top:0;z-index:100}.mobile-contact{min-height:27px;background:#fff8ef;border-bottom:1px solid #eee6dc}.mobile-tabbar{z-index:110}}
+
+@media(max-width:760px){.table-secondary{color:#111!important}}

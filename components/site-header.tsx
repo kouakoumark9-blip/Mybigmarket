@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { usePathname } from "next/navigation";
-import { Search, ShoppingBag, UserRound, Menu, X, Store, MessageCircle, MapPin, UserRoundPlus, Home, Grid2X2 } from "lucide-react";
+import { Search, ShoppingBag, UserRound, Menu, X, Store, MessageCircle, MapPin, UserRoundPlus, Home, Grid2X2, ClipboardList } from "lucide-react";
 import { categories } from "@/lib/demo-data";
 import { useCart } from "@/components/cart-provider";
 
@@ -37,14 +37,14 @@ export function SiteHeader() {
           <Link className="nav-seller-mobile" href="/vendeur" onClick={() => setMobileOpen(false)}><Store size={15}/> Espace vendeur</Link>
         </div>
       </nav>
+      <div className="mobile-contact"><MapPin size={14}/> Achats Chine → Abidjan <span>·</span> Prix en FCFA</div>
     </header>
-    <div className="mobile-contact"><MapPin size={14}/> Achats Chine → Abidjan <span>·</span> Prix en FCFA</div>
     <nav className="mobile-tabbar" aria-label="Navigation mobile">
       <Link href="/" className={pathname === "/" ? "active" : ""} aria-current={pathname === "/" ? "page" : undefined}><Home size={20}/><span>Accueil</span></Link>
       <Link href="/produits" className={pathname.startsWith("/produits") ? "active" : ""} aria-current={pathname.startsWith("/produits") ? "page" : undefined}><Grid2X2 size={20}/><span>Catégories</span></Link>
       <Link href="/messages" className={pathname.startsWith("/messages") ? "active" : ""} aria-current={pathname.startsWith("/messages") ? "page" : undefined}><MessageCircle size={20}/><span>Messages</span></Link>
       <Link href="/panier" className={pathname === "/panier" || pathname === "/checkout" ? "active" : ""} aria-current={pathname === "/panier" ? "page" : undefined}><span className="mobile-tabbar-icon"><ShoppingBag size={20}/>{count > 0 && <b>{count}</b>}</span><span>Panier</span></Link>
-      <Link href="/compte/commandes" className={pathname.startsWith("/compte") || pathname === "/connexion" || pathname === "/inscription" ? "active" : ""} aria-current={pathname.startsWith("/compte") ? "page" : undefined}><UserRound size={20}/><span>Compte</span></Link>
+      <Link href="/compte/commandes" className={pathname.startsWith("/compte/commandes") ? "active" : ""} aria-current={pathname.startsWith("/compte/commandes") ? "page" : undefined}><ClipboardList size={20}/><span>Commandes</span></Link>
     </nav>
   </>;
 }
