@@ -34,7 +34,7 @@ export function ProductVisual({ product, className = "" }: { product: DemoProduc
   const PlaceholderIcon = productVisuals[product.slug] ?? Package;
   return <div className={`product-visual tone-${product.tone} ${className}`} aria-label={product.title} role="img">
     {product.imageUrl ? <Image src={product.imageUrl} alt="" fill sizes="(max-width: 720px) 45vw, 22vw" className="product-image"/> : <div className="product-placeholder" aria-hidden="true"><PlaceholderIcon size={46} strokeWidth={1.35}/></div>}
-    <span className="visual-stamp">PRÉCOMMANDE</span><span className="visual-origin">CHINE → CI</span>
+    <span className="visual-origin">CHINE → CI</span>
   </div>;
 }
 
