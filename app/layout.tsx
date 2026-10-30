@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   title: { default: "mybigmarket — Chine → Côte d’Ivoire", template: "%s | mybigmarket" },
   description: "Découvrez une marketplace de précommande entre étudiants en Chine et acheteurs en Côte d’Ivoire. Vendeurs vérifiés, prix en FCFA et suivi de commande.",
   openGraph: { title: "mybigmarket — Chine → Côte d’Ivoire", description: "Des trouvailles de Chine, suivies jusqu’à Abidjan.", locale: "fr_CI", type: "website" },
-  icons: { icon: [], shortcut: [], apple: [] },
+  icons: { icon: "/favicon.svg", shortcut: "/favicon.svg" },
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
