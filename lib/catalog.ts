@@ -1,10 +1,41 @@
 import "server-only";
 import { and, desc, eq, inArray } from "drizzle-orm";
-import { categories, productImages, products, sellerProfiles, users } from "@/lib/db/schema";
+import { categories, productImages, products, sellerProfiles, sellerStorefronts, users } from "@/lib/db/schema";
 import { getDb } from "@/lib/db";
 import { products as demoProducts, sellers as demoSellers, type DemoProduct } from "@/lib/demo-data";
+import { getMockStorefrontForSeller, getMockStorefrontBySlug } from "@/lib/demo-backend";
 
 export type StoreSeller = { slug:string; name:string; university:string; city:string; rating:number; orders:number; initials:string };
+export type PublicStorefront = { slug:string; storeName:string; headline:string; description:string; announcement:string|null; sellerSlug:string; sellerName:string; university:string; city:string; rating:number; productCount:number; isDemo:boolean };
+
+export async function getPublicStorefrontBySlug(slug:string):Promise<PublicStorefront|undefined>{
+  if(!process.env.DATABASE_URL){
+    const mockStore=getMockStorefrontBySlug(slug);
+    if(mockStore){
+      if(!mockStore.isPublished)return undefined;
+      const sellerSlug=mockStore.sellerId==="seller-aya"?"aya-t":"lina-k";
+      return {slug:mockStore.slug,storeName:mockStore.storeName,headline:mockStore.headline,description:mockStore.description,announcement:mockStore.announcement,sellerSlug,sellerName:mockStore.sellerName,university:mockStore.university,city:mockStore.city,rating:mockStore.rating,productCount:demoProducts.filter((product)=>product.sellerSlug===sellerSlug).length,isDemo:true};
+    }
+    const seller=demoSellers.find((item)=>item.slug===slug);
+    if(!seller)return undefined;
+    const mockActorId=seller.slug==="lina-k"?"seller-lina":seller.slug==="aya-t"?"seller-aya":null;
+    const currentMock=mockActorId?getMockStorefrontForSeller(mockActorId):null;
+    if(currentMock&&(currentMock.slug!==slug||!currentMock.isPublished))return undefined;
+    return {slug:seller.slug,storeName:seller.name,headline:"Une boutique partenaire mybigmarket",description:`Découvrez les produits proposés par ${seller.name}, vendeur partenaire en Chine. Profil et catalogue de démonstration.`,announcement:"Catalogue de démonstration · disponibilité à confirmer",sellerSlug:seller.slug,sellerName:seller.name,university:seller.university,city:seller.city,rating:seller.rating,productCount:demoProducts.filter((product)=>product.sellerSlug===seller.slug).length,isDemo:true};
+  }
+  const db=getDb();
+  const [row]=await db.select({store:sellerStorefronts,user:users,profile:sellerProfiles}).from(sellerStorefronts)
+    .innerJoin(users,eq(users.id,sellerStorefronts.sellerId)).innerJoin(sellerProfiles,eq(sellerProfiles.userId,users.id))
+    .where(and(eq(sellerStorefronts.slug,slug),eq(sellerStorefronts.isPublished,true),eq(sellerProfiles.verificationStatus,"approved"),eq(users.status,"active"))).limit(1);
+  if(!row)return undefined;
+  const sellerSlug=row.user.email.split("@")[0];
+  const catalog=await getCatalogProducts();
+  return {slug:row.store.slug,storeName:row.store.storeName,headline:row.store.headline,description:row.store.description,announcement:row.store.announcement,sellerSlug,sellerName:row.user.name,university:row.profile.university,city:row.profile.cityChina,rating:Number(row.profile.ratingAvg),productCount:catalog.filter((product)=>product.sellerSlug===sellerSlug).length,isDemo:false};
+}
+
+export async function getStorefrontProducts(sellerSlug:string):Promise<DemoProduct[]>{
+  return (await getCatalogProducts()).filter((product)=>product.sellerSlug===sellerSlug);
+}
 
 export async function getCatalogProducts(options:{featured?:boolean}={}) : Promise<DemoProduct[]> {
   if (!process.env.DATABASE_URL) return options.featured ? demoProducts.filter((p)=>p.slug.includes("sac")||p.slug.includes("montre")||p.slug.includes("lunettes")||p.slug.includes("ecouteurs")||p.slug.includes("support")||p.slug.includes("lampe")||p.slug.includes("pinceaux")).slice(0,8) : demoProducts;

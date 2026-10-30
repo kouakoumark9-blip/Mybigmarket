@@ -22,6 +22,20 @@
       "when": 1790667219492,
       "tag": "0002_daffy_blindfold",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1790678889716,
+      "tag": "0003_overrated_speedball",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1791214120131,
+      "tag": "0004_last_nighthawk",
+      "breakpoints": true
     }
   ]
 }

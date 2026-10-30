@@ -30,6 +30,8 @@ export const escrowStatusEnum = pgEnum("escrow_status", ["blocked", "eligible", 
 export const shipmentStatusEnum = pgEnum("shipment_status", ["draft", "collecting", "shipped", "arrived_abidjan", "closed", "cancelled"]);
 export const disputeStatusEnum = pgEnum("dispute_status", ["open", "investigating", "resolved_buyer", "resolved_seller", "closed"]);
 export const payoutStatusEnum = pgEnum("payout_status", ["requested", "approved", "processing", "paid", "rejected"]);
+export const quoteRequestKindEnum = pgEnum("quote_request_kind", ["product", "sourcing"]);
+export const quoteRequestStatusEnum = pgEnum("quote_request_status", ["new", "in_review", "quoted", "closed"]);
 
 export const users = pgTable("users", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -56,6 +58,23 @@ export const sellerProfiles = pgTable("seller_profiles", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [uniqueIndex("seller_profiles_user_unique").on(t.userId), index("seller_profiles_status_idx").on(t.verificationStatus)]);
+
+export const sellerStorefronts = pgTable("seller_storefronts", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  sellerId: uuid("seller_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  slug: varchar("slug", { length: 160 }).notNull(),
+  storeName: varchar("store_name", { length: 120 }).notNull(),
+  headline: varchar("headline", { length: 190 }).notNull().default("Boutique partenaire mybigmarket"),
+  description: text("description").notNull().default(""),
+  announcement: varchar("announcement", { length: 200 }),
+  isPublished: boolean("is_published").notNull().default(false),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [
+  uniqueIndex("seller_storefronts_seller_unique").on(t.sellerId),
+  uniqueIndex("seller_storefronts_slug_unique").on(t.slug),
+  index("seller_storefronts_published_idx").on(t.isPublished, t.updatedAt),
+]);
 
 export const categories = pgTable("categories", {
   id: serial("id").primaryKey(),
@@ -157,6 +176,27 @@ export const messages = pgTable("messages", {
   readAt: timestamp("read_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [index("messages_conversation_time_idx").on(t.conversationId, t.createdAt), index("messages_sender_read_idx").on(t.senderId, t.readAt)]);
+
+export const quoteRequests = pgTable("quote_requests", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  buyerId: uuid("buyer_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  sellerId: uuid("seller_id").references(() => users.id, { onDelete: "set null" }),
+  productId: uuid("product_id").references(() => products.id, { onDelete: "set null" }),
+  conversationId: uuid("conversation_id").references(() => conversations.id, { onDelete: "set null" }),
+  kind: quoteRequestKindEnum("kind").notNull(),
+  status: quoteRequestStatusEnum("status").notNull().default("new"),
+  productTitle: varchar("product_title", { length: 190 }).notNull(),
+  quantity: integer("quantity").notNull(),
+  destination: varchar("destination", { length: 120 }).notNull(),
+  contactPhone: varchar("contact_phone", { length: 32 }).notNull(),
+  message: text("message").notNull().default(""),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [
+  index("quote_requests_buyer_recent_idx").on(t.buyerId, t.createdAt),
+  index("quote_requests_seller_recent_idx").on(t.sellerId, t.createdAt),
+  index("quote_requests_status_recent_idx").on(t.status, t.createdAt),
+]);
 
 export const orderItems = pgTable("order_items", {
   id: serial("id").primaryKey(),

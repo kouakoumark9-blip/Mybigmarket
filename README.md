@@ -19,12 +19,14 @@
 - `/` : accueil de découverte inspiré des marketplaces B2B, catégories et deux parcours : précommande groupée et achat en gros
 - `/produits` et `/produits/[slug]` : recherche/filtres, textes éditoriaux de démonstration répartis sur les 3 rayons (environ 850 mots) et les 20 produits (environ 2 200 mots), quantité minimale, délai, ajout panier, devis de gros et bouton de contact intégré. Les descriptions réellement saisies par un vendeur restent prioritaires sur les textes de démo.
 - `/messages` et `/messages/[id]` : boîte de réception et conversations privées entre acheteurs et vendeurs, rattachées à un produit; authentification et Neon requis pour la synchronisation inter-comptes. Sans Neon, l’aperçu conserve uniquement des notes locales au navigateur et ne les transmet pas.
-- `/demande-de-devis` et `/compte/demandes` : formulaire de sourcing/devis et demandes sauvegardés en local pour la démo; aucun fournisseur n’est notifié
+- `/demande-de-devis` et `/compte/demandes` : demandes de devis/sourcing persistées dans Neon quand la base est configurée; les devis produit apparaissent dans l’inbox vendeur, ouvrent une conversation intégrée et sont modérables dans `/admin`. Sans Neon, le parcours standard reste une simulation `localStorage` non transmise.
+- `/demo-backend` : sandbox séparée pour examiner les flux acheteur/vendeur/admin sans compte ni Neon. Elle simule demandes, statuts, messages et réglages de vitrine, avec un panneau d’analytics exemple; l’API `/api/demo-backend/*` utilise des données fictives en mémoire, uniquement hors production, réinitialisées au redémarrage.
+- `/vendeur/boutique` et `/boutiques/[slug]` : réglages de la vitrine publique du vendeur et page catalogue partageable; le modèle garde mybigmarket comme marketplace centrale.
 - `/panier` et `/checkout` : panier navigateur; sans Neon, création de commandes simulées locales; avec Neon, une vraie commande applicative par vendeur et paiement mock en attente
 - `/connexion`, `/inscription` : Auth.js + Neon
 - `/compte/commandes` et `/compte/commandes/[id]` : suivi authentifié avec Neon ou timeline locale de démonstration sans base
 - `/vendeur` : demande de vérification et tableau de bord vendeur
-- `/vendeur/produits`, `/vendeur/commandes`, `/vendeur/portefeuille` : catalogue vendeur, commandes de ses propres produits, aperçu portefeuille
+- `/vendeur/produits`, `/vendeur/commandes`, `/vendeur/demandes`, `/vendeur/boutique`, `/vendeur/statistiques`, `/vendeur/portefeuille` : catalogue, commandes, inbox devis, vitrine, statistiques et portefeuille
 - `/admin` : validation des vendeurs/produits, transitions de commande, ledger, audit des actions sensibles
 - `/api/webhooks/payment` : webhook HMAC mock idempotent; crée un ledger `blocked` après confirmation
 - `/api/private-documents/[...pathname]` : téléchargement de justificatifs privés, limité au propriétaire et à l’admin
@@ -36,11 +38,11 @@ Sans `DATABASE_URL`, le catalogue, panier, commandes simulées et demandes de de
 
 ```text
 mybigmarket/
-├── actions/                 # actions serveur auth, commandes, vendeur et admin
+├── actions/                 # actions serveur auth, commandes, vendeur, admin et demandes de devis
 ├── app/                     # routes App Router, API, sitemap et robots
 ├── components/              # header, catalogue, panier, dashboard, formulaires
 ├── drizzle/                 # migrations PostgreSQL générées
-├── lib/db/schema.ts         # enums, 20 tables et relations Drizzle
+├── lib/db/schema.ts         # enums, 23 tables et relations Drizzle
 ├── lib/db/seed.ts           # admin + 3 vendeurs + 3 catégories + 20 produits
 ├── lib/payments/provider.ts # PaymentProvider et implémentation Mock
 └── .env.example
