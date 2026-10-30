@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowDownWideNarrow, ArrowRight, BadgeCheck, Boxes, CircleHelp, PackageCheck, SlidersHorizontal, Truck } from "lucide-react";
+import { ArrowDownWideNarrow, ArrowRight, BadgeCheck, Boxes, CircleHelp, ClipboardList, MapPin, PackageCheck, SlidersHorizontal, Sparkles, Truck } from "lucide-react";
 import { categories } from "@/lib/demo-data";
 import { getCatalogProducts } from "@/lib/catalog";
 import { ProductCard } from "@/components/product-card";
@@ -25,7 +25,29 @@ export default async function HomePage() {
       <Link href="/vendeur">Vendre sur mybigmarket</Link>
     </nav>
 
-    <section className="catalog-feed" aria-labelledby="catalog-feed-title">
+    <section className="home-conversion-hero" aria-labelledby="home-hero-title">
+      <div className="home-conversion-copy">
+        <span className="home-conversion-kicker"><Sparkles size={14}/> VOS ACHATS CHINE → CÔTE D’IVOIRE</span>
+        <h1 id="home-hero-title">Trouvez votre prochain coup de cœur.<br/><em>On vous guide jusqu’à Abidjan.</em></h1>
+        <p>Comparez les offres, vérifiez le prix en FCFA, la quantité minimale et le délai estimatif avant de choisir.</p>
+        <div className="home-conversion-actions">
+          <Link className="home-primary-action" href="#catalogue"><span>Découvrir les offres</span><ArrowRight size={17}/></Link>
+          <Link className="home-secondary-action" href="/demande-de-devis">Besoin d’un volume ? <b>Demander un devis</b><ArrowRight size={14}/></Link>
+        </div>
+        <div className="home-conversion-points"><span><BadgeCheck size={14}/> Prix en FCFA</span><i/><span><PackageCheck size={14}/> Quantité minimale indiquée</span><i/><span><Truck size={14}/> Étapes de commande visibles</span></div>
+      </div>
+      <div className="home-order-guide" aria-label="Comment acheter">
+        <div className="home-guide-heading"><span className="home-guide-icon"><MapPin size={17}/></span><span><small>DE LA DÉCOUVERTE AU SUIVI</small><b>Un parcours clair, en 3 étapes</b></span></div>
+        <ol>
+          <li><span>1</span><div><b>Choisissez une offre</b><small>Parcourez les catégories et comparez.</small></div></li>
+          <li><span>2</span><div><b>Vérifiez les conditions</b><small>MOQ, prix et délais estimatifs sur la fiche.</small></div></li>
+          <li><span>3</span><div><b>Suivez votre commande</b><small>Retrouvez ses étapes depuis votre espace.</small></div></li>
+        </ol>
+        <div className="home-demo-caveat"><ClipboardList size={13}/> Prototype : offres fictives, paiement réel indisponible.</div>
+      </div>
+    </section>
+
+    <section id="catalogue" className="catalog-feed" aria-labelledby="catalog-feed-title">
       <div className="catalog-feed-heading">
         <div><span className="eyebrow">SÉLECTION DU MOMENT</span><h1 id="catalog-feed-title">À découvrir</h1><p>Des trouvailles proposées en précommande, expédiées de Chine vers Abidjan.</p></div>
         <Link className="catalog-more-link" href="/produits">Voir tout le catalogue <ArrowRight size={15}/></Link>
