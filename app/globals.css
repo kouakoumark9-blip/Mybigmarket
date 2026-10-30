@@ -862,3 +862,8 @@ main .catalog-category-product-grid .product-card-price{color:#ff8000!important}
   .active-filter-chips{margin:0 0 8px}
 }
 @media(max-width:390px){.catalog-results-count{font-size:9px}.mobile-filter-toggle{gap:4px;padding-inline:7px;font-size:10px}.catalog-sort-select{max-width:125px;font-size:9px}}
+
+/* Join the orange monogram directly to the wordmark: M + ybigmarket. */
+.brand{gap:0!important}
+.brand-mark{flex:0 0 26px;margin-right:0}
+@media(max-width:760px){.brand{gap:0!important}.brand-mark{flex-basis:24px;margin-right:0}}

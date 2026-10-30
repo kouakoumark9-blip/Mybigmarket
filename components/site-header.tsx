@@ -16,7 +16,7 @@ export function SiteHeader() {
     <header className="site-header">
       <div className="shell header-main">
         <button className="mobile-menu-button" aria-label={mobileOpen ? "Fermer le menu" : "Ouvrir le menu"} onClick={() => setMobileOpen(!mobileOpen)}>{mobileOpen ? <X/> : <Menu/>}</button>
-        <Link className="brand" href="/" aria-label="mybigmarket, accueil"><span className="brand-mark">M</span><span>mybigmarket<small>CHINE → ABIDJAN</small></span></Link>
+        <Link className="brand" href="/" aria-label="mybigmarket, accueil"><span className="brand-mark">M</span><span>ybigmarket<small>CHINE → ABIDJAN</small></span></Link>
         <form action="/produits" className="search-form"><Search size={18}/><input name="q" placeholder="Rechercher un produit, une catégorie..." aria-label="Rechercher un produit"/><button type="submit" aria-label="Lancer la recherche"><span>Rechercher</span><Search className="mobile-search-submit-icon" size={17}/></button></form>
         <div className="header-actions">
           <span className="header-locale"><MapPin size={15}/><span>CI · FCFA</span></span>
