@@ -18,6 +18,7 @@ export default async function HomePage() {
   const byCategory = categories.map((category) => products.filter((product) => product.categorySlug === category.slug));
   const mixedProducts = Array.from({ length: Math.max(0, ...byCategory.map((group) => group.length)) }, (_, index) => byCategory.flatMap((group) => group[index] ? [group[index]] : [])).flat();
   const featuredProducts = mixedProducts.slice(0, 3);
+  const categoryGroups = categories.map((category) => ({ category, items: products.filter((product) => product.categorySlug === category.slug) }));
 
   return <main className="shell marketplace-home marketplace-catalog-home">
     <div className="marketplace-context-bar catalog-context">
@@ -93,7 +94,7 @@ export default async function HomePage() {
 
     <section id="catalogue" className="catalog-feed" aria-labelledby="catalog-feed-title">
       <div className="catalog-feed-heading">
-        <div><span className="eyebrow">CATALOGUE MYBIGMARKET</span><h2 id="catalog-feed-title">Produits en précommande</h2><p>Comparez les prix, les minimums de commande et les délais estimatifs.</p></div>
+        <div><span className="eyebrow">CATALOGUE MYBIGMARKET</span><h2 id="catalog-feed-title">Des produits par catégorie</h2><p>Explorez les rayons et comparez les offres disponibles.</p></div>
         <Link className="catalog-more-link" href="/produits">Voir tout le catalogue <ArrowRight size={15}/></Link>
       </div>
       <div className="catalog-filter-strip">
@@ -101,7 +102,7 @@ export default async function HomePage() {
         <span className="catalog-filter-note"><PackageCheck size={15}/> Minimum de commande indiqué</span>
         <Link href="/produits" className="catalog-sort-link"><SlidersHorizontal size={15}/> Filtrer le catalogue</Link>
       </div>
-      {products.length ? <div className="product-grid catalog-inspired-grid">{mixedProducts.map((product) => <ProductCard key={product.slug} product={product}/>)}</div> : <div className="catalog-empty"><h2>Le catalogue se prépare</h2><p>Revenez bientôt pour découvrir les prochaines offres.</p></div>}
+      {products.length ? <div className="catalog-category-groups">{categoryGroups.map(({ category, items }) => <section className="catalog-category-section" key={category.slug} aria-labelledby={`category-${category.slug}`}><div className="catalog-category-section-heading"><div><span className="eyebrow">{items.length} PRODUITS</span><h3 id={`category-${category.slug}`}>{category.name}</h3><p>{category.description}</p></div><Link className="catalog-more-link" href={`/produits?categorie=${category.slug}`}>Voir tout <ArrowRight size={14}/></Link></div>{items.length ? <div className="product-grid catalog-inspired-grid catalog-category-product-grid">{items.map((product) => <ProductCard key={product.slug} product={product}/>)}</div> : <div className="catalog-empty"><p>De nouvelles offres seront bientôt ajoutées à ce rayon.</p></div>}</section>)}</div> : <div className="catalog-empty"><h2>Le catalogue se prépare</h2><p>Revenez bientôt pour découvrir les prochaines offres.</p></div>}
       <div className="catalog-bottom-note"><Truck size={16}/><span>Délais indicatifs. Les offres et vendeurs affichés ici sont des exemples de démonstration.</span><Link href="/comment-ca-marche">En savoir plus <ArrowRight size={13}/></Link></div>
     </section>
 
