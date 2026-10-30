@@ -879,3 +879,6 @@ main .catalog-category-product-grid .product-card-price{color:#ff8000!important}
 .brand-wordmark{font-family:"Inter",Arial,sans-serif;font-size:1em;font-weight:750;line-height:1;letter-spacing:-.045em;color:#17191c!important;white-space:nowrap}
 .brand-initial{font-family:inherit;font-size:1em;font-style:normal;font-weight:850;line-height:inherit;letter-spacing:inherit;vertical-align:baseline;margin-right:0;color:#ff8000!important}
 @media(max-width:760px){.brand-wordmark{letter-spacing:-.04em}.brand-initial{font-size:1em}}
+
+/* Keep the estimated 30-day delivery copy black across home, catalog and product pages. */
+.delivery-estimate,.delivery-estimate *,.delivery-estimate-fact,.delivery-estimate-fact *{color:#111!important}

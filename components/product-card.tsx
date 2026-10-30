@@ -48,7 +48,7 @@ export function ProductCard({ product, compact = false }: { product: DemoProduct
       <div className="product-card-category">{product.category}</div>
       <Link href={`/produits/${product.slug}`} className="product-card-title">{product.title}</Link>
       <div className="product-card-price">{formatXof(product.priceXof)} <span>/ unité</span></div>
-      <div className="product-card-meta"><span><Clock3 size={12}/> Délai estimé : 30 j</span></div>
+      <div className="product-card-meta"><span className="delivery-estimate"><Clock3 size={12}/> Délai estimé : 30 j</span></div>
       <div className="product-seller"><Store size={13}/><span>{product.seller}</span><small>{product.city}</small></div>
       <div className="product-card-foot"><span>Min. {product.minimumQuantity} unité{product.minimumQuantity > 1 ? "s" : ""}</span><button className="quick-add" onClick={() => addItem(product)} aria-label={`Ajouter ${product.title} au panier`}><Plus size={16}/></button></div>
     </div>
