@@ -386,7 +386,7 @@ p,small,label,li,time,.page-subtitle,.breadcrumbs,.section-heading p,.detail-cat
 .button-primary,.button-primary *,.search-form button,.brand-mark{color:#fff!important}
 .button-outline{color:#111!important;background:#fff!important;border-color:#aaa!important}
 .product-card-price,.product-card-price span,.detail-price,.cart-line-price,.summary-row.total{color:#ff8000!important}
-.detail-rating,.product-card-meta span:first-child{color:#ff8000!important}
+.detail-rating{color:#ff8000!important}
 .catalog-intro-points span,.catalog-intro-points svg,.product-description-note svg,.messages-refresh svg{color:#111!important}
 .field label,.field input,.field select,.field textarea,.search-form input{color:#111!important}
 .field input::placeholder,.field textarea::placeholder,.search-form input::placeholder{color:#555!important;opacity:1}
