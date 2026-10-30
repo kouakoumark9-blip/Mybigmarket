@@ -37,6 +37,24 @@ export default async function HomePage() {
       </form>
     </section>
 
+    <section className="catalog-image-banners" aria-label="Explorer les univers mybigmarket">
+      <Link className="catalog-image-banner catalog-image-banner-main" href="/produits">
+        <Image src="/hero-courier.jpg" alt="Colis et accessoires sélectionnés pour des achats entre la Chine et Abidjan" fill priority sizes="(max-width: 760px) 100vw, 70vw"/>
+        <span className="catalog-image-banner-shade" aria-hidden="true"/>
+        <span className="catalog-image-banner-copy"><small>MYBIGMARKET · CHINE → ABIDJAN</small><b>Des trouvailles utiles, simplement.</b><span>Parcourez le catalogue et comparez les offres en FCFA.</span><i>Explorer le catalogue <ArrowRight size={15}/></i></span>
+      </Link>
+      <div className="catalog-image-banner-side">
+        <Link className="catalog-image-banner catalog-image-banner-electronics" href="/produits?categorie=electronique">
+          <span className="catalog-image-banner-copy"><small>TECH DU QUOTIDIEN</small><b>Électronique</b><i>Voir les produits <ArrowRight size={13}/></i></span>
+          <Image src="/product-audio.jpg" alt="Casque et écouteurs audio" fill sizes="(max-width: 760px) 45vw, 18vw"/>
+        </Link>
+        <Link className="catalog-image-banner catalog-image-banner-home" href="/produits?categorie=maison-cuisine">
+          <span className="catalog-image-banner-copy"><small>MAISON & IDÉES UTILES</small><b>Pour votre espace</b><i>Découvrir <ArrowRight size={13}/></i></span>
+          <Image src="/product-home.jpg" alt="Lampe de bureau et accessoires pour la maison" fill sizes="(max-width: 760px) 45vw, 18vw"/>
+        </Link>
+      </div>
+    </section>
+
     <section className="catalog-welcome-row" aria-label="Bienvenue">
       <h1>Bienvenue sur <span>mybigmarket</span></h1>
       <div><Link href="/demande-de-devis"><Tag size={15}/> Demander un devis</Link><i/><Link href="/comment-ca-marche"><PackageCheck size={15}/> Comprendre les précommandes</Link><i/><Link href="/compte/commandes"><Truck size={15}/> Suivre une commande</Link></div>

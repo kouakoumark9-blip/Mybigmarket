@@ -668,3 +668,46 @@ body{font-size:18px}
 @media(max-width:760px){html{scroll-padding-top:112px;overflow-x:clip}body{overflow-x:clip;overscroll-behavior-x:none}.site-header{position:sticky;top:0;z-index:100}.mobile-contact{min-height:27px;background:#fff8ef;border-bottom:1px solid #eee6dc}.mobile-tabbar{z-index:110}}
 
 @media(max-width:760px){.table-secondary{color:#111!important}}
+
+/* New editorial image banners for the marketplace homepage. */
+.catalog-image-banners{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(270px,.8fr);gap:12px;margin:12px 0 14px}
+.catalog-image-banner{position:relative;display:flex;align-items:center;overflow:hidden;isolation:isolate;border:1px solid #eadfce;border-radius:12px;background:#f7f2e9;color:#17191c}
+.catalog-image-banner-main{grid-row:span 2;min-height:286px;padding:26px}
+.catalog-image-banner img{z-index:-2;object-fit:cover}
+.catalog-image-banner-main img{object-position:center 55%}
+.catalog-image-banner-shade{position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,rgba(250,247,241,.98) 0%,rgba(250,247,241,.92) 38%,rgba(250,247,241,.52) 57%,rgba(250,247,241,0) 82%)}
+.catalog-image-banner-copy{position:relative;z-index:2;display:grid;justify-items:start;gap:9px;max-width:440px;padding:14px}
+.catalog-image-banner-copy>small{color:#a64d00;font-size:11px;font-weight:800;letter-spacing:1.1px}
+.catalog-image-banner-copy>b{max-width:430px;color:#17191c;font-size:clamp(25px,3vw,38px);font-weight:800;line-height:1.12;letter-spacing:-.8px}
+.catalog-image-banner-copy>span{max-width:350px;color:#43494f;font-size:14px;line-height:1.5}
+.catalog-image-banner-copy>i{display:inline-flex;align-items:center;gap:8px;margin-top:4px;padding:10px 13px;border-radius:7px;background:#ff8000;color:#fff;font-size:12px;font-style:normal;font-weight:750}
+.catalog-image-banner-side{display:grid;grid-template-rows:1fr 1fr;gap:12px;min-height:286px}
+.catalog-image-banner-side .catalog-image-banner{min-height:137px;padding:10px}
+.catalog-image-banner-electronics{background:#fff0e1}
+.catalog-image-banner-home{background:#f4f0e8}
+.catalog-image-banner-side .catalog-image-banner:after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,#fff8f0 0%,rgba(255,248,240,.96) 40%,rgba(255,248,240,.05) 100%)}
+.catalog-image-banner-home:after{background:linear-gradient(90deg,#f6f2ea 0%,rgba(246,242,234,.96) 40%,rgba(246,242,234,.04) 100%)!important}
+.catalog-image-banner-side .catalog-image-banner img{width:54%!important;left:auto!important;right:0;object-position:center;object-fit:cover}
+.catalog-image-banner-side .catalog-image-banner-copy{gap:6px;max-width:65%;padding:5px}
+.catalog-image-banner-side .catalog-image-banner-copy>small{font-size:9px;letter-spacing:.7px}
+.catalog-image-banner-side .catalog-image-banner-copy>b{font-size:20px;line-height:1.15;letter-spacing:-.3px}
+.catalog-image-banner-side .catalog-image-banner-copy>i{margin-top:2px;padding:7px 9px;font-size:10px}
+@media(max-width:760px){
+  .catalog-image-banners{grid-template-columns:1fr;gap:8px;margin:8px 0 11px}
+  .catalog-image-banner-main{grid-row:auto;min-height:180px;padding:9px;border-radius:10px}
+  .catalog-image-banner-main img{object-position:60% 53%}
+  .catalog-image-banner-shade{background:linear-gradient(90deg,rgba(250,247,241,.98) 0%,rgba(250,247,241,.92) 48%,rgba(250,247,241,.45) 74%,rgba(250,247,241,.05) 100%)}
+  .catalog-image-banner-copy{max-width:72%;gap:6px;padding:10px}
+  .catalog-image-banner-copy>small{font-size:9px;letter-spacing:.7px}
+  .catalog-image-banner-copy>b{font-size:21px;line-height:1.13;letter-spacing:-.4px}
+  .catalog-image-banner-copy>span{font-size:11px;line-height:1.4}
+  .catalog-image-banner-copy>i{gap:5px;margin-top:2px;padding:8px 10px;font-size:10px}
+  .catalog-image-banner-side{grid-template-columns:1fr 1fr;grid-template-rows:auto;gap:8px;min-height:0}
+  .catalog-image-banner-side .catalog-image-banner{min-height:112px;padding:6px;border-radius:9px}
+  .catalog-image-banner-side .catalog-image-banner img{width:50%!important;object-position:center;}
+  .catalog-image-banner-side .catalog-image-banner-copy{max-width:72%;gap:5px;padding:4px}
+  .catalog-image-banner-side .catalog-image-banner-copy>small{font-size:8px;letter-spacing:.35px}
+  .catalog-image-banner-side .catalog-image-banner-copy>b{font-size:14px;line-height:1.15}
+  .catalog-image-banner-side .catalog-image-banner-copy>i{max-width:100%;gap:3px;margin-top:1px;padding:6px;font-size:8.5px;white-space:nowrap}
+}
+@media(max-width:390px){.catalog-image-banner-main{min-height:168px}.catalog-image-banner-copy>b{font-size:19px}.catalog-image-banner-copy>span{font-size:10px}.catalog-image-banner-side .catalog-image-banner{min-height:104px}.catalog-image-banner-side .catalog-image-banner-copy>small{font-size:7px}.catalog-image-banner-side .catalog-image-banner-copy>b{font-size:12px}.catalog-image-banner-side .catalog-image-banner-copy>i{font-size:8px}}
