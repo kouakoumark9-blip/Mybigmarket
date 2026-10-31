@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { usePathname } from "next/navigation";
-import { Search, ShoppingBag, UserRound, Menu, X, Store, MessageCircle, MapPin, UserRoundPlus, Home, Grid2X2, ClipboardList, Heart, Globe } from "lucide-react";
+import { Search, ShoppingBag, UserRound, Menu, X, MessageCircle, MapPin, UserRoundPlus, Home, Grid2X2, ClipboardList, Heart, Globe } from "lucide-react";
 import { useCart } from "@/components/cart-provider";
 import { useFavorites } from "@/components/favorites-provider";
 
@@ -13,7 +13,7 @@ export function SiteHeader() {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   return <>
-    <div className="top-strip"><div className="shell top-strip-inner"><span>Précommandes de Chine · prix affichés en FCFA</span><div><Link href="/compte/commandes">Suivre ma commande</Link><span className="top-divider"/> <Link href="/vendeur">Vendre sur mybigmarket</Link></div></div></div>
+    <div className="top-strip"><div className="shell top-strip-inner"><span>Précommandes de Chine · prix affichés en FCFA</span><div><Link href="/compte/commandes">Suivre ma commande</Link></div></div></div>
     <header className="site-header">
       <div className="shell header-main">
         <button className="mobile-menu-button" aria-label={mobileOpen ? "Fermer le menu" : "Ouvrir le menu"} onClick={() => setMobileOpen(!mobileOpen)}>{mobileOpen ? <X/> : <Menu/>}</button>
@@ -31,14 +31,11 @@ export function SiteHeader() {
         <div className="shell main-nav-inner">
           <div className="main-nav-primary">
             <Link className={`nav-categories ${pathname.startsWith("/produits") ? "active" : ""}`} href="/produits" onClick={() => setMobileOpen(false)}><Menu size={16}/> Toutes les catégories</Link>
-            <Link href="/vendeurs" onClick={() => setMobileOpen(false)}>Vendeurs</Link>
             <Link href="/demande-de-devis" onClick={() => setMobileOpen(false)}>Achats de gros</Link>
           </div>
           <div className="main-nav-secondary">
-            <Link href="/comment-ca-marche" onClick={() => setMobileOpen(false)}>Guide d’achat</Link>
             <Link href="/messages" onClick={() => setMobileOpen(false)}><MessageCircle size={15}/> Messages</Link>
             <Link href="/favoris" className={pathname.startsWith("/favoris") ? "active" : ""} onClick={() => setMobileOpen(false)}><Heart size={15}/> Favoris{favoritesCount > 0 && <span className="favorite-nav-count">{favoritesCount}</span>}</Link>
-            <Link href="/vendeur" onClick={() => setMobileOpen(false)}><Store size={15}/> Vendre sur mybigmarket</Link>
             <Link className="nav-seller-mobile" href="/inscription" onClick={() => setMobileOpen(false)}><UserRoundPlus size={15}/> Créer un compte</Link>
             <Link className="nav-seller-mobile" href="/compte/demandes" onClick={() => setMobileOpen(false)}>Mes demandes de devis</Link>
           </div>

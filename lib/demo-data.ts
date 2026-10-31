@@ -7,9 +7,9 @@ export type DemoProduct = {
 };
 
 export const categories = [
-  { name: "Mode & accessoires", slug: "mode-accessoires", icon: "◈", count: 10, description: "Sacs, montres, lunettes et accessoires du quotidien.", overview: categoryOverviews["mode-accessoires"] },
-  { name: "Téléphones & high-tech", slug: "electronique", icon: "▣", count: 10, description: "Audio, accessoires mobiles et équipements connectés.", overview: categoryOverviews.electronique },
-  { name: "Maison & beauté", slug: "maison-cuisine", icon: "⌂", count: 10, description: "Éclairage, rangement, beauté et accessoires maison.", overview: categoryOverviews["maison-cuisine"] },
+  { name: "Mode & accessoires", slug: "mode-accessoires", icon: "◈", count: 10, description: categoryOverviews["mode-accessoires"].join(" "), overview: categoryOverviews["mode-accessoires"] },
+  { name: "Téléphones & high-tech", slug: "electronique", icon: "▣", count: 10, description: categoryOverviews.electronique.join(" "), overview: categoryOverviews.electronique },
+  { name: "Maison & beauté", slug: "maison-cuisine", icon: "⌂", count: 10, description: categoryOverviews["maison-cuisine"].join(" "), overview: categoryOverviews["maison-cuisine"] },
 ];
 
 export const sellers = [

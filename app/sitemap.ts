@@ -4,7 +4,7 @@ import { getCatalogProducts } from "@/lib/catalog";
 export const dynamic="force-dynamic";
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = process.env.NEXT_PUBLIC_SITE_URL || "https://mybigmarket.example";
-  const staticPages = ["", "/produits", "/vendeurs", "/comment-ca-marche"];
+  const staticPages = ["", "/produits", "/demande-de-devis"];
   const products=await getCatalogProducts();
   return [
     ...staticPages.map((path) => ({ url: `${base}${path}`, lastModified: new Date(), changeFrequency: "daily" as const, priority: path === "" ? 1 : 0.7 })),
