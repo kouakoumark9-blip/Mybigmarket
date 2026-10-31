@@ -981,3 +981,36 @@ main .catalog-category-product-grid .product-card-price{color:#ff8000!important}
   .favorites-empty{margin:22px auto;padding:22px 15px}
   .favorite-toggle-labeled{min-height:36px;padding:7px 9px;font-size:11px}
 }
+
+/* Desktop home template: category rail beside the lead banner and two promo panels. */
+@media(min-width:761px){
+  .catalog-image-banners{grid-template-columns:minmax(210px,235px) minmax(0,1.7fr) minmax(240px,.8fr);align-items:stretch;gap:12px}
+  .catalog-home-rail{grid-column:1;grid-row:1;align-self:stretch;padding:13px 11px;border-radius:8px}
+  .catalog-image-banner-main{grid-column:2;grid-row:1;min-height:330px;padding:26px}
+  .catalog-image-banner-side{grid-column:3;grid-row:1;grid-template-rows:1fr 1fr;min-height:330px}
+  .catalog-image-banner-side .catalog-image-banner{min-height:0}
+  .catalog-discovery-layout.catalog-discovery-products{grid-template-columns:minmax(0,1fr) 320px;gap:12px}
+}
+@media(min-width:761px) and (max-width:1100px){
+  .catalog-image-banners{grid-template-columns:minmax(185px,205px) minmax(0,1.5fr) minmax(220px,.8fr);gap:9px}
+  .catalog-home-rail{padding:10px 8px}
+  .catalog-image-banner-main{min-height:305px;padding:20px}
+  .catalog-image-banner-side{min-height:305px}
+  .catalog-discovery-layout.catalog-discovery-products{grid-template-columns:minmax(0,1fr) 265px;gap:9px}
+}
+@media(min-width:761px) and (max-width:900px){
+  .catalog-image-banners{grid-template-columns:180px minmax(0,1fr);gap:9px}
+  .catalog-image-banner-main{grid-column:2;grid-row:1;min-height:300px;padding:17px}
+  .catalog-home-rail{grid-column:1;grid-row:1}
+  .catalog-image-banner-side{grid-column:1/-1;grid-row:2;grid-template-columns:1fr 1fr;grid-template-rows:1fr;min-height:150px}
+  .catalog-image-banner-side .catalog-image-banner{min-height:145px;padding:10px}
+  .catalog-discovery-layout.catalog-discovery-products{grid-template-columns:minmax(0,1fr) 235px}
+  .catalog-discovery-products .catalog-volume-card{grid-column:auto}
+}
+@media(max-width:760px){
+  .catalog-image-banners{grid-template-columns:1fr;gap:8px}
+  .catalog-home-rail{order:0}
+  .catalog-image-banner-main{order:1}
+  .catalog-image-banner-side{order:2}
+  .catalog-discovery-layout.catalog-discovery-products{grid-template-columns:1fr;gap:9px}
+}

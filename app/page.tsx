@@ -40,6 +40,11 @@ export default async function HomePage() {
     </section>
 
     <section className="catalog-image-banners" aria-label="Explorer les univers mybigmarket">
+      <aside className="catalog-category-index catalog-home-rail">
+        <div className="catalog-index-heading"><b>Parcourir les catégories</b><Link href="/produits" aria-label="Voir toutes les catégories"><ArrowRight size={15}/></Link></div>
+        {categories.map((category) => { const CategoryIcon = categoryIcons[category.slug] ?? Boxes; return <Link className="catalog-index-item" key={category.slug} href={`/produits?categorie=${category.slug}`}><CategoryIcon size={18} strokeWidth={1.7}/><span><b>{category.name}</b><small>{category.description}</small></span><ArrowRight className="catalog-index-arrow" size={14}/></Link>; })}
+        <Link className="catalog-index-all" href="/produits">Tous les produits <ArrowRight size={14}/></Link>
+      </aside>
       <Link className="catalog-image-banner catalog-image-banner-main" href="/produits">
         <Image src="/hero-courier.jpg" alt="Colis et accessoires sélectionnés pour des achats entre la Chine et Abidjan" fill priority sizes="(max-width: 760px) 100vw, 70vw"/>
         <span className="catalog-image-banner-shade" aria-hidden="true"/>
@@ -62,13 +67,7 @@ export default async function HomePage() {
       <div><Link href="/demande-de-devis"><Tag size={15}/> Demander un devis</Link><i/><Link href="/comment-ca-marche"><PackageCheck size={15}/> Comprendre les précommandes</Link><i/><Link href="/compte/commandes"><Truck size={15}/> Suivre une commande</Link></div>
     </section>
 
-    <section className="catalog-discovery-layout" aria-label="Explorer le catalogue">
-      <aside className="catalog-category-index">
-        <div className="catalog-index-heading"><b>Parcourir les catégories</b><Link href="/produits" aria-label="Voir toutes les catégories"><ArrowRight size={15}/></Link></div>
-        {categories.map((category) => { const CategoryIcon = categoryIcons[category.slug] ?? Boxes; return <Link className="catalog-index-item" key={category.slug} href={`/produits?categorie=${category.slug}`}><CategoryIcon size={18} strokeWidth={1.7}/><span><b>{category.name}</b><small>{category.description}</small></span><ArrowRight className="catalog-index-arrow" size={14}/></Link>; })}
-        <Link className="catalog-index-all" href="/produits">Tous les produits <ArrowRight size={14}/></Link>
-      </aside>
-
+    <section className="catalog-discovery-layout catalog-discovery-products" aria-label="Explorer le catalogue">
       <div className="catalog-picks-panel">
         <div className="catalog-picks-heading"><div><span className="eyebrow">À EXPLORER</span><h2>Des idées pour votre prochaine commande</h2></div><Link href="/produits">Tout voir <ArrowRight size={14}/></Link></div>
         <div className="catalog-picks-grid">
