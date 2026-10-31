@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, BadgeCheck, PackageCheck } from "lucide-react";
 import { CatalogBrowser } from "@/components/catalog-browser";
+import { CategoryDiscovery } from "@/components/category-discovery";
 import { getCatalogProducts } from "@/lib/catalog";
 import { categories } from "@/lib/demo-data";
 
@@ -22,12 +23,12 @@ export default async function ProductsPage({ searchParams }: Props) {
 
   return <main className="shell page-space">
     <div className="breadcrumbs"><Link href="/">Accueil</Link><span>›</span><span>{activeCategory?.name || "Catalogue"}</span></div>
+    <CategoryDiscovery products={productRows} activeCategorySlug={activeCategory?.slug || ""}/>
     <section className="catalog-intro-card">
       <div className="catalog-intro-copy"><span className="eyebrow">{activeCategory ? "DÉCOUVRIR LE RAYON" : "CATALOGUE · CHINE → CÔTE D’IVOIRE"}</span><h1 className="page-title">{title}</h1><div className="catalog-intro-overview">{overviewParagraphs.map((paragraph, index) => <p key={index}>{paragraph}</p>)}</div>
         <div className="catalog-intro-points"><span><PackageCheck size={16}/> MOQ et délai visibles</span><span><BadgeCheck size={16}/> Descriptions détaillées</span></div>
       </div>
       <div className="catalog-intro-cta"><b>Vous achetez en volume ?</b><small>Décrivez votre besoin et demandez un devis indicatif.</small><Link className="button button-primary" href="/demande-de-devis">Demander un devis <ArrowRight size={15}/></Link></div>
-      <nav className="catalog-category-chips" aria-label="Choisir une catégorie"><Link className={!activeCategory ? "selected" : ""} href="/produits">Tous les rayons</Link>{categories.map((category) => <Link className={activeCategory?.slug === category.slug ? "selected" : ""} key={category.slug} href={`/produits?categorie=${category.slug}`}>{category.name}</Link>)}</nav>
     </section>
     <CatalogBrowser products={productRows} initialQuery={params.q || ""} initialCategory={params.categorie || ""} initialMin={params.min || ""} initialMax={params.max || ""}/>
   </main>;
