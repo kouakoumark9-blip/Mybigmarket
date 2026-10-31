@@ -31,10 +31,10 @@ export function SiteHeader() {
           <Search size={18}/><input name="q" placeholder="Rechercher un produit, une catégorie..." aria-label="Rechercher un produit"/><button type="submit" aria-label="Lancer la recherche"><span>Rechercher</span><Search className="mobile-search-submit-icon" size={17}/></button>
         </form>
         <div className="header-actions">
-          <span className="header-locale"><MapPin size={16}/><span><b>Adresse de livraison :</b><small>Abidjan, CI</small></span></span>
-          <span className="header-currency"><Globe size={17}/><span>Français · XOF</span></span>
-          <Link href="/panier" className="header-action cart-action" aria-label={`Panier${count ? `, ${count} article${count > 1 ? "s" : ""}` : ""}`}><span className="cart-icon"><ShoppingBag size={20}/>{count > 0 && <b>{count}</b>}</span><span>Panier<small>Mes achats</small></span></Link>
-          <Link href="/connexion" className="header-action"><UserRound size={19}/><span>Se connecter<small>Mon compte</small></span></Link>
+          <span className="header-locale"><span><b>Adresse de livraison :</b><span className="header-locale-country"><i className="ci-flag" aria-hidden="true"><i/><i/><i/></i><small>CI</small></span></span></span>
+          <span className="header-currency" aria-label="Langue française, franc CFA XOF"><Globe size={17}/><span>Français-XOF</span></span>
+          <Link href="/panier" className="header-action cart-action" aria-label={`Panier${count ? `, ${count} article${count > 1 ? "s" : ""}` : ""}`}><span className="cart-icon"><ShoppingBag size={22}/>{count > 0 && <b>{count}</b>}</span></Link>
+          <Link href="/connexion" className="header-action"><UserRound size={19}/><span>Se connecter</span></Link>
           <Link href="/inscription" className="header-signup"><UserRoundPlus size={15}/><span>Créer un compte</span></Link>
         </div>
       </div>
