@@ -1108,8 +1108,3 @@ main .catalog-category-product-grid .product-card-price{color:#ff8000!important}
   .category-discovery-tile>b{font-size:9px}
   .category-discovery-heading>a{font-size:8px}
 }
-
-/* Homepage inventory stays concise: no more than five product cards total. */
-.catalog-home-featured-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
-@media(max-width:1050px){.catalog-home-featured-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}}
-@media(max-width:760px){.catalog-home-featured-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}}
