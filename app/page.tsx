@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowRight, BadgeCheck, Boxes, CircleHelp, House, MapPin, PackageCheck, Search, Shirt, Smartphone, SlidersHorizontal, Tag, Truck, type LucideIcon } from "lucide-react";
+import { ArrowRight, BadgeCheck, Boxes, CircleHelp, House, MapPin, PackageCheck, Search, Shirt, Smartphone, SlidersHorizontal, Truck, type LucideIcon } from "lucide-react";
 import { categories, formatXof } from "@/lib/demo-data";
 import { getCatalogProducts } from "@/lib/catalog";
 import { ProductVisual } from "@/components/product-card";
@@ -57,9 +57,8 @@ export default async function HomePage() {
       </div>
     </section>
 
-    <section className="catalog-welcome-row" aria-label="Raccourcis d’achat">
+    <section className="catalog-welcome-row" aria-label="Bienvenue">
       <h1>Bienvenue sur <span>mybigmarket</span></h1>
-      <div><Link href="/demande-de-devis"><Tag size={15}/> Demander un devis</Link><i/><Link href="/compte/commandes"><Truck size={15}/> Suivre une commande</Link></div>
     </section>
 
     <section className="catalog-discovery-layout catalog-discovery-products" aria-label="Explorer le catalogue">
