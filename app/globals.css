@@ -1153,3 +1153,865 @@ main .catalog-category-product-grid .product-card-price{color:#ff8000!important}
 @media(max-width:760px){.pdp-shell{width:calc(100% - 22px)}.pdp-breadcrumb{min-height:38px;font-size:10px}.pdp-main-layout{grid-template-columns:minmax(0,1fr);gap:10px}.pdp-left-column{display:contents}.pdp-gallery-column{grid-row:1}.pdp-info-card{grid-row:2;padding:14px}.pdp-supplier-card{grid-row:4}.pdp-shipping-panel{grid-row:3}.pdp-gallery-layout{display:flex;flex-direction:column-reverse;gap:8px}.pdp-thumbnails{flex-direction:row;max-width:100%;max-height:none;overflow-x:auto;overflow-y:hidden}.pdp-thumb{flex:0 0 57px;width:57px;height:57px}.pdp-thumbs-more{flex:0 0 34px;height:57px}.pdp-main-image-wrap{width:100%;max-height:min(100vw,470px)}.pdp-info-head h1{font-size:20px}.pdp-rating-row{font-size:10px}.pdp-price-tier strong{font-size:17px}.pdp-color-option{width:46px;height:46px}.pdp-shipping-card{display:block}.pdp-shipping-header{padding-top:13px}.pdp-order-protection{border-bottom:1px solid #ececee}.pdp-sticky-price{display:none}.pdp-order-controls{padding-bottom:13px}.pdp-sticky-tabs{top:86px;gap:16px;min-height:42px;margin-top:14px;padding:0 10px;overflow-x:auto}.pdp-sticky-tabs a{min-height:42px;font-size:11px;white-space:nowrap}.pdp-lower-layout{grid-template-columns:1fr}.pdp-lower-aside{display:none}.pdp-lower-main{padding:14px 0}.pdp-section-heading h2{font-size:18px}.pdp-attributes-table{min-width:650px}.pdp-package-table{min-width:430px}.pdp-preparation-table{min-width:480px}.pdp-recommendation-header h2{font-size:16px}.pdp-recommendation-rail{grid-auto-columns:42%;gap:10px}.pdp-mobile-buybar{position:fixed;right:0;bottom:calc(62px + env(safe-area-inset-bottom));left:0;z-index:85;display:grid;grid-template-columns:minmax(0,1fr) 42px minmax(118px,.75fr);align-items:center;gap:8px;padding:8px 12px;border-top:1px solid #dedfe0;background:#fff;box-shadow:0 -4px 16px #171b2012}.pdp-mobile-buybar>div{display:grid;gap:2px}.pdp-mobile-buybar>div>span{color:#73797f;font-size:9px}.pdp-mobile-buybar>div>strong{font-size:13px}.pdp-mobile-cart{display:grid;place-items:center;width:40px;height:38px;border:1px solid #444;border-radius:7px;background:#fff;color:#292e32}.pdp-mobile-order{display:flex;align-items:center;justify-content:center;gap:6px;min-height:39px;border:0;border-radius:22px;background:#d84000;color:#fff;font-size:12px;font-weight:750}.pdp-page{padding-bottom:142px}}
 @media(max-width:420px){.pdp-key-attribute{padding-inline:6px}.pdp-key-attribute span{font-size:9px}.pdp-key-attribute strong{font-size:11px}.pdp-supplier-metrics>div{padding-inline:5px}.pdp-supplier-metrics span{font-size:8px}.pdp-secondary-actions>button,.pdp-secondary-actions form button{font-size:8px}.pdp-price-tiers.is-compact .pdp-price-tier strong{font-size:11px}}
 .pdp-margin-calculator{display:grid;gap:7px;color:#4b5156}.pdp-margin-calculator>label{font-size:10px;font-weight:700}.pdp-margin-calculator>input{width:100%;min-height:34px;padding:6px 9px;border:1px solid #d7d9db;border-radius:5px;background:#fff;color:#222;font-size:12px}.pdp-margin-calculator>div{display:flex;align-items:center;gap:6px;font-size:10px}.pdp-margin-calculator>div svg{flex:0 0 auto;color:#d84000}.pdp-margin-calculator output{display:flex;flex-wrap:wrap;gap:5px;font-size:10px}.pdp-margin-calculator output.is-positive strong{color:#197247}.pdp-margin-calculator output.is-negative strong{color:#b63626}.pdp-margin-calculator>small{color:#747a80;font-size:9px;line-height:1.45}
+
+/* Product detail typography +30% — scoped to product pages across both product templates */
+.product-page-typography{
+    font-size: 130%}
+.product-page-typography :is(button,input,select,textarea){
+    font-size: inherit}
+.product-page-typography .button{
+    font-size: 17.16px}
+.product-page-typography .eyebrow{
+    font-size: 14.04px}
+.product-page-typography .section-heading h2,.product-page-typography .how-intro h2{
+    font-size: 37.18px}
+.product-page-typography .section-heading p{
+    font-size: 17.16px}
+.product-page-typography .text-link{
+    font-size: 17.16px}
+.product-page-typography .product-card-category{
+    font-size: 12.48px}
+.product-page-typography .product-card-title{
+    font-size: 18.59px}
+.product-page-typography .product-card-price{
+    font-size: 21.84px}
+.product-page-typography .product-card-price span{
+    font-size: 12.48px}
+.product-page-typography .product-card-meta{
+    font-size: 14.04px}
+.product-page-typography .product-seller{
+    font-size: 14.04px}
+.product-page-typography .product-seller small{
+    font-size: 10.92px}
+.product-page-typography .product-card-foot{
+    font-size: 14.04px}
+.product-page-typography .breadcrumbs{
+    font-size: 15.6px}
+.product-page-typography .detail-visual .product-emoji{
+    font-size: 171.6px}
+.product-page-typography .detail-category{
+    font-size: 15.6px}
+.product-page-typography .detail-panel h1{
+    font-size: 40.56px}
+.product-page-typography .detail-rating{
+    font-size: 15.6px}
+.product-page-typography .detail-price{
+    font-size: 43.68px}
+.product-page-typography .detail-price-note{
+    font-size: 15.6px}
+.product-page-typography .detail-facts>div{
+    font-size: 15.6px}
+.product-page-typography .detail-seller b{
+    font-size: 17.16px}
+.product-page-typography .detail-seller small{
+    font-size: 14.04px}
+.product-page-typography .detail-description{
+    font-size: 17.16px}
+.product-page-typography .quantity-control input{
+    font-size: 17.16px}
+.product-page-typography .detail-help{
+    font-size: 14.04px}
+@media(max-width:980px){
+    .product-page-typography .product-card-title{
+        font-size: 16.9px}}
+@media(max-width:720px){
+    .product-page-typography .button{
+        font-size: 14.04px}}
+@media(max-width:720px){
+    .product-page-typography .section-heading h2{
+        font-size: 30.42px}}
+@media(max-width:720px){
+    .product-page-typography .section-heading p{
+        font-size: 14.04px}}
+@media(max-width:720px){
+    .product-page-typography .section-heading>.text-link{
+        font-size: 14.04px}}
+@media(max-width:720px){
+    .product-page-typography .product-card-title{
+        font-size: 16.9px}}
+@media(max-width:720px){
+    .product-page-typography .product-card-price{
+        font-size: 18.72px}}
+@media(max-width:720px){
+    .product-page-typography .product-card-meta{
+        font-size: 12.48px}}
+@media(max-width:720px){
+    .product-page-typography .product-seller{
+        font-size: 12.48px}}
+@media(max-width:720px){
+    .product-page-typography .detail-panel h1{
+        font-size: 33.8px}}
+@media(max-width:720px){
+    .product-page-typography .how-section .text-link{
+        font-size: 15.6px}}
+.product-page-typography .button{
+    font-size: 18.72px}
+.product-page-typography .section-heading h2,.product-page-typography .how-intro h2{
+    font-size: 42.25px}
+.product-page-typography .product-card-category{
+    font-size: 14.04px}
+.product-page-typography .product-card-title{
+    font-size: 20.28px}
+.product-page-typography .product-card-price{
+    font-size: 23.4px}
+.product-page-typography .product-card-meta{
+    font-size: 14.04px}
+.product-page-typography .product-seller{
+    font-size: 14.04px}
+@media(max-width:720px){
+    .product-page-typography .section-heading h2{
+        font-size: 32.11px}}
+@media(max-width:720px){
+    .product-page-typography .product-card-title{
+        font-size: 16.9px}}
+.product-page-typography .marketplace-products-section .section-heading h2{
+    font-size: 38.87px}
+.product-page-typography .group-order-banner .eyebrow{
+    font-size: 12.48px}
+.product-page-typography .group-order-banner .button{
+    font-size: 14.04px}
+@media(max-width:720px){
+    .product-page-typography .market-hero-actions .button{
+        font-size: 12.48px}}
+@media(max-width:720px){
+    .product-page-typography .marketplace-products-section .section-heading h2{
+        font-size: 30.42px}}
+@media(max-width:720px){
+    .product-page-typography .group-order-banner .eyebrow{
+        font-size: 9.36px}}
+@media(max-width:720px){
+    .product-page-typography .group-order-banner>.button{
+        font-size: 12.48px}}
+.product-page-typography .sourcing-intro>.text-link{
+    font-size: 14.04px}
+.product-page-typography .rfq-success-actions .button{
+    font-size: 14.04px}
+.product-page-typography .quote-dashboard-actions .button{
+    font-size: 14.04px}
+@media(max-width:720px){
+    .product-page-typography .rfq-form>.button{
+        font-size: 12.48px}}
+@media(max-width:720px){
+    .product-page-typography .quote-dashboard-actions .button{
+        font-size: 12.48px}}
+.product-page-typography .breadcrumbs{
+    font-size: 18.72px}
+.product-page-typography .eyebrow{
+    font-size: 15.6px}
+.product-page-typography .button{
+    font-size: 20.28px}
+.product-page-typography .product-card-category{
+    font-size: 15.6px}
+.product-page-typography .product-card-title{
+    font-size: 21.97px}
+.product-page-typography .product-card-price{
+    font-size: 24.96px}
+.product-page-typography .product-card-price span{
+    font-size: 15.6px}
+.product-page-typography .product-card-meta{
+    font-size: 15.6px}
+.product-page-typography .product-seller{
+    font-size: 15.6px}
+.product-page-typography .product-seller small{
+    font-size: 12.48px}
+.product-page-typography .product-card-foot{
+    font-size: 15.6px}
+.product-page-typography .section-heading h2,.product-page-typography .how-intro h2{
+    font-size: 45.63px}
+.product-page-typography .section-heading p{
+    font-size: 20.28px}
+.product-page-typography .text-link{
+    font-size: 18.72px}
+.product-page-typography .marketplace-products-section .section-heading h2{
+    font-size: 45.63px}
+.product-page-typography .group-order-banner .button{
+    font-size: 17.16px}
+.product-page-typography .rfq-form>.button{
+    font-size: 18.72px}
+.product-page-typography .detail-panel h1{
+    font-size: 49.01px}
+.product-page-typography .detail-category{
+    font-size: 18.72px}
+.product-page-typography .detail-price{
+    font-size: 49.92px}
+.product-page-typography .detail-price-note,.product-page-typography .detail-description{
+    font-size: 20.28px}
+.product-page-typography .detail-facts>div{
+    font-size: 18.72px}
+.product-page-typography .detail-seller b{
+    font-size: 20.28px}
+.product-page-typography .detail-seller small{
+    font-size: 17.16px}
+.product-page-typography .detail-help{
+    font-size: 17.16px}
+.product-page-typography .quote-dashboard-actions .button{
+    font-size: 17.16px}
+@media(max-width:720px){
+    .product-page-typography .breadcrumbs{
+        font-size: 15.6px}}
+@media(max-width:720px){
+    .product-page-typography .button{
+        font-size: 17.16px}}
+@media(max-width:720px){
+    .product-page-typography .market-hero-actions .button{
+        font-size: 14.04px}}
+@media(max-width:720px){
+    .product-page-typography .marketplace-products-section .section-heading h2,.product-page-typography .section-heading h2{
+        font-size: 32.11px}}
+@media(max-width:720px){
+    .product-page-typography .section-heading p{
+        font-size: 15.6px}}
+@media(max-width:720px){
+    .product-page-typography .product-card-title{
+        font-size: 18.59px}}
+@media(max-width:720px){
+    .product-page-typography .product-card-category{
+        font-size: 14.04px}}
+@media(max-width:720px){
+    .product-page-typography .product-card-price{
+        font-size: 21.84px}}
+@media(max-width:720px){
+    .product-page-typography .product-card-meta{
+        font-size: 14.04px}}
+@media(max-width:720px){
+    .product-page-typography .product-seller{
+        font-size: 14.04px}}
+@media(max-width:720px){
+    .product-page-typography .product-card-foot{
+        font-size: 12.48px}}
+@media(max-width:720px){
+    .product-page-typography .detail-panel h1{
+        font-size: 37.18px}}
+@media(max-width:720px){
+    .product-page-typography .detail-price{
+        font-size: 40.56px}}
+@media(max-width:720px){
+    .product-page-typography .detail-price-note,.product-page-typography .detail-description{
+        font-size: 17.16px}}
+@media(max-width:720px){
+    .product-page-typography .detail-facts>div{
+        font-size: 14.04px}}
+@media(max-width:720px){
+    .product-page-typography .detail-seller b{
+        font-size: 17.16px}}
+@media(max-width:720px){
+    .product-page-typography .detail-seller small{
+        font-size: 14.04px}}
+@media(max-width:720px){
+    .product-page-typography .detail-help{
+        font-size: 14.04px}}
+.product-page-typography .breadcrumbs{
+    font-size: 18.72px}
+.product-page-typography .eyebrow{
+    font-size: 17.16px}
+.product-page-typography .button{
+    font-size: 21.84px}
+.product-page-typography .market-hero-actions .button{
+    font-size: 21.84px}
+.product-page-typography .section-heading h2,.product-page-typography .how-intro h2,.product-page-typography .marketplace-products-section .section-heading h2{
+    font-size: 50.7px}
+.product-page-typography .section-heading p{
+    font-size: 21.84px}
+.product-page-typography .product-card-category{
+    font-size: 17.16px}
+.product-page-typography .product-card-title{
+    font-size: 23.66px}
+.product-page-typography .product-card-price{
+    font-size: 28.08px}
+.product-page-typography .product-card-price span{
+    font-size: 17.16px}
+.product-page-typography .product-card-meta{
+    font-size: 17.16px}
+.product-page-typography .product-seller{
+    font-size: 17.16px}
+.product-page-typography .product-seller small{
+    font-size: 14.04px}
+.product-page-typography .product-card-foot{
+    font-size: 17.16px}
+.product-page-typography .group-order-banner .button{
+    font-size: 18.72px}
+.product-page-typography .rfq-form>.button{
+    font-size: 20.28px}
+.product-page-typography .detail-panel h1{
+    font-size: 54.08px}
+.product-page-typography .detail-category{
+    font-size: 20.28px}
+.product-page-typography .detail-price{
+    font-size: 56.16px}
+.product-page-typography .detail-price-note,.product-page-typography .detail-description{
+    font-size: 21.84px}
+.product-page-typography .detail-facts>div{
+    font-size: 20.28px}
+.product-page-typography .detail-seller b{
+    font-size: 21.84px}
+.product-page-typography .detail-seller small{
+    font-size: 18.72px}
+.product-page-typography .detail-help{
+    font-size: 18.72px}
+@media(max-width:720px){
+    .product-page-typography .section-heading h2,.product-page-typography .how-intro h2,.product-page-typography .marketplace-products-section .section-heading h2{
+        font-size: 35.49px}
+}
+@media(max-width:720px){
+    .product-page-typography .market-hero-actions .button{
+        font-size: 15.6px}
+}
+@media(max-width:720px){
+    .product-page-typography .product-card-category{
+        font-size: 14.04px}
+}
+@media(max-width:720px){
+    .product-page-typography .product-card-title{
+        font-size: 20.28px}
+}
+@media(max-width:720px){
+    .product-page-typography .product-card-price{
+        font-size: 23.4px}
+}
+@media(max-width:720px){
+    .product-page-typography .product-card-price span,.product-page-typography .product-card-meta,.product-page-typography .product-seller{
+        font-size: 14.04px}
+}
+@media(max-width:720px){
+    .product-page-typography .product-card-foot{
+        font-size: 14.04px}
+}
+@media(max-width:720px){
+    .product-page-typography .group-order-banner .button{
+        font-size: 14.04px}
+}
+@media(max-width:720px){
+    .product-page-typography .detail-panel h1{
+        font-size: 40.56px}
+}
+@media(max-width:720px){
+    .product-page-typography .detail-category{
+        font-size: 15.6px}
+}
+@media(max-width:720px){
+    .product-page-typography .detail-price{
+        font-size: 43.68px}
+}
+@media(max-width:720px){
+    .product-page-typography .detail-price-note,.product-page-typography .detail-description{
+        font-size: 18.72px}
+}
+@media(max-width:720px){
+    .product-page-typography .detail-facts>div{
+        font-size: 15.6px}
+}
+@media(max-width:720px){
+    .product-page-typography .detail-seller b{
+        font-size: 18.72px}
+}
+@media(max-width:720px){
+    .product-page-typography .detail-seller small{
+        font-size: 15.6px}
+}
+@media(max-width:720px){
+    .product-page-typography .detail-help{
+        font-size: 15.6px}
+}
+.product-page-typography .catalog-intro-cta .button{
+    font-size: 18.72px}
+.product-page-typography .product-description-top h2{
+    font-size: 38.87px}
+.product-page-typography .product-description-top>p{
+    font-size: 21.84px}
+.product-page-typography .product-description-details span{
+    font-size: 15.6px}
+.product-page-typography .product-description-details b{
+    font-size: 18.72px}
+.product-page-typography .product-description-note{
+    font-size: 17.16px}
+@media(max-width:720px){
+    .product-page-typography .catalog-intro-cta .button{
+        font-size: 15.6px}}
+@media(max-width:720px){
+    .product-page-typography .product-description-top h2{
+        font-size: 32.11px}}
+@media(max-width:720px){
+    .product-page-typography .product-description-top>p{
+        font-size: 18.72px}}
+@media(max-width:720px){
+    .product-page-typography .product-description-details span{
+        font-size: 14.04px}}
+@media(max-width:720px){
+    .product-page-typography .product-description-details b{
+        font-size: 15.6px}}
+@media(max-width:720px){
+    .product-page-typography .product-description-note{
+        font-size: 14.04px}}
+.product-page-typography .catalog-feed-heading .eyebrow{
+    font-size: 12.48px}
+.product-page-typography .catalog-inspired-grid .product-card-category{
+    font-size: 10.92px}
+.product-page-typography .catalog-inspired-grid .product-card-title{
+    font-size: 15.21px}
+.product-page-typography .catalog-inspired-grid .product-card-price{
+    font-size: 18.72px}
+.product-page-typography .catalog-inspired-grid .product-card-meta{
+    font-size: 10.92px}
+.product-page-typography .catalog-inspired-grid .product-seller{
+    font-size: 10.92px}
+.product-page-typography .catalog-inspired-grid .product-seller small{
+    font-size: 9.36px}
+.product-page-typography .catalog-inspired-grid .product-card-foot{
+    font-size: 10.92px}
+@media(max-width:760px){
+    .product-page-typography .catalog-feed-heading .eyebrow{
+        font-size: 10.92px}}
+@media(max-width:760px){
+    .product-page-typography .catalog-inspired-grid .product-card-category{
+        font-size: 10.92px}}
+@media(max-width:760px){
+    .product-page-typography .catalog-inspired-grid .product-card-title{
+        font-size: 15.21px}}
+@media(max-width:760px){
+    .product-page-typography .catalog-inspired-grid .product-card-price{
+        font-size: 18.72px}}
+@media(max-width:760px){
+    .product-page-typography .catalog-inspired-grid .product-card-meta{
+        font-size: 10.92px}}
+@media(max-width:760px){
+    .product-page-typography .catalog-inspired-grid .product-seller{
+        font-size: 10.92px}}
+@media(max-width:760px){
+    .product-page-typography .catalog-inspired-grid .product-card-foot{
+        font-size: 10.92px}}
+.product-page-typography .catalog-feed-heading .eyebrow{
+    font-size: 15.6px}
+.product-page-typography .catalog-inspired-grid .product-card-category{
+    font-size: 15.6px}
+.product-page-typography .catalog-inspired-grid .product-card-title{
+    font-size: 21.97px}
+.product-page-typography .catalog-inspired-grid .product-card-price{
+    font-size: 24.96px}
+.product-page-typography .catalog-inspired-grid .product-card-meta{
+    font-size: 15.6px}
+.product-page-typography .catalog-inspired-grid .product-seller{
+    font-size: 15.6px}
+.product-page-typography .catalog-inspired-grid .product-seller small{
+    font-size: 12.48px}
+.product-page-typography .catalog-inspired-grid .product-card-foot{
+    font-size: 15.6px}
+@media(max-width:760px){
+    .product-page-typography .catalog-feed-heading .eyebrow{
+        font-size: 14.04px}}
+@media(max-width:760px){
+    .product-page-typography .catalog-inspired-grid .product-card-category{
+        font-size: 14.04px}}
+@media(max-width:760px){
+    .product-page-typography .catalog-inspired-grid .product-card-title{
+        font-size: 20.28px}}
+@media(max-width:760px){
+    .product-page-typography .catalog-inspired-grid .product-card-price{
+        font-size: 23.4px}}
+@media(max-width:760px){
+    .product-page-typography .catalog-inspired-grid .product-card-meta{
+        font-size: 14.04px}}
+@media(max-width:760px){
+    .product-page-typography .catalog-inspired-grid .product-seller{
+        font-size: 14.04px}}
+@media(max-width:760px){
+    .product-page-typography .catalog-inspired-grid .product-seller small{
+        font-size: 10.92px}}
+@media(max-width:760px){
+    .product-page-typography .catalog-inspired-grid .product-card-foot{
+        font-size: 14.04px}}
+@media(max-width:390px){
+    .product-page-typography .catalog-inspired-grid .product-card-title{
+        font-size: 18.59px}}
+@media(max-width:390px){
+    .product-page-typography .catalog-inspired-grid .product-card-price{
+        font-size: 21.84px}}
+.product-page-typography .catalog-inspired-grid .product-seller small{
+    font-size: 14.04px}
+.product-page-typography .catalog-picks-heading .eyebrow{
+    font-size: 12.48px}
+.product-page-typography .catalog-volume-copy .eyebrow{
+    font-size: 12.48px}
+.product-page-typography .breadcrumbs{
+    font-size: 18.72px}
+.product-page-typography .button{
+    font-size: 20.28px}
+.product-page-typography .catalog-picks-heading .eyebrow{
+    font-size: 14.04px}
+.product-page-typography .catalog-volume-copy .eyebrow{
+    font-size: 14.04px}
+.product-page-typography .catalog-inspired-grid .product-card-category{
+    font-size: 17.16px}
+.product-page-typography .catalog-inspired-grid .product-card-title{
+    font-size: 23.66px}
+.product-page-typography .catalog-inspired-grid .product-card-price{
+    font-size: 28.08px}
+.product-page-typography .catalog-inspired-grid .product-card-meta{
+    font-size: 17.16px}
+.product-page-typography .catalog-inspired-grid .product-seller{
+    font-size: 17.16px}
+.product-page-typography .catalog-inspired-grid .product-seller small{
+    font-size: 15.6px}
+.product-page-typography .catalog-inspired-grid .product-card-foot{
+    font-size: 17.16px}
+.product-page-typography .product-grid:not(.catalog-inspired-grid) .product-card-title{
+    font-size: 21.97px}
+.product-page-typography .product-grid:not(.catalog-inspired-grid) .product-card-price{
+    font-size: 26.52px}
+.product-page-typography .product-grid:not(.catalog-inspired-grid) .product-card-category{
+    font-size: 15.6px}
+.product-page-typography .product-grid:not(.catalog-inspired-grid) .product-card-meta,.product-page-typography .product-grid:not(.catalog-inspired-grid) .product-seller,.product-page-typography .product-grid:not(.catalog-inspired-grid) .product-card-foot{
+    font-size: 17.16px}
+@media(max-width:760px){
+    .product-page-typography .button{
+        font-size: 18.72px}}
+@media(max-width:760px){
+    .product-page-typography .catalog-inspired-grid .product-card-category{
+        font-size: 14.04px}}
+@media(max-width:760px){
+    .product-page-typography .catalog-inspired-grid .product-card-title{
+        font-size: 20.28px}}
+@media(max-width:760px){
+    .product-page-typography .catalog-inspired-grid .product-card-price{
+        font-size: 24.96px}}
+@media(max-width:760px){
+    .product-page-typography .catalog-inspired-grid .product-card-meta,.product-page-typography .catalog-inspired-grid .product-seller,.product-page-typography .catalog-inspired-grid .product-card-foot{
+        font-size: 14.04px}}
+@media(max-width:760px){
+    .product-page-typography .product-grid:not(.catalog-inspired-grid) .product-card-title{
+        font-size: 20.28px}}
+@media(max-width:760px){
+    .product-page-typography .product-grid:not(.catalog-inspired-grid) .product-card-price{
+        font-size: 23.4px}}
+@media(max-width:390px){
+    .product-page-typography .catalog-inspired-grid .product-card-title{
+        font-size: 18.59px}}
+@media(max-width:390px){
+    .product-page-typography .catalog-inspired-grid .product-card-price{
+        font-size: 23.4px}}
+@media(max-width:760px){
+    .product-page-typography .breadcrumbs{
+        font-size: 14.3px}
+}
+@media(max-width:760px){
+    .product-page-typography .eyebrow{
+        font-size: 13px}
+}
+@media(max-width:760px){
+    .product-page-typography .button{
+        font-size: 16.9px}
+}
+@media(max-width:760px){
+    .product-page-typography .product-card-category,.product-page-typography .catalog-inspired-grid .product-card-category,.product-page-typography .product-grid:not(.catalog-inspired-grid) .product-card-category{
+        font-size: 13px}
+}
+@media(max-width:760px){
+    .product-page-typography .product-card-title,.product-page-typography .catalog-inspired-grid .product-card-title,.product-page-typography .product-grid:not(.catalog-inspired-grid) .product-card-title{
+        font-size: 16.9px}
+}
+@media(max-width:760px){
+    .product-page-typography .product-card-price,.product-page-typography .catalog-inspired-grid .product-card-price,.product-page-typography .product-grid:not(.catalog-inspired-grid) .product-card-price{
+        font-size: 22.1px}
+}
+@media(max-width:760px){
+    .product-page-typography .product-card-price span{
+        font-size: 13px}
+}
+@media(max-width:760px){
+    .product-page-typography .product-card-meta,.product-page-typography .catalog-inspired-grid .product-card-meta,.product-page-typography .product-grid:not(.catalog-inspired-grid) .product-card-meta{
+        font-size: 13px}
+}
+@media(max-width:760px){
+    .product-page-typography .product-seller,.product-page-typography .catalog-inspired-grid .product-seller,.product-page-typography .product-grid:not(.catalog-inspired-grid) .product-seller{
+        font-size: 13px}
+}
+@media(max-width:760px){
+    .product-page-typography .product-seller small{
+        font-size: 11.7px}
+}
+@media(max-width:760px){
+    .product-page-typography .product-card-foot,.product-page-typography .catalog-inspired-grid .product-card-foot,.product-page-typography .product-grid:not(.catalog-inspired-grid) .product-card-foot{
+        font-size: 11.7px}
+}
+@media(max-width:760px){
+    .product-page-typography .detail-panel h1{
+        font-size: 31.2px}
+}
+@media(max-width:760px){
+    .product-page-typography .detail-category{
+        font-size: 14.3px}
+}
+@media(max-width:760px){
+    .product-page-typography .detail-rating{
+        font-size: 14.3px}
+}
+@media(max-width:760px){
+    .product-page-typography .detail-price{
+        font-size: 35.1px}
+}
+@media(max-width:760px){
+    .product-page-typography .detail-price-note{
+        font-size: 14.3px}
+}
+@media(max-width:760px){
+    .product-page-typography .detail-facts>div{
+        font-size: 13px}
+}
+@media(max-width:760px){
+    .product-page-typography .detail-add-row .button{
+        font-size: 14.3px}
+}
+@media(max-width:760px){
+    .product-page-typography .product-description-top h2{
+        font-size: 23.4px}
+}
+@media(max-width:760px){
+    .product-page-typography .product-description-top p{
+        font-size: 15.6px}
+}
+@media(max-width:760px){
+    .product-page-typography .product-description-details>div{
+        font-size: 13px}
+}
+@media(max-width:760px){
+    .product-page-typography .product-description-details>div b{
+        font-size: 14.3px}
+}
+@media(max-width:760px){
+    .product-page-typography .section-heading h2{
+        font-size: 26px}
+}
+@media(max-width:760px){
+    .product-page-typography .section-heading p{
+        font-size: 14.3px}
+}
+@media(max-width:760px){
+    .product-page-typography .text-link{
+        font-size: 13px}
+}
+@media(max-width:390px){
+    .product-page-typography .product-card-title,.product-page-typography .catalog-inspired-grid .product-card-title,.product-page-typography .product-grid:not(.catalog-inspired-grid) .product-card-title{
+        font-size: 15.6px}
+}
+@media(max-width:390px){
+    .product-page-typography .product-card-price,.product-page-typography .catalog-inspired-grid .product-card-price,.product-page-typography .product-grid:not(.catalog-inspired-grid) .product-card-price{
+        font-size: 20.15px}
+}
+@media(max-width:390px){
+    .product-page-typography .detail-add-row .button{
+        font-size: 13px}
+}
+.product-page-typography .catalog-category-section-heading .eyebrow{
+    font-size: 13px}
+@media(max-width:760px){
+    .product-page-typography .catalog-category-section-heading .eyebrow{
+        font-size: 10.4px}
+}
+.product-page-typography .category-discovery-heading .eyebrow{
+    font-size: 11.7px}
+.product-page-typography .pdp-breadcrumb{
+    font-size: 15.6px}
+.product-page-typography .pdp-gallery-count{
+    font-size: 13px}
+.product-page-typography .pdp-supplier-logo{
+    font-size: 18.2px}
+.product-page-typography .pdp-supplier-name h2{
+    font-size: 16.9px}
+.product-page-typography .pdp-supplier-name>span{
+    font-size: 13px}
+.product-page-typography .pdp-country-mark{
+    font-size: 9.1px}
+.product-page-typography .pdp-supplier-metrics strong{
+    font-size: 15.6px}
+.product-page-typography .pdp-supplier-metrics strong small{
+    font-size: 11.7px}
+.product-page-typography .pdp-supplier-metrics span{
+    font-size: 11.7px}
+.product-page-typography .pdp-supplier-markets{
+    font-size: 13px}
+.product-page-typography .pdp-supplier-footer{
+    font-size: 13px}
+.product-page-typography .pdp-supplier-disclaimer{
+    font-size: 11.7px}
+.product-page-typography .pdp-category-label{
+    font-size: 14.3px}
+.product-page-typography .pdp-info-head h1{
+    font-size: 28.6px}
+.product-page-typography .pdp-rating-row{
+    font-size: 14.3px}
+.product-page-typography .pdp-rating-row strong{
+    font-size: 15.6px}
+.product-page-typography .pdp-price-tier strong{
+    font-size: 24.7px}
+.product-page-typography .pdp-price-tier span{
+    font-size: 13px}
+.product-page-typography .pdp-price-tiers.is-compact .pdp-price-tier strong{
+    font-size: 15.6px}
+.product-page-typography .pdp-price-tiers.is-compact .pdp-price-tier span{
+    font-size: 11.7px}
+.product-page-typography .pdp-variant-heading h3{
+    font-size: 16.9px}
+.product-page-typography .pdp-variant-heading>button,.product-page-typography .pdp-variant-heading>span{
+    font-size: 13px}
+.product-page-typography .pdp-plug-options button{
+    font-size: 14.3px}
+.product-page-typography .pdp-key-attribute span{
+    font-size: 13px}
+.product-page-typography .pdp-key-attribute strong{
+    font-size: 15.6px}
+.product-page-typography .pdp-analysis-block>p{
+    font-size: 15.6px}
+.product-page-typography .pdp-analysis-block>p span{
+    font-size: 11.7px}
+.product-page-typography .pdp-analysis-block>button{
+    font-size: 13px}
+.product-page-typography .pdp-cost-note{
+    font-size: 13px}
+.product-page-typography .pdp-demo-ribbon{
+    font-size: 11.7px}
+.product-page-typography .pdp-more-details{
+    font-size: 13px}
+.product-page-typography .pdp-shipping-header h2{
+    font-size: 18.2px}
+.product-page-typography .pdp-shipping-header a{
+    font-size: 14.3px}
+.product-page-typography .pdp-logistics-label{
+    font-size: 13px}
+.product-page-typography .pdp-shipping-quote>b{
+    font-size: 14.3px}
+.product-page-typography .pdp-shipping-quote>span:not(.pdp-logistics-label){
+    font-size: 13px}
+.product-page-typography .pdp-shipping-quote small{
+    font-size: 11.7px}
+.product-page-typography .pdp-order-protection h3{
+    font-size: 15.6px}
+.product-page-typography .pdp-order-protection p{
+    font-size: 13px}
+.product-page-typography .pdp-payment-status{
+    font-size: 13px}
+.product-page-typography .pdp-order-protection small{
+    font-size: 11.7px}
+.product-page-typography .pdp-selected-variant{
+    font-size: 11.7px}
+.product-page-typography .pdp-selected-variant strong{
+    font-size: 11.7px}
+.product-page-typography .pdp-order-controls>label{
+    font-size: 14.3px}
+.product-page-typography .pdp-quantity-stepper button{
+    font-size: 23.4px}
+.product-page-typography .pdp-quantity-stepper input{
+    font-size: 15.6px}
+.product-page-typography .pdp-order-total>span{
+    font-size: 13px}
+.product-page-typography .pdp-order-total>strong{
+    font-size: 24.7px}
+.product-page-typography .pdp-order-total>small{
+    font-size: 11.7px}
+.product-page-typography .pdp-order-button{
+    font-size: 16.9px}
+.product-page-typography .pdp-secondary-actions>button,.product-page-typography .pdp-secondary-actions form button{
+    font-size: 11.7px}
+.product-page-typography .pdp-add-feedback{
+    font-size: 11.7px}
+.product-page-typography .pdp-no-payment-note{
+    font-size: 11.7px}
+.product-page-typography .pdp-sticky-tabs a{
+    font-size: 15.6px}
+.product-page-typography .pdp-section-heading h2{
+    font-size: 27.3px}
+.product-page-typography .pdp-eyebrow{
+    font-size: 11.7px}
+.product-page-typography .pdp-demo-tag{
+    font-size: 11.7px}
+.product-page-typography .pdp-attributes-table,.product-page-typography .pdp-preparation-table{
+    font-size: 14.3px}
+.product-page-typography .pdp-subsection-title{
+    font-size: 19.5px}
+.product-page-typography .pdp-preparation-accordion summary{
+    font-size: 18.2px}
+.product-page-typography .pdp-preparation-accordion>p{
+    font-size: 13px}
+.product-page-typography .pdp-review-tabs button{
+    font-size: 14.3px}
+.product-page-typography .pdp-review-placeholder p{
+    font-size: 14.3px}
+.product-page-typography .pdp-description-copy h3{
+    font-size: 18.2px}
+.product-page-typography .pdp-description-copy p{
+    font-size: 16.9px}
+.product-page-typography .pdp-description-warning{
+    font-size: 13px}
+.product-page-typography .pdp-aside-note b{
+    font-size: 15.6px}
+.product-page-typography .pdp-aside-note p{
+    font-size: 13px}
+.product-page-typography .pdp-aside-note a{
+    font-size: 13px}
+.product-page-typography .pdp-recommendation-header h2{
+    font-size: 23.4px}
+.product-page-typography .pdp-recommendation-colors{
+    font-size: 11.7px}
+.product-page-typography .pdp-recommendation-card h3{
+    font-size: 14.3px}
+.product-page-typography .pdp-recommendation-card>strong{
+    font-size: 16.9px}
+.product-page-typography .pdp-recommendation-moq{
+    font-size: 13px}
+.product-page-typography .pdp-similar-searches h2{
+    font-size: 23.4px}
+.product-page-typography .pdp-similar-searches a{
+    font-size: 13px}
+@media(max-width:760px){
+    .product-page-typography .pdp-breadcrumb{
+        font-size: 13px}}
+@media(max-width:760px){
+    .product-page-typography .pdp-info-head h1{
+        font-size: 26px}}
+@media(max-width:760px){
+    .product-page-typography .pdp-rating-row{
+        font-size: 13px}}
+@media(max-width:760px){
+    .product-page-typography .pdp-price-tier strong{
+        font-size: 22.1px}}
+@media(max-width:760px){
+    .product-page-typography .pdp-sticky-tabs a{
+        font-size: 14.3px}}
+@media(max-width:760px){
+    .product-page-typography .pdp-section-heading h2{
+        font-size: 23.4px}}
+@media(max-width:760px){
+    .product-page-typography .pdp-recommendation-header h2{
+        font-size: 20.8px}}
+@media(max-width:760px){
+    .product-page-typography .pdp-mobile-buybar>div>span{
+        font-size: 11.7px}}
+@media(max-width:760px){
+    .product-page-typography .pdp-mobile-buybar>div>strong{
+        font-size: 16.9px}}
+@media(max-width:760px){
+    .product-page-typography .pdp-mobile-order{
+        font-size: 15.6px}}
+@media(max-width:420px){
+    .product-page-typography .pdp-key-attribute span{
+        font-size: 11.7px}}
+@media(max-width:420px){
+    .product-page-typography .pdp-key-attribute strong{
+        font-size: 14.3px}}
+@media(max-width:420px){
+    .product-page-typography .pdp-supplier-metrics span{
+        font-size: 10.4px}}
+@media(max-width:420px){
+    .product-page-typography .pdp-secondary-actions>button,.product-page-typography .pdp-secondary-actions form button{
+        font-size: 10.4px}}
+@media(max-width:420px){
+    .product-page-typography .pdp-price-tiers.is-compact .pdp-price-tier strong{
+        font-size: 14.3px}}
+.product-page-typography .pdp-margin-calculator>label{
+    font-size: 13px}
+.product-page-typography .pdp-margin-calculator>input{
+    font-size: 15.6px}
+.product-page-typography .pdp-margin-calculator>div{
+    font-size: 13px}
+.product-page-typography .pdp-margin-calculator output{
+    font-size: 13px}
+.product-page-typography .pdp-margin-calculator>small{
+    font-size: 11.7px}

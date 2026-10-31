@@ -35,7 +35,7 @@ export function ProductDetailExperience({ product }: { product: DetailedProduct 
   };
   const orderNow = () => { addItem(product, quantity); router.push("/checkout"); };
 
-  return <main className="pdp-page">
+  return <main className="pdp-page product-page-typography">
     <div className="pdp-breadcrumb shell">{product.breadcrumb.map((part, index) => <span key={`${part}-${index}`}>{index > 0 && <ChevronRight size={13}/>}<Link href={index === product.breadcrumb.length - 1 ? `/produits?categorie=${product.categorySlug}` : "/produits"}>{part}</Link></span>)}<ChevronRight size={13}/><strong>{product.title}</strong></div>
     <div className="pdp-shell shell">
       <section className="pdp-main-layout" aria-label="Informations sur le produit">
