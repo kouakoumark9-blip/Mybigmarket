@@ -22,7 +22,7 @@ export function SiteHeader() {
   }, []);
 
   return <>
-    <div className="top-strip"><div className="shell top-strip-inner"><span>Précommandes de Chine · prix affichés en FCFA</span><div><Link href="/compte/commandes">Suivre ma commande</Link></div></div></div>
+    <div className="top-strip"><div className="shell top-strip-inner"><span>Précommandes de Chine · prix affichés en FCFA</span></div></div>
     <header className="site-header">
       <div className={`shell header-main ${showScrollSearch ? "is-scrolled" : ""}`}>
         <button className="mobile-menu-button" aria-label={mobileOpen ? "Fermer le menu" : "Ouvrir le menu"} onClick={() => setMobileOpen(!mobileOpen)}>{mobileOpen ? <X/> : <Menu/>}</button>

@@ -24,7 +24,7 @@ export default async function HomePage() {
   return <main className="shell marketplace-home marketplace-catalog-home">
     <div className="marketplace-context-bar catalog-context">
       <span>Parcours de précommande <b>Chine <span>→</span> Abidjan</b></span>
-      <div className="market-context-links"><span className="country-context"><MapPin size={13}/> Côte d’Ivoire · XOF / FCFA</span><Link href="/compte/commandes">Suivre une commande <ArrowRight size={14}/></Link></div>
+      <div className="market-context-links"><span className="country-context"><MapPin size={13}/> Côte d’Ivoire · XOF / FCFA</span></div>
     </div>
 
     <section className="catalog-search-hero" aria-label="Rechercher et explorer">
