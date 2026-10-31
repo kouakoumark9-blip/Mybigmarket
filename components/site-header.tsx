@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { Search, ShoppingBag, UserRound, Menu, X, MessageCircle, MapPin, UserRoundPlus, Home, Grid2X2, ClipboardList, Heart, Globe } from "lucide-react";
+import { Search, ShoppingBag, ShoppingCart, UserRound, Menu, X, MessageCircle, MapPin, UserRoundPlus, Home, Grid2X2, ClipboardList, Heart, Globe } from "lucide-react";
 import { useCart } from "@/components/cart-provider";
 import { useFavorites } from "@/components/favorites-provider";
 
@@ -33,7 +33,7 @@ export function SiteHeader() {
         <div className="header-actions">
           <span className="header-locale"><span><b>Adresse de livraison :</b><span className="header-locale-country"><i className="ci-flag" aria-hidden="true"><i/><i/><i/></i><small>CI</small></span></span></span>
           <span className="header-currency" aria-label="Langue française, franc CFA XOF"><Globe size={17}/><span>Français-XOF</span></span>
-          <Link href="/panier" className="header-action cart-action" aria-label={`Panier${count ? `, ${count} article${count > 1 ? "s" : ""}` : ""}`}><span className="cart-icon"><ShoppingBag size={22}/>{count > 0 && <b>{count}</b>}</span></Link>
+          <Link href="/panier" className="header-action cart-action" aria-label={`Panier${count ? `, ${count} article${count > 1 ? "s" : ""}` : ""}`}><span className="cart-icon"><ShoppingCart size={22}/>{count > 0 && <b>{count}</b>}</span></Link>
           <Link href="/connexion" className="header-action"><UserRound size={19}/><span>Se connecter</span></Link>
           <Link href="/inscription" className="header-signup"><UserRoundPlus size={15}/><span>Créer un compte</span></Link>
         </div>
