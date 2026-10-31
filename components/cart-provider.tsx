@@ -18,6 +18,10 @@ type CartContextValue = {
 const CartContext = createContext<CartContextValue | null>(null);
 const KEY = "mybigmarket-cart-v1";
 
+function unitPriceForQuantity(product: DemoProduct, quantity: number) {
+  return product.tiers?.find((tier) => quantity >= tier.minQuantity && (tier.maxQuantity === null || quantity <= tier.maxQuantity))?.unitPriceXof ?? product.priceXof;
+}
+
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<CartLine[]>([]);
   const [notice, setNotice] = useState("");
@@ -45,17 +49,25 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const addItem = useCallback((product: DemoProduct, quantity = product.minimumQuantity) => {
-    const safeQty = Math.max(product.minimumQuantity, Math.floor(quantity));
+    const safeQty = Math.min(product.quantity, Math.max(product.minimumQuantity, Math.floor(quantity)));
     setItems((current) => {
       const existing = current.find((item) => item.slug === product.slug);
-      if (existing) return current.map((item) => item.slug === product.slug ? { ...item, qty: Math.min(item.quantity, item.qty + safeQty) } : item);
-      return [...current, { ...product, qty: Math.min(product.quantity, safeQty) }];
+      if (existing) {
+        const combinedQuantity = Math.min(product.quantity, existing.qty + safeQty);
+        const tierProduct = product.tiers?.length ? product : existing;
+        return current.map((item) => item.slug === product.slug ? { ...item, ...product, qty: combinedQuantity, priceXof: unitPriceForQuantity(tierProduct, combinedQuantity) } : item);
+      }
+      return [...current, { ...product, priceXof: unitPriceForQuantity(product, safeQty), qty: safeQty }];
     });
     showNotice(`${product.title} ajouté au panier`);
   }, [showNotice]);
 
   const setQuantity = useCallback((slug: string, quantity: number) => {
-    setItems((current) => current.map((item) => item.slug === slug ? { ...item, qty: Math.max(item.minimumQuantity, Math.min(item.quantity, Math.floor(quantity))) } : item));
+    setItems((current) => current.map((item) => {
+      if (item.slug !== slug) return item;
+      const qty = Math.max(item.minimumQuantity, Math.min(item.quantity, Math.floor(quantity)));
+      return { ...item, qty, priceXof: unitPriceForQuantity(item, qty) };
+    }));
   }, []);
 
   const removeItem = useCallback((slug: string) => setItems((current) => current.filter((item) => item.slug !== slug)), []);

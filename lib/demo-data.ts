@@ -4,6 +4,7 @@ export type DemoProduct = {
   slug: string; title: string; priceXof: number; minimumQuantity: number; leadTimeDays: number;
   category: string; categorySlug: string; seller: string; sellerSlug: string; university: string;
   city: string; rating: number; reviewCount: number; icon: string; tone: string; quantity: number; imageUrl?: string; description?: string;
+  tiers?: Array<{ minQuantity: number; maxQuantity: number | null; unitPriceXof: number; label: string }>;
 };
 
 export const categories = [

@@ -17,6 +17,8 @@ export type DemoOrder = {
   items: Array<{ slug: string; title: string; seller: string; qty: number; priceXof: number; minimumQuantity: number; leadTimeDays: number }>;
   totalXof: number;
   deliveryMethod: "delivery" | "pickup";
+  deliveryCountryCode: string;
+  deliveryCountryName: string;
   createdAt: string;
   status: "awaiting_payment";
 };

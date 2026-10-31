@@ -4,6 +4,7 @@ import { categories, productImages, products, sellerProfiles, sellerStorefronts,
 import { getDb } from "@/lib/db";
 import { products as demoProducts, sellers as demoSellers, type DemoProduct } from "@/lib/demo-data";
 import { getMockStorefrontForSeller, getMockStorefrontBySlug } from "@/lib/demo-backend";
+import { smartphoneCamon50Pro } from "@/lib/product";
 
 export type StoreSeller = { slug:string; name:string; university:string; city:string; rating:number; orders:number; initials:string };
 export type PublicStorefront = { slug:string; storeName:string; headline:string; description:string; announcement:string|null; sellerSlug:string; sellerName:string; university:string; city:string; rating:number; productCount:number; isDemo:boolean };
@@ -38,7 +39,7 @@ export async function getStorefrontProducts(sellerSlug:string):Promise<DemoProdu
 }
 
 export async function getCatalogProducts(options:{featured?:boolean}={}) : Promise<DemoProduct[]> {
-  if (!process.env.DATABASE_URL) return options.featured ? demoProducts.filter((p)=>p.slug.includes("sac")||p.slug.includes("montre")||p.slug.includes("lunettes")||p.slug.includes("ecouteurs")||p.slug.includes("support")||p.slug.includes("lampe")||p.slug.includes("pinceaux")).slice(0,8) : demoProducts;
+  if (!process.env.DATABASE_URL) return options.featured ? [smartphoneCamon50Pro, ...demoProducts.filter((p)=>p.slug.includes("sac")||p.slug.includes("montre")||p.slug.includes("lunettes")||p.slug.includes("ecouteurs")||p.slug.includes("support")||p.slug.includes("lampe")||p.slug.includes("pinceaux"))].slice(0,8) : [smartphoneCamon50Pro, ...demoProducts];
   const db=getDb();
   const where=options.featured?and(eq(products.status,"approved"),eq(products.isFeatured,true),eq(sellerProfiles.verificationStatus,"approved")):and(eq(products.status,"approved"),eq(sellerProfiles.verificationStatus,"approved"));
   const rows=await db.select({product:products,category:categories,user:users,profile:sellerProfiles}).from(products).innerJoin(categories,eq(categories.id,products.categoryId)).innerJoin(users,eq(users.id,products.sellerId)).innerJoin(sellerProfiles,eq(sellerProfiles.userId,users.id)).where(where).orderBy(desc(products.createdAt)).limit(options.featured?8:100);

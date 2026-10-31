@@ -3,7 +3,8 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Scale, X } from "lucide-react";
-import { formatXof, products, type DemoProduct } from "@/lib/demo-data";
+import { products, type DemoProduct } from "@/lib/demo-data";
+import { useCountryPreferences } from "@/components/country-preferences";
 
 const STORAGE_KEY = "mybigmarket-compare-v1";
 const MAX_COMPARE = 3;
@@ -21,6 +22,7 @@ type CompareContextValue = {
 const CompareContext = createContext<CompareContextValue | null>(null);
 
 export function ProductCompareProvider({ children }: { children: React.ReactNode }) {
+  const { formatPrice } = useCountryPreferences();
   const [slugs, setSlugs] = useState<string[]>([]);
   const [hydrated, setHydrated] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
@@ -68,7 +70,7 @@ export function ProductCompareProvider({ children }: { children: React.ReactNode
       <section className="compare-modal" role="dialog" aria-modal="true" aria-labelledby="compare-title" onClick={(event) => event.stopPropagation()}>
         <header className="compare-modal-header"><div><span className="eyebrow">ACHAT B2B · COMPARAISON</span><h2 id="compare-title">Comparez les offres</h2><p>Prix, minimum de commande et informations vendeur côte à côte.</p></div><button className="compare-close" type="button" onClick={() => setIsOpen(false)} aria-label="Fermer la comparaison"><X size={20}/></button></header>
         <div className="compare-table-wrap"><table className="compare-table"><thead><tr><th scope="col">Critère</th>{selected.map((product) => <th scope="col" key={product.slug}><Link href={`/produits/${product.slug}`} onClick={() => setIsOpen(false)}>{product.title}</Link><small>{product.category}</small></th>)}</tr></thead><tbody>
-          <tr><th scope="row">Prix unitaire</th>{selected.map((product) => <td className="compare-price" key={product.slug}>{formatXof(product.priceXof)}</td>)}</tr>
+          <tr><th scope="row">Prix unitaire</th>{selected.map((product) => <td className="compare-price" key={product.slug}>{formatPrice(product.priceXof)}</td>)}</tr>
           <tr><th scope="row">Commande minimum</th>{selected.map((product) => <td key={product.slug}>{product.minimumQuantity} unité{product.minimumQuantity > 1 ? "s" : ""}</td>)}</tr>
           <tr><th scope="row">Délai estimé</th>{selected.map((product) => <td key={product.slug}>{product.leadTimeDays} j</td>)}</tr>
           <tr><th scope="row">Stock indicatif</th>{selected.map((product) => <td key={product.slug}>{product.quantity} unités</td>)}</tr>

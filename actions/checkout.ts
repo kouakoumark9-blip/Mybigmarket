@@ -6,10 +6,11 @@ import { auth } from "@/auth";
 import { getDb } from "@/lib/db";
 import { orderEvents, orderItems, orders, payments, pickupPoints, products, sellerProfiles } from "@/lib/db/schema";
 import { getPaymentProvider, type PayMethod } from "@/lib/payments/provider";
+import { countryName, destinationCountries, destinationByCode } from "@/lib/west-africa";
 
 const checkoutSchema = z.object({
   cart: z.string().min(2), method: z.enum(["orange_money", "mtn_momo", "wave", "card"]),
-  deliveryMethod: z.enum(["delivery", "pickup"]), name: z.string().min(2), phone: z.string().min(8),
+  deliveryMethod: z.enum(["delivery", "pickup"]), countryCode: z.string().length(2), language: z.enum(["fr", "en", "pt", "ar"]), name: z.string().optional(), phone: z.string().optional(),
   address: z.string().optional(), city: z.string().optional(), pickupPointId: z.coerce.number().int().positive().optional(),
 });
 
@@ -20,6 +21,9 @@ export async function createCheckoutAction(formData: FormData): Promise<{ error?
   if (!session?.user?.id) return { error: "Connectez-vous ou créez un compte avant de commander." };
   const parsed = checkoutSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { error: parsed.error.issues[0]?.message || "Vérifiez les informations de livraison." };
+  if (!destinationCountries.some((country) => country.code === parsed.data.countryCode)) return { error: "Choisissez un pays de livraison valide." };
+  const destination = destinationByCode(parsed.data.countryCode);
+  if (!(destination.languageOptions || [destination.language]).includes(parsed.data.language)) return { error: "La langue ne correspond pas à la destination sélectionnée." };
   let cart: CartInput[];
   try { cart = JSON.parse(parsed.data.cart) as CartInput[]; } catch { return { error: "Panier invalide." }; }
   if (!Array.isArray(cart) || !cart.length || cart.length > 50 || cart.some((line) => !line.slug || !Number.isInteger(line.qty) || line.qty < 1)) return { error: "Le panier est vide ou invalide." };
@@ -35,7 +39,8 @@ export async function createCheckoutAction(formData: FormData): Promise<{ error?
     if (line.qty < row.product.minimumQuantity) return { error: `La quantité minimum pour « ${row.product.title} » est de ${row.product.minimumQuantity}.` };
     if (line.qty > row.product.quantity) return { error: `Stock insuffisant pour « ${row.product.title} ».` };
   }
-  if (parsed.data.deliveryMethod === "delivery" && (!parsed.data.address || !parsed.data.city)) return { error: "Renseignez une adresse de livraison complète." };
+  if (parsed.data.deliveryMethod === "delivery" && (!parsed.data.name?.trim() || !parsed.data.phone?.trim() || !parsed.data.address?.trim() || !parsed.data.city?.trim())) return { error: "Renseignez le nom, le téléphone, la ville et l’adresse complète." };
+  if (parsed.data.deliveryMethod === "pickup" && parsed.data.countryCode !== "CI") return { error: "Le point relais est actuellement proposé uniquement pour la Côte d’Ivoire." };
   if (parsed.data.deliveryMethod === "pickup") {
     if (!parsed.data.pickupPointId) return { error: "Choisissez un point relais." };
     const [point] = await db.select().from(pickupPoints).where(and(eq(pickupPoints.id, parsed.data.pickupPointId), eq(pickupPoints.isActive, true))).limit(1);
@@ -66,7 +71,7 @@ export async function createCheckoutAction(formData: FormData): Promise<{ error?
           deliveryMethod: parsed.data.deliveryMethod,
           paymentExpiresAt: new Date(Date.now() + 30 * 60 * 1000),
           pickupPointId: parsed.data.deliveryMethod === "pickup" ? parsed.data.pickupPointId : null,
-          deliveryAddress: parsed.data.deliveryMethod === "delivery" ? { name: parsed.data.name, phone: parsed.data.phone, address: parsed.data.address || "", city: parsed.data.city || "" } : null,
+          deliveryAddress: parsed.data.deliveryMethod === "delivery" ? { name: parsed.data.name || "", phone: parsed.data.phone || "", address: parsed.data.address || "", city: parsed.data.city || "", countryCode: parsed.data.countryCode, countryName: countryName(parsed.data.countryCode, "fr"), currency: destination.currency, language: parsed.data.language } : { countryCode: parsed.data.countryCode, countryName: countryName(parsed.data.countryCode, "fr"), currency: destination.currency, language: parsed.data.language },
         }).returning();
         if (!order) throw new Error("Impossible de créer la commande.");
         created.push(order.id);
