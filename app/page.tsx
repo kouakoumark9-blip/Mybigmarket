@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowRight, BadgeCheck, Boxes, CircleHelp, House, MapPin, PackageCheck, Search, Shirt, Smartphone, SlidersHorizontal, Truck, type LucideIcon } from "lucide-react";
+import { ArrowRight, BadgeCheck, Boxes, House, MapPin, PackageCheck, Search, Shirt, Smartphone, SlidersHorizontal, Truck, type LucideIcon } from "lucide-react";
 import { categories, formatXof } from "@/lib/demo-data";
 import { getCatalogProducts } from "@/lib/catalog";
 import { ProductVisual } from "@/components/product-card";
@@ -74,16 +74,6 @@ export default async function HomePage() {
         </div>
       </div>
 
-      <aside className="catalog-volume-card">
-        <div className="catalog-volume-photo"><Image src="/product-home.jpg" alt="Lampe de bureau proposée dans le catalogue" fill sizes="(max-width: 760px) 100vw, 280px"/></div>
-        <div className="catalog-volume-copy">
-          <span className="eyebrow">ACHAT EN QUANTITÉ</span>
-          <h2>Un besoin spécifique ?</h2>
-          <p>Décrivez les produits et volumes recherchés pour préparer une demande de devis.</p>
-          <Link href="/demande-de-devis">Demander un devis <ArrowRight size={15}/></Link>
-          <small>Démo : la demande n’est pas transmise au vendeur sans backend actif.</small>
-        </div>
-      </aside>
     </section>
 
     <section id="catalogue" className="catalog-feed" aria-labelledby="catalog-feed-title">
@@ -97,10 +87,9 @@ export default async function HomePage() {
         <Link href="/produits" className="catalog-sort-link"><SlidersHorizontal size={15}/> Filtrer le catalogue</Link>
       </div>
       {products.length ? <div className="catalog-category-groups">{categoryGroups.map(({ category, items }, index) => <div className="catalog-category-group-wrap" key={category.slug}><section className="catalog-category-section" aria-labelledby={`category-${category.slug}`}><div className="catalog-category-section-heading"><div><span className="eyebrow">{items.length} PRODUITS</span><h3 id={`category-${category.slug}`}>{category.name}</h3></div><Link className="catalog-more-link" href={`/produits?categorie=${category.slug}`}>Voir tout <ArrowRight size={14}/></Link></div>{items.length ? <ProductCarousel products={items} categoryName={category.name}/> : <div className="catalog-empty"><p>De nouvelles offres seront bientôt ajoutées à ce rayon.</p></div>}</section>{index < categoryGroups.length - 1 && <Link className={`catalog-category-interstitial ${index === 0 ? "interstitial-electronics" : "interstitial-home"}`} href={index === 0 ? "/produits?categorie=electronique" : "/produits?categorie=maison-cuisine"}><Image src={index === 0 ? "/products/tech-keyboard.jpg" : "/products/home-kettle.jpg"} alt="" fill sizes="(max-width: 760px) 100vw, 1260px"/><span className="catalog-category-interstitial-copy"><small>{index === 0 ? "À DÉCOUVRIR · HIGH-TECH" : "À DÉCOUVRIR · MAISON & BEAUTÉ"}</small><b>{index === 0 ? "Les bons accessoires pour rester connecté." : "De nouvelles idées pour votre intérieur."}</b><span>Découvrir la sélection <ArrowRight size={14}/></span></span></Link>}</div>)}</div> : <div className="catalog-empty"><h2>Le catalogue se prépare</h2><p>Revenez bientôt pour découvrir les prochaines offres.</p></div>}
-      <div className="catalog-bottom-note"><Truck size={16}/><span>Délais indicatifs. Les produits, stocks et conditions affichés sont des exemples de démonstration.</span><Link href="/demande-de-devis">Demander un devis <ArrowRight size={13}/></Link></div>
+      <div className="catalog-bottom-note"><Truck size={16}/><span>Délais indicatifs. Les produits, stocks et conditions affichés sont des exemples de démonstration.</span></div>
     </section>
 
-    <section className="catalog-help-row"><div><CircleHelp size={18}/><span><b>Un achat en volume ?</b><small>Indiquez les produits, quantités et variantes recherchés.</small></span></div><Link href="/demande-de-devis">Demander un devis <ArrowRight size={14}/></Link></section>
     <div className="demo-note"><BadgeCheck size={15}/> Prototype : vendeurs, avis et offres visibles à titre illustratif. Aucun paiement réel n’est traité.</div>
   </main>;
 }

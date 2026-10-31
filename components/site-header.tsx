@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { ShoppingBag, UserRound, Menu, X, MessageCircle, MapPin, UserRoundPlus, Home, Grid2X2, ClipboardList, Heart, Globe } from "lucide-react";
+import { Search, ShoppingBag, UserRound, Menu, X, MessageCircle, MapPin, UserRoundPlus, Home, Grid2X2, ClipboardList, Heart, Globe } from "lucide-react";
 import { useCart } from "@/components/cart-provider";
 import { useFavorites } from "@/components/favorites-provider";
 
@@ -12,12 +12,24 @@ export function SiteHeader() {
   const { count: favoritesCount } = useFavorites();
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [showScrollSearch, setShowScrollSearch] = useState(false);
+
+  useEffect(() => {
+    const updateSearchVisibility = () => setShowScrollSearch(window.scrollY > 140);
+    updateSearchVisibility();
+    window.addEventListener("scroll", updateSearchVisibility, { passive: true });
+    return () => window.removeEventListener("scroll", updateSearchVisibility);
+  }, []);
+
   return <>
     <div className="top-strip"><div className="shell top-strip-inner"><span>Précommandes de Chine · prix affichés en FCFA</span><div><Link href="/compte/commandes">Suivre ma commande</Link></div></div></div>
     <header className="site-header">
-      <div className="shell header-main">
+      <div className={`shell header-main ${showScrollSearch ? "is-scrolled" : ""}`}>
         <button className="mobile-menu-button" aria-label={mobileOpen ? "Fermer le menu" : "Ouvrir le menu"} onClick={() => setMobileOpen(!mobileOpen)}>{mobileOpen ? <X/> : <Menu/>}</button>
         <Link className="brand" href="/" aria-label="Mybigmarket, accueil"><span className="brand-wordmark"><span className="brand-initial">M</span>ybigmarket<small>CHINE → ABIDJAN</small></span></Link>
+        <form action="/produits" className="search-form header-scroll-search" role="search" aria-label="Recherche du catalogue">
+          <Search size={18}/><input name="q" placeholder="Rechercher un produit, une catégorie..." aria-label="Rechercher un produit"/><button type="submit" aria-label="Lancer la recherche"><span>Rechercher</span><Search className="mobile-search-submit-icon" size={17}/></button>
+        </form>
         <div className="header-actions">
           <span className="header-locale"><MapPin size={16}/><span><b>Adresse de livraison :</b><small>Abidjan, CI</small></span></span>
           <span className="header-currency"><Globe size={17}/><span>Français · XOF</span></span>

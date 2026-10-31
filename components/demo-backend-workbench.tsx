@@ -124,7 +124,7 @@ export function DemoBackendWorkbench() {
 
   return <main className="shell page-space demo-backend-page">
     <div className="breadcrumbs"><Link href="/">Accueil</Link><span>›</span><span>Simulation du backend</span></div>
-    <Link className="back-link" href="/demande-de-devis"><ArrowLeft size={15}/> Retour au sourcing</Link>
+    <Link className="back-link" href="/produits"><ArrowLeft size={15}/> Retour au catalogue</Link>
     <div className="demo-backend-heading"><div><span className="eyebrow">ENVIRONNEMENT FICTIF · API DE DÉMONSTRATION</span><h1 className="page-title">Back-office mybigmarket</h1><p className="page-subtitle">Teste le parcours d’une demande de devis entre acheteur, vendeur et administration.</p></div><span className="demo-backend-live"><i/> API simulée</span></div>
     <div className="demo-backend-warning"><ShieldCheck size={18}/><span><b>Simulation uniquement.</b> Les données résident en mémoire dans ce serveur de prévisualisation, sont réinitialisées au redémarrage et ne sont ni reliées à Neon ni transmises à de vrais utilisateurs. L’API de démo est désactivée en production.</span></div>
     <div className="demo-backend-stats"><div><Database size={17}/><span><b>{requests.length}</b><small>Demandes visibles</small></span></div><div><MessageCircle size={17}/><span><b>{requests.reduce((sum, request) => sum + request.messages.length, 0)}</b><small>Messages de démo</small></span></div><div><Server size={17}/><span><b>5</b><small>Routes API simulées</small></span></div></div>
