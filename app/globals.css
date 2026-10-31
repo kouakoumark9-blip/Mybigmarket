@@ -1108,3 +1108,11 @@ main .catalog-category-product-grid .product-card-price{color:#ff8000!important}
   .category-discovery-tile>b{font-size:9px}
   .category-discovery-heading>a{font-size:8px}
 }
+
+/* Header layout after removing the global search field. */
+.header-main{grid-template-columns:minmax(220px,1fr) auto;gap:24px}
+.header-actions{min-width:0;gap:clamp(9px,1.1vw,16px)}
+@media(max-width:1100px){.header-main{grid-template-columns:minmax(160px,1fr) auto;gap:16px}.header-actions{gap:10px}}
+@media(max-width:900px){.header-main{grid-template-columns:minmax(150px,1fr) auto;gap:14px}}
+@media(max-width:760px){.header-main{grid-template-columns:34px minmax(0,1fr) auto;grid-template-rows:38px;gap:8px 10px;padding:7px 0 9px}.mobile-menu-button{grid-column:1;grid-row:1}.brand{grid-column:2;grid-row:1;justify-self:start}.header-actions{grid-column:3;grid-row:1;gap:12px}}
+@media(max-width:760px){.catalog-mode-tabs{display:none}.catalog-search-hero .catalog-search-bar{display:flex}}

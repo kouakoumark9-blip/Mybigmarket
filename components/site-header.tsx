@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { usePathname } from "next/navigation";
-import { Search, ShoppingBag, UserRound, Menu, X, MessageCircle, MapPin, UserRoundPlus, Home, Grid2X2, ClipboardList, Heart, Globe } from "lucide-react";
+import { ShoppingBag, UserRound, Menu, X, MessageCircle, MapPin, UserRoundPlus, Home, Grid2X2, ClipboardList, Heart, Globe } from "lucide-react";
 import { useCart } from "@/components/cart-provider";
 import { useFavorites } from "@/components/favorites-provider";
 
@@ -18,7 +18,6 @@ export function SiteHeader() {
       <div className="shell header-main">
         <button className="mobile-menu-button" aria-label={mobileOpen ? "Fermer le menu" : "Ouvrir le menu"} onClick={() => setMobileOpen(!mobileOpen)}>{mobileOpen ? <X/> : <Menu/>}</button>
         <Link className="brand" href="/" aria-label="Mybigmarket, accueil"><span className="brand-wordmark"><span className="brand-initial">M</span>ybigmarket<small>CHINE → ABIDJAN</small></span></Link>
-        <form action="/produits" className="search-form"><Search size={18}/><input name="q" placeholder="Rechercher un produit, une catégorie..." aria-label="Rechercher un produit"/><button type="submit" aria-label="Lancer la recherche"><span>Rechercher</span><Search className="mobile-search-submit-icon" size={17}/></button></form>
         <div className="header-actions">
           <span className="header-locale"><MapPin size={16}/><span><b>Adresse de livraison :</b><small>Abidjan, CI</small></span></span>
           <span className="header-currency"><Globe size={17}/><span>Français · XOF</span></span>
@@ -31,13 +30,11 @@ export function SiteHeader() {
         <div className="shell main-nav-inner">
           <div className="main-nav-primary">
             <Link className={`nav-categories ${pathname.startsWith("/produits") ? "active" : ""}`} href="/produits" onClick={() => setMobileOpen(false)}><Menu size={16}/> Toutes les catégories</Link>
-            <Link href="/demande-de-devis" onClick={() => setMobileOpen(false)}>Achats de gros</Link>
           </div>
           <div className="main-nav-secondary">
             <Link href="/messages" onClick={() => setMobileOpen(false)}><MessageCircle size={15}/> Messages</Link>
             <Link href="/favoris" className={pathname.startsWith("/favoris") ? "active" : ""} onClick={() => setMobileOpen(false)}><Heart size={15}/> Favoris{favoritesCount > 0 && <span className="favorite-nav-count">{favoritesCount}</span>}</Link>
             <Link className="nav-seller-mobile" href="/inscription" onClick={() => setMobileOpen(false)}><UserRoundPlus size={15}/> Créer un compte</Link>
-            <Link className="nav-seller-mobile" href="/compte/demandes" onClick={() => setMobileOpen(false)}>Mes demandes de devis</Link>
           </div>
         </div>
       </nav>

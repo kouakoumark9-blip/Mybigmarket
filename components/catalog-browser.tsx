@@ -1,14 +1,13 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Search, SlidersHorizontal, X, Star, RotateCcw } from "lucide-react";
+import { Search, SlidersHorizontal, X, RotateCcw } from "lucide-react";
 import { categories, type DemoProduct } from "@/lib/demo-data";
 import { ProductCard } from "@/components/product-card";
 
 const sortOptions = [
   { value: "featured", label: "Pertinence" },
   { value: "popular", label: "Popularité" },
-  { value: "rating", label: "Mieux notés" },
   { value: "price-up", label: "Prix croissant" },
   { value: "price-down", label: "Prix décroissant" },
   { value: "delay", label: "Délai le plus court" },
@@ -21,7 +20,6 @@ export function CatalogBrowser({ products, initialQuery, initialCategory, initia
   const [maxPrice, setMaxPrice] = useState(initialMax);
   const [maxDays, setMaxDays] = useState(0);
   const [maxMinimum, setMaxMinimum] = useState(0);
-  const [minRating, setMinRating] = useState(0);
   const [seller, setSeller] = useState("");
   const [availableOnly, setAvailableOnly] = useState(false);
   const [sort, setSort] = useState("featured");
@@ -37,21 +35,19 @@ export function CatalogBrowser({ products, initialQuery, initialCategory, initia
         && (!maxPrice || product.priceXof <= Number(maxPrice))
         && (!maxDays || product.leadTimeDays <= maxDays)
         && (!maxMinimum || product.minimumQuantity <= maxMinimum)
-        && (!minRating || product.rating >= minRating)
         && (!seller || product.sellerSlug === seller)
         && (!availableOnly || product.quantity > 0);
     });
     if (sort === "price-up") result.sort((a, b) => a.priceXof - b.priceXof);
     if (sort === "price-down") result.sort((a, b) => b.priceXof - a.priceXof);
     if (sort === "delay") result.sort((a, b) => a.leadTimeDays - b.leadTimeDays);
-    if (sort === "rating") result.sort((a, b) => b.rating - a.rating || b.reviewCount - a.reviewCount);
     if (sort === "popular") result.sort((a, b) => b.reviewCount - a.reviewCount);
     return result;
-  }, [products, query, category, minPrice, maxPrice, maxDays, maxMinimum, minRating, seller, availableOnly, sort]);
+  }, [products, query, category, minPrice, maxPrice, maxDays, maxMinimum, seller, availableOnly, sort]);
 
-  const activeFilterCount = [category, minPrice, maxPrice, maxDays > 0, maxMinimum > 0, minRating > 0, seller, availableOnly].filter(Boolean).length;
+  const activeFilterCount = [category, minPrice, maxPrice, maxDays > 0, maxMinimum > 0, seller, availableOnly].filter(Boolean).length;
   const clearFilters = () => {
-    setCategory(""); setMinPrice(""); setMaxPrice(""); setMaxDays(0); setMaxMinimum(0); setMinRating(0); setSeller(""); setAvailableOnly(false);
+    setCategory(""); setMinPrice(""); setMaxPrice(""); setMaxDays(0); setMaxMinimum(0); setSeller(""); setAvailableOnly(false);
   };
 
   return <div className="catalog-layout">
@@ -71,10 +67,6 @@ export function CatalogBrowser({ products, initialQuery, initialCategory, initia
       <div className="filter-group"><b>Délai estimé</b><select aria-label="Filtrer par délai estimé" value={maxDays} onChange={(event) => setMaxDays(Number(event.target.value))}><option value="0">Tous les délais</option><option value="30">30 jours maximum</option><option value="35">35 jours maximum</option><option value="40">40 jours maximum</option><option value="45">45 jours maximum</option></select></div>
 
       <div className="filter-group"><b>Quantité minimum</b><select aria-label="Filtrer par quantité minimale" value={maxMinimum} onChange={(event) => setMaxMinimum(Number(event.target.value))}><option value="0">Toutes les quantités</option><option value="1">1 unité maximum</option><option value="2">Jusqu’à 2 unités</option><option value="3">Jusqu’à 3 unités</option><option value="5">Jusqu’à 5 unités</option></select></div>
-
-      <div className="filter-group"><b>Note des vendeurs</b>
-        {[4.5, 4, 3.5].map((rating) => <label className="filter-option filter-rating-option" key={rating}><input type="radio" name="rating-filter" checked={minRating === rating} onChange={() => setMinRating(minRating === rating ? 0 : rating)}/><span><span className="rating-stars"><Star size={12} fill="currentColor"/> {rating.toFixed(1)}+</span></span></label>)}
-      </div>
 
       <div className="filter-group"><b>Vendeur</b><select aria-label="Filtrer par vendeur" value={seller} onChange={(event) => setSeller(event.target.value)}><option value="">Tous les vendeurs</option>{sellerOptions.map(([slug, name]) => <option key={slug} value={slug}>{name}</option>)}</select></div>
 
@@ -99,7 +91,6 @@ export function CatalogBrowser({ products, initialQuery, initialCategory, initia
         {(minPrice || maxPrice) && <button type="button" onClick={() => { setMinPrice(""); setMaxPrice(""); }}>Prix{minPrice ? ` ≥ ${minPrice}` : ""}{maxPrice ? ` ≤ ${maxPrice}` : ""} FCFA<X size={12}/></button>}
         {maxDays > 0 && <button type="button" onClick={() => setMaxDays(0)}>≤ {maxDays} jours<X size={12}/></button>}
         {maxMinimum > 0 && <button type="button" onClick={() => setMaxMinimum(0)}>MOQ ≤ {maxMinimum}<X size={12}/></button>}
-        {minRating > 0 && <button type="button" onClick={() => setMinRating(0)}>Note ≥ {minRating}<X size={12}/></button>}
         {seller && <button type="button" onClick={() => setSeller("")}>{sellerOptions.find(([slug]) => slug === seller)?.[1]}<X size={12}/></button>}
         {availableOnly && <button type="button" onClick={() => setAvailableOnly(false)}>En stock<X size={12}/></button>}
         <button type="button" className="clear-active-filters" onClick={clearFilters}>Tout effacer</button>

@@ -28,10 +28,6 @@ export default async function HomePage() {
     </div>
 
     <section className="catalog-search-hero" aria-label="Rechercher et explorer">
-      <nav className="catalog-mode-tabs" aria-label="Explorer mybigmarket">
-        <Link className="is-active" href="/produits">Produits</Link>
-        <Link href="/demande-de-devis">Achats de gros</Link>
-      </nav>
       <form action="/produits" className="catalog-search-bar" role="search">
         <div className="catalog-search-input"><Search size={20}/><input name="q" aria-label="Rechercher dans le catalogue" placeholder="Que recherchez-vous ? Ex. sacs, téléphones, maison…"/></div>
         <div className="catalog-search-submit-row"><span><PackageCheck size={15}/> Prix en FCFA · Minimum de commande indiqué</span><button type="submit">Rechercher <ArrowRight size={16}/></button></div>
