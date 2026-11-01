@@ -364,7 +364,26 @@ export const orders = pgTable("orders", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   version: integer("version").notNull().default(0),
   deletedAt: timestamp("deleted_at", { withTimezone: true }),
-}, (t) => [index("orders_buyer_idx").on(t.buyerId, t.createdAt), index("orders_status_idx").on(t.status), index("orders_shipment_idx").on(t.shipmentId)]);
+  /** Référence lisible communiquée au client (CMD-2026-000042). */
+  reference: varchar("reference", { length: 40 }),
+  /** Jalons horodatés : la livraison conditionne le paiement du vendeur. */
+  paidAt: timestamp("paid_at", { withTimezone: true }),
+  shippedAt: timestamp("shipped_at", { withTimezone: true }),
+  deliveredAt: timestamp("delivered_at", { withTimezone: true }),
+  cancelledAt: timestamp("cancelled_at", { withTimezone: true }),
+  refundedAt: timestamp("refunded_at", { withTimezone: true }),
+  sellerPaidAt: timestamp("seller_paid_at", { withTimezone: true }),
+  /** Montants figés à la commande, recalculés côté serveur. */
+  subtotalXof: integer("subtotal_xof").notNull().default(0),
+  discountXof: integer("discount_xof").notNull().default(0),
+  taxXof: integer("tax_xof").notNull().default(0),
+  /** Numéro de suivi transporteur, saisi à l'expédition. */
+  trackingNumber: varchar("tracking_number", { length: 120 }),
+  /** Note interne de l'équipe, jamais visible du client. */
+  internalNote: text("internal_note").notNull().default(""),
+  /** Langue de la commande, pour les e-mails. */
+  locale: varchar("locale", { length: 5 }).notNull().default("fr"),
+}, (t) => [index("orders_buyer_idx").on(t.buyerId, t.createdAt), index("orders_status_idx").on(t.status), index("orders_shipment_idx").on(t.shipmentId), uniqueIndex("orders_reference_unique").on(t.reference), index("orders_created_status_idx").on(t.createdAt, t.status)]);
 
 export const conversations = pgTable("conversations", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -426,7 +445,15 @@ export const orderItems = pgTable("order_items", {
   shippingCostXof: integer("shipping_cost_xof").notNull().default(0),
   variantSnapshot: jsonb("variant_snapshot").$type<Record<string, string>>().notNull().default({}),
   productTitle: varchar("product_title", { length: 190 }).notNull(),
-}, (t) => [index("order_items_order_idx").on(t.orderId), index("order_items_seller_idx").on(t.sellerId)]);
+  productSku: varchar("product_sku", { length: 80 }),
+  taxRatePercent: decimal("tax_rate_percent", { precision: 5, scale: 2 }).notNull().default("0"),
+  discountXof: integer("discount_xof").notNull().default(0),
+  lineTotalXof: integer("line_total_xof").notNull().default(0),
+  weightGrams: integer("weight_grams").notNull().default(0),
+  /** Quantité déjà retournée : le retour ne peut pas dépasser le livré. */
+  returnedQuantity: integer("returned_quantity").notNull().default(0),
+  ecotaxXof: integer("ecotax_xof").notNull().default(0),
+}, (t) => [index("order_items_order_idx").on(t.orderId), index("order_items_seller_idx").on(t.sellerId), index("order_items_product_idx").on(t.productId)]);
 
 export const payments = pgTable("payments", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -781,6 +808,79 @@ export const orderStatusHistory = pgTable("order_status_history", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [index("order_status_history_order_time_idx").on(t.orderId, t.createdAt), index("order_status_history_employee_idx").on(t.employeeId)]);
 
+export const returnStatusEnum = pgEnum("return_status", ["requested", "approved", "received", "refused", "closed"]);
+export const returnReasonEnum = pgEnum("return_reason", ["damaged", "wrong_item", "not_as_described", "late_delivery", "changed_mind", "other"]);
+export const refundStatusEnum = pgEnum("refund_status", ["pending", "processing", "succeeded", "failed", "cancelled"]);
+
+/**
+ * Retour marchandise : le client déclare, l'équipe approuve puis réceptionne.
+ * Le statut suit un parcours strict (demandé → approuvé → reçu → clôturé).
+ */
+export const returnRequests = pgTable("return_requests", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  reference: varchar("reference", { length: 40 }).notNull(),
+  orderId: uuid("order_id").notNull().references(() => orders.id, { onDelete: "restrict" }),
+  customerId: uuid("customer_id").notNull().references(() => customers.id, { onDelete: "restrict" }),
+  status: returnStatusEnum("status").notNull().default("requested"),
+  reason: returnReasonEnum("reason").notNull(),
+  customerMessage: text("customer_message").notNull().default(""),
+  internalNote: text("internal_note").notNull().default(""),
+  /** Montant attendu du retour, calculé puis vérifié à la réception. */
+  expectedAmountXof: integer("expected_amount_xof").notNull().default(0),
+  approvedAt: timestamp("approved_at", { withTimezone: true }),
+  receivedAt: timestamp("received_at", { withTimezone: true }),
+  closedAt: timestamp("closed_at", { withTimezone: true }),
+  refusedAt: timestamp("refused_at", { withTimezone: true }),
+  handledByEmployeeId: uuid("handled_by_employee_id").references(() => employees.id, { onDelete: "set null" }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  version: integer("version").notNull().default(0),
+}, (t) => [uniqueIndex("return_requests_reference_unique").on(t.reference), index("return_requests_order_idx").on(t.orderId), index("return_requests_status_idx").on(t.status, t.createdAt), index("return_requests_customer_idx").on(t.customerId, t.createdAt)]);
+
+export const returnRequestItems = pgTable("return_request_items", {
+  id: serial("id").primaryKey(),
+  returnRequestId: uuid("return_request_id").notNull().references(() => returnRequests.id, { onDelete: "cascade" }),
+  orderItemId: integer("order_item_id").notNull().references(() => orderItems.id, { onDelete: "restrict" }),
+  quantity: integer("quantity").notNull(),
+  unitPriceXof: integer("unit_price_xof").notNull(),
+  /** Décision de remise en stock, prise à la réception. */
+  restock: boolean("restock").notNull().default(false),
+  condition: varchar("condition", { length: 16 }).notNull().default("new"),
+}, (t) => [index("return_request_items_request_idx").on(t.returnRequestId), uniqueIndex("return_request_items_unique").on(t.returnRequestId, t.orderItemId)]);
+
+/**
+ * Remboursement : toujours rattaché à un paiement encaissé, jamais supérieur
+ * au reste remboursable. Peut suivre un retour ou un litige.
+ */
+export const refunds = pgTable("refunds", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  reference: varchar("reference", { length: 40 }).notNull(),
+  orderId: uuid("order_id").notNull().references(() => orders.id, { onDelete: "restrict" }),
+  paymentId: uuid("payment_id").references(() => payments.id, { onDelete: "set null" }),
+  returnRequestId: uuid("return_request_id").references(() => returnRequests.id, { onDelete: "set null" }),
+  amountXof: integer("amount_xof").notNull(),
+  status: refundStatusEnum("status").notNull().default("pending"),
+  method: varchar("method", { length: 40 }).notNull().default("original"),
+  providerReference: varchar("provider_reference", { length: 190 }),
+  reason: text("reason").notNull().default(""),
+  processedAt: timestamp("processed_at", { withTimezone: true }),
+  createdByEmployeeId: uuid("created_by_employee_id").references(() => employees.id, { onDelete: "set null" }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [uniqueIndex("refunds_reference_unique").on(t.reference), index("refunds_order_idx").on(t.orderId), index("refunds_status_idx").on(t.status, t.createdAt)]);
+
+/**
+ * Séquences de numérotation (factures, avoirs, commandes, retours).
+ * Une seule ligne par type et par année : c'est elle qui garantit l'absence
+ * de trou dans la numérotation légale.
+ */
+export const documentSequences = pgTable("document_sequences", {
+  id: serial("id").primaryKey(),
+  documentType: varchar("document_type", { length: 24 }).notNull(),
+  fiscalYear: integer("fiscal_year").notNull(),
+  lastValue: integer("last_value").notNull().default(0),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [uniqueIndex("document_sequences_type_year_unique").on(t.documentType, t.fiscalYear)]);
+
 export const invoices = pgTable("invoices", {
   id: uuid("id").defaultRandom().primaryKey(),
   orderId: uuid("order_id").notNull().references(() => orders.id, { onDelete: "restrict" }),
@@ -793,7 +893,19 @@ export const invoices = pgTable("invoices", {
   pdfUrl: text("pdf_url"),
   issuedAt: timestamp("issued_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-}, (t) => [uniqueIndex("invoices_number_unique").on(t.invoiceNumber), uniqueIndex("invoices_order_unique").on(t.orderId), index("invoices_status_idx").on(t.status)]);
+  /** Remise globale appliquée, pour justifier l'écart entre lignes et total. */
+  discountXof: integer("discount_xof").notNull().default(0),
+  /** Coordonnées recopiées au moment de l'émission : la facture ne bouge plus. */
+  billingSnapshot: jsonb("billing_snapshot").$type<Record<string, string>>().notNull().default({}),
+  sellerSnapshot: jsonb("seller_snapshot").$type<Record<string, string>>().notNull().default({}),
+  /** Numéro d'ordre dans la séquence annuelle, pour prouver l'absence de trou. */
+  sequenceNumber: integer("sequence_number"),
+  fiscalYear: integer("fiscal_year"),
+  note: text("note").notNull().default(""),
+  voidedAt: timestamp("voided_at", { withTimezone: true }),
+  voidReason: text("void_reason"),
+  createdByEmployeeId: uuid("created_by_employee_id").references(() => employees.id, { onDelete: "set null" }),
+}, (t) => [uniqueIndex("invoices_number_unique").on(t.invoiceNumber), uniqueIndex("invoices_order_unique").on(t.orderId), index("invoices_status_idx").on(t.status), index("invoices_year_sequence_idx").on(t.fiscalYear, t.sequenceNumber)]);
 
 export const creditNotes = pgTable("credit_notes", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -804,7 +916,13 @@ export const creditNotes = pgTable("credit_notes", {
   reason: text("reason").notNull(),
   pdfUrl: text("pdf_url"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-}, (t) => [uniqueIndex("credit_notes_number_unique").on(t.creditNoteNumber), index("credit_notes_order_idx").on(t.orderId)]);
+  returnId: uuid("return_id"),
+  refundId: uuid("refund_id"),
+  taxXof: integer("tax_xof").notNull().default(0),
+  sequenceNumber: integer("sequence_number"),
+  fiscalYear: integer("fiscal_year"),
+  createdByEmployeeId: uuid("created_by_employee_id").references(() => employees.id, { onDelete: "set null" }),
+}, (t) => [uniqueIndex("credit_notes_number_unique").on(t.creditNoteNumber), index("credit_notes_order_idx").on(t.orderId), index("credit_notes_year_sequence_idx").on(t.fiscalYear, t.sequenceNumber)]);
 
 export const paymentMethodConfigs = pgTable("payment_methods", {
   id: uuid("id").defaultRandom().primaryKey(),

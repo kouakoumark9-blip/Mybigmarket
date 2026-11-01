@@ -174,12 +174,122 @@ export const adminOrders = pgTable("orders", {
   totalXof: integer("total_xof").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull(),
+  reference: varchar("reference", { length: 40 }),
+  subtotalXof: integer("subtotal_xof").notNull().default(0),
+  discountXof: integer("discount_xof").notNull().default(0),
+  taxXof: integer("tax_xof").notNull().default(0),
+  shippingXof: integer("shipping_xof").notNull().default(0),
+  shippingMode: varchar("shipping_mode", { length: 8 }),
+  trackingNumber: varchar("tracking_number", { length: 120 }),
+  internalNote: text("internal_note").notNull().default(""),
+  locale: varchar("locale", { length: 5 }).notNull().default("fr"),
+  deliveryMethod: varchar("delivery_method", { length: 20 }).notNull().default("delivery"),
+  deliveryAddress: jsonb("delivery_address").$type<Record<string, string> | null>(),
+  paymentExpiresAt: timestamp("payment_expires_at", { withTimezone: true }),
+  paidAt: timestamp("paid_at", { withTimezone: true }),
+  shippedAt: timestamp("shipped_at", { withTimezone: true }),
+  deliveredAt: timestamp("delivered_at", { withTimezone: true }),
+  cancelledAt: timestamp("cancelled_at", { withTimezone: true }),
+  refundedAt: timestamp("refunded_at", { withTimezone: true }),
+  sellerPaidAt: timestamp("seller_paid_at", { withTimezone: true }),
+  version: integer("version").notNull().default(0),
+  deletedAt: timestamp("deleted_at", { withTimezone: true }),
+});
+
+export const adminOrderItems = pgTable("order_items", {
+  id: serial("id").primaryKey(),
+  orderId: uuid("order_id").notNull(),
+  productId: uuid("product_id").notNull(),
+  variantId: integer("variant_id"),
+  sellerId: uuid("seller_id").notNull(),
+  quantity: integer("quantity").notNull(),
+  unitPriceXof: integer("unit_price_xof").notNull(),
+  productTitle: varchar("product_title", { length: 190 }).notNull(),
+  productSku: varchar("product_sku", { length: 80 }),
+  taxRatePercent: varchar("tax_rate_percent", { length: 10 }).notNull().default("0"),
+  discountXof: integer("discount_xof").notNull().default(0),
+  lineTotalXof: integer("line_total_xof").notNull().default(0),
+  weightGrams: integer("weight_grams").notNull().default(0),
+  returnedQuantity: integer("returned_quantity").notNull().default(0),
+  shippingMode: varchar("shipping_mode", { length: 8 }),
+  appliedTierMinimumQuantity: integer("applied_tier_minimum_quantity").notNull().default(1),
+  variantSnapshot: jsonb("variant_snapshot").$type<Record<string, string>>().notNull().default({}),
+});
+
+export const adminPayments = pgTable("payments", {
+  id: uuid("id").primaryKey(),
+  orderId: uuid("order_id").notNull(),
+  method: varchar("method", { length: 32 }).notNull(),
+  amountXof: integer("amount_xof").notNull(),
+  status: varchar("status", { length: 24 }).notNull(),
+  provider: varchar("provider", { length: 80 }).notNull().default("mock"),
+  providerReference: varchar("provider_reference", { length: 190 }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
+});
+
+export const adminReturnRequests = pgTable("return_requests", {
+  id: uuid("id").primaryKey(),
+  reference: varchar("reference", { length: 40 }).notNull(),
+  orderId: uuid("order_id").notNull(),
+  customerId: uuid("customer_id").notNull(),
+  status: varchar("status", { length: 24 }).notNull(),
+  reason: varchar("reason", { length: 32 }).notNull(),
+  customerMessage: text("customer_message").notNull().default(""),
+  internalNote: text("internal_note").notNull().default(""),
+  expectedAmountXof: integer("expected_amount_xof").notNull().default(0),
+  approvedAt: timestamp("approved_at", { withTimezone: true }),
+  receivedAt: timestamp("received_at", { withTimezone: true }),
+  closedAt: timestamp("closed_at", { withTimezone: true }),
+  refusedAt: timestamp("refused_at", { withTimezone: true }),
+  handledByEmployeeId: uuid("handled_by_employee_id"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull(),
+});
+
+export const adminReturnRequestItems = pgTable("return_request_items", {
+  id: serial("id").primaryKey(),
+  returnRequestId: uuid("return_request_id").notNull(),
+  orderItemId: integer("order_item_id").notNull(),
+  quantity: integer("quantity").notNull(),
+  unitPriceXof: integer("unit_price_xof").notNull(),
+  restock: boolean("restock").notNull().default(false),
+  condition: varchar("condition", { length: 16 }).notNull().default("new"),
+});
+
+export const adminRefunds = pgTable("refunds", {
+  id: uuid("id").primaryKey(),
+  reference: varchar("reference", { length: 40 }).notNull(),
+  orderId: uuid("order_id").notNull(),
+  paymentId: uuid("payment_id"),
+  returnRequestId: uuid("return_request_id"),
+  amountXof: integer("amount_xof").notNull(),
+  status: varchar("status", { length: 24 }).notNull(),
+  method: varchar("method", { length: 40 }).notNull().default("original"),
+  providerReference: varchar("provider_reference", { length: 190 }),
+  reason: text("reason").notNull().default(""),
+  processedAt: timestamp("processed_at", { withTimezone: true }),
+  createdByEmployeeId: uuid("created_by_employee_id"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
+});
+
+export const adminDocumentSequences = pgTable("document_sequences", {
+  id: serial("id").primaryKey(),
+  documentType: varchar("document_type", { length: 24 }).notNull(),
+  fiscalYear: integer("fiscal_year").notNull(),
+  lastValue: integer("last_value").notNull().default(0),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
 export const adminEscrowEntries = pgTable("escrow_entries", {
   id: uuid("id").primaryKey(),
   orderId: uuid("order_id").notNull(),
   status: varchar("status", { length: 24 }).notNull(),
+  amountXof: integer("amount_xof").notNull().default(0),
+  commissionBps: integer("commission_bps").notNull().default(800),
+  commissionXof: integer("commission_xof").notNull().default(0),
+  sellerNetXof: integer("seller_net_xof").notNull().default(0),
+  releasedAt: timestamp("released_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
 export const adminOrderStatusHistory = pgTable("order_status_history", {
@@ -204,6 +314,15 @@ export const adminInvoices = pgTable("invoices", {
   pdfUrl: text("pdf_url"),
   issuedAt: timestamp("issued_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
+  discountXof: integer("discount_xof").notNull().default(0),
+  billingSnapshot: jsonb("billing_snapshot").$type<Record<string, string>>().notNull().default({}),
+  sellerSnapshot: jsonb("seller_snapshot").$type<Record<string, string>>().notNull().default({}),
+  sequenceNumber: integer("sequence_number"),
+  fiscalYear: integer("fiscal_year"),
+  note: text("note").notNull().default(""),
+  voidedAt: timestamp("voided_at", { withTimezone: true }),
+  voidReason: text("void_reason"),
+  createdByEmployeeId: uuid("created_by_employee_id"),
 });
 
 export const adminCreditNotes = pgTable("credit_notes", {
@@ -215,6 +334,12 @@ export const adminCreditNotes = pgTable("credit_notes", {
   reason: text("reason").notNull(),
   pdfUrl: text("pdf_url"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
+  returnId: uuid("return_id"),
+  refundId: uuid("refund_id"),
+  taxXof: integer("tax_xof").notNull().default(0),
+  sequenceNumber: integer("sequence_number"),
+  fiscalYear: integer("fiscal_year"),
+  createdByEmployeeId: uuid("created_by_employee_id"),
 });
 
 export const adminShippingMethods = pgTable("shipping_methods", {

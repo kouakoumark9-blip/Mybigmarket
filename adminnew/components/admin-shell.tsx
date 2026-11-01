@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
-import { Activity, BadgePercent, Bell, Boxes, Calculator, ChevronRight, CircleHelp, ClipboardList, CreditCard, FileText, Globe2, Headset, Image, LayoutDashboard, Menu, PackageSearch, MapPin, Plane, Ruler, Search, Settings2, Shield, Trash2, Truck, UserCog, Users, X } from "lucide-react";
+import { Activity, BadgePercent, Bell, Boxes, Calculator, ChevronRight, CircleHelp, ClipboardList, CreditCard, FileText, Globe2, Headset, Image, LayoutDashboard, MapPin, Menu, PackageSearch, Plane, Ruler, Search, Settings2, Shield, Trash2, Truck, Undo2, UserCog, Users, X } from "lucide-react";
 import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 
@@ -15,6 +15,7 @@ const navGroups: NavGroup[] = [
   { label: "Pilotage", items: [{ label: "Tableau de bord", href: "/", permission: "dashboard.read", icon: LayoutDashboard, implemented: true }] },
   { label: "Ventes", items: [
     { label: "Commandes", href: "/commandes", permission: "orders.read", icon: ClipboardList, implemented: true },
+    { label: "Retours produits", href: "/commandes/retours", permission: "support.disputes.manage", icon: Undo2, implemented: true },
     { label: "Factures et avoirs", href: "/factures", permission: "orders.documents.manage", icon: FileText, implemented: true },
   ] },
   { label: "Catalogue", items: [
