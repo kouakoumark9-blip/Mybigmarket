@@ -1,45 +1,165 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
 import Link from "next/link";
-import { Clock3, MapPin, PackageCheck, ShieldCheck, Star } from "lucide-react";
-import { getProductDescription } from "@/lib/demo-data";
-import { LocalPrice } from "@/components/country-preferences";
-import { getCatalogProduct, getCatalogProducts } from "@/lib/catalog";
-import { getPublishedReviewsForSlug } from "@/lib/reviews";
-import { ProductVisual, ProductCard } from "@/components/product-card";
-import { ProductDetailActions } from "@/components/product-detail-actions";
-import { DestinationPriceLabel } from "@/components/destination-labels";
-import { ProductDetailExperience } from "@/components/product-detail/product-detail-experience";
-import { smartphoneCamon50Pro } from "@/lib/product";
+import { notFound } from "next/navigation";
+import { Suspense } from "react";
+import { ProductCarousel } from "@/components/product/b2b/ProductCarousel";
+import { ProductDetailSkeleton } from "@/components/product/b2b/ProductDetailSkeleton";
+import { ProductDetailView } from "@/components/product/b2b/ProductDetailView";
+import { getProductDetail, getRelatedProducts } from "@/lib/product-detail-data";
+import { getProductShippingOptions } from "@/lib/product-shipping";
+import "./product-detail.css";
 
-type Props = { params: Promise<{ slug: string }> };
 export const dynamic = "force-dynamic";
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+/**
+ * Fiche produit B2B.
+ *
+ * La page est un rendu pur : `getProductDetail` lit tout (produit, paliers,
+ * variantes, attributs, emballage, délais, fournisseur, avis) en une fois, et
+ * `null` déclenche un vrai 404 — pas une fiche de démonstration. Aucune donnée
+ * n'est écrite en dur ici, y compris les libellés commerciaux de marque.
+ */
+
+type PageProps = { params: Promise<{ slug: string }> };
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ?? "https://mybigmarket.com";
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const product = await getCatalogProduct(slug);
-  if (!product) return { title: "Produit introuvable" };
-  return { title: product.title, description: getProductDescription(product) };
+  let product = null;
+  try {
+    product = await getProductDetail(slug);
+  } catch {
+    // Base indisponible : on ne bloque pas les métadonnées, le rendu affichera l'erreur.
+    return { title: "Produit indisponible | mybigmarket" };
+  }
+  if (!product) return { title: "Produit introuvable | mybigmarket", robots: { index: false, follow: false } };
+
+  const description = (product.shortDescription || product.description || "").replace(/\s+/g, " ").slice(0, 158);
+  const image = product.images[0]?.url;
+
+  return {
+    // Pas de suffixe manuel : le gabarit racine « %s | mybigmarket » l'ajoute.
+    title: product.title,
+    description: description || `${product.title} — achat en gros et demi-gros sur mybigmarket.`,
+    alternates: { canonical: `${SITE_URL}/produits/${product.slug}` },
+    openGraph: {
+      type: "website",
+      title: product.title,
+      description,
+      url: `${SITE_URL}/produits/${product.slug}`,
+      images: image ? [{ url: image, alt: product.images[0]?.alt || product.title }] : undefined,
+    },
+  };
 }
 
-export default async function ProductPage({ params }: Props) {
+export default async function ProductPage({ params }: PageProps) {
   const { slug } = await params;
-  const product = await getCatalogProduct(slug);
-  if (!product) notFound();
-  const publishedReviews = await getPublishedReviewsForSlug(product.slug);
-  if (!process.env.DATABASE_URL && product.slug === smartphoneCamon50Pro.slug) return <ProductDetailExperience product={smartphoneCamon50Pro} publishedReviews={publishedReviews}/>;
-  const productDescription = getProductDescription(product);
-  const allProducts = await getCatalogProducts();
-  const related = allProducts.filter((item) => item.categorySlug === product.categorySlug && item.slug !== product.slug).slice(0, 4);
-  const baseUrl=process.env.NEXT_PUBLIC_SITE_URL || "https://mybigmarket.example";
-  const productUrl=`${baseUrl}/produits/${product.slug}`;
-  const jsonLd = { "@context": "https://schema.org", "@type": "Product", name: product.title, description: productDescription, sku: product.slug, category: product.category, offers: { "@type": "Offer", priceCurrency: "XOF", price: product.priceXof, availability: "https://schema.org/PreOrder", url: productUrl }, aggregateRating: { "@type": "AggregateRating", ratingValue: product.rating, reviewCount: product.reviewCount } };
-  const breadcrumbJsonLd={"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Accueil","item":baseUrl},{"@type":"ListItem","position":2,"name":product.category,"item":`${baseUrl}/produits?categorie=${product.categorySlug}`},{"@type":"ListItem","position":3,"name":product.title,"item":productUrl}]};
-  return <main className="shell page-space product-page-typography"><div className="breadcrumbs"><Link href="/">Accueil</Link><span>›</span><Link href={`/produits?categorie=${product.categorySlug}`}>{product.category}</Link><span>›</span><span>{product.title}</span></div>
-    <div className="product-detail-grid"><div className="detail-visual"><ProductVisual product={product}/></div><section className="detail-panel"><div className="detail-category">{product.category}</div><h1>{product.title}</h1><div className="detail-rating"><Star size={14} fill="currentColor"/> {product.rating.toFixed(1)} <span>({product.reviewCount} avis · avis de démonstration)</span></div><div className="detail-price"><LocalPrice amountXof={product.priceXof}/></div><div className="detail-price-note"><DestinationPriceLabel/></div><div className="detail-facts"><div><PackageCheck/><span>Précommande groupée</span></div><div className="delivery-estimate"><Clock3/><span>Délai estimé : 30 j</span></div><div><MapPin/><span>Départ : {product.city}, Chine</span></div><div><ShieldCheck/><span>Paiement suivi à la commande</span></div></div><div className="detail-seller"><div className="seller-avatar">{product.seller.split(" ").map((part) => part[0]).join("")}</div><div><b>{product.seller}</b><small>{product.university} · profil de démonstration</small></div></div><ProductDetailActions product={product}/><div className="detail-help">Quantité minimum à respecter : {product.minimumQuantity}. Aucun paiement réel n’est activé dans cette version de démonstration.</div></section></div>
-    <section className="product-description-panel" aria-labelledby="product-description-title"><div className="product-description-top"><div><span className="eyebrow">INFORMATIONS PRODUIT</span><h2 id="product-description-title">Description du produit</h2></div><p>{productDescription}</p></div><div className="product-description-details"><div><span>Catégorie</span><b>{product.category}</b></div><div><span>Commande minimale</span><b>{product.minimumQuantity} unité{product.minimumQuantity > 1 ? "s" : ""}</b></div><div className="delivery-estimate-fact"><span>Délai estimé :</span><b>30 j</b></div><div><span>Vendeur</span><b>{product.seller} · {product.city}</b></div></div><div className="product-description-note"><ShieldCheck size={17}/><span>Avant de valider, demandez au vendeur de confirmer les variantes, dimensions, matériaux, éléments inclus et conditions de livraison. Cette fiche contient des données de démonstration.</span></div></section>
-    <section className="content-section related-section"><div className="section-heading"><div><span className="eyebrow">DANS LE MÊME RAYON</span><h2>Vous aimerez aussi</h2></div><Link className="text-link" href={`/produits?categorie=${product.categorySlug}`}>Tout voir</Link></div><div className="catalog-grid">{related.map((item) => <ProductCard key={item.slug} product={item}/>)}</div></section>
-    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }}/>
-    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd).replace(/</g, "\\u003c") }}/>
+
+  return <main className="b2b-page">
+    <nav className="b2b-breadcrumb" aria-label="Fil d’Ariane">
+      <Link href="/">Accueil</Link>
+      <span aria-hidden="true">›</span>
+      <Link href="/produits">Produits</Link>
+      <Suspense fallback={null}>
+        <BreadcrumbTail slug={slug} />
+      </Suspense>
+    </nav>
+
+    <Suspense fallback={<ProductDetailSkeleton />}>
+      <ProductDetailSection slug={slug} />
+    </Suspense>
   </main>;
+}
+
+/** Fil d'Ariane : catégorie + titre, une fois le produit chargé. */
+async function BreadcrumbTail({ slug }: { slug: string }) {
+  const product = await getProductDetail(slug).catch(() => null);
+  if (!product) return null;
+  return <>
+    <span aria-hidden="true">›</span>
+    <Link href={`/produits?categorie=${encodeURIComponent(product.categorySlug)}`}>{product.categoryName}</Link>
+    <span aria-hidden="true">›</span>
+    <span className="b2b-breadcrumb-current" aria-current="page">{product.title}</span>
+  </>;
+}
+
+async function ProductDetailSection({ slug }: { slug: string }) {
+  const product = await getProductDetail(slug);
+  if (!product) notFound();
+
+  const related = await getRelatedProducts(product);
+
+  // Port initial calculé côté serveur : le panneau s'affiche déjà rempli, sans
+  // aller-retour réseau ni saut de mise en page à l'arrivée.
+  const shipping = await getProductShippingOptions({
+    countryCode: "CI",
+    packages: [{
+      lengthCm: Number(product.packaging?.lengthCm ?? 30),
+      widthCm: Number(product.packaging?.widthCm ?? 20),
+      heightCm: Number(product.packaging?.heightCm ?? 10),
+      weightGrams: product.weightGrams,
+      quantity: product.minimumQuantity,
+    }],
+    subtotalXof: (product.priceTiers[0]?.unitPriceXof ?? product.priceXof) * product.minimumQuantity,
+    isFragile: product.packaging?.fragile ?? false,
+    preference: "automatic",
+  }).catch(() => ({ options: [], zoneName: null, available: false }));
+
+  const productJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: product.title,
+    description: product.shortDescription || product.description || undefined,
+    image: product.images.map((image) => image.url).filter(Boolean),
+    sku: product.slug,
+    category: product.categoryName,
+    brand: { "@type": "Brand", name: "mybigmarket" },
+    offers: {
+      "@type": "Offer",
+      priceCurrency: "XOF",
+      price: Math.min(...[product.priceXof, ...product.priceTiers.map((tier) => tier.unitPriceXof)]),
+      url: `${SITE_URL}/produits/${product.slug}`,
+      availability: product.quantity > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+      seller: { "@type": "Organization", name: product.supplier.name },
+    },
+    // Aucune note agrégée si la base ne contient aucun avis : un aggregateRating
+    // fabriqué serait une donnée structurée mensongère.
+    ...(product.reviewCount > 0 && product.reviewAverage !== null ? {
+      aggregateRating: {
+        "@type": "AggregateRating",
+        ratingValue: product.reviewAverage,
+        reviewCount: product.reviewCount,
+      },
+    } : {}),
+  };
+
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Accueil", item: SITE_URL },
+      { "@type": "ListItem", position: 2, name: "Produits", item: `${SITE_URL}/produits` },
+      { "@type": "ListItem", position: 3, name: product.categoryName, item: `${SITE_URL}/produits?categorie=${encodeURIComponent(product.categorySlug)}` },
+      { "@type": "ListItem", position: 4, name: product.title, item: `${SITE_URL}/produits/${product.slug}` },
+    ],
+  };
+
+  return <>
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }} />
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
+
+    <ProductDetailView product={product} initialShipping={shipping} />
+
+    <ProductCarousel
+      title="Produits recommandés"
+      products={related.recommended}
+      emptyLabel="Aucun produit recommandé pour l’instant."
+    />
+    <ProductCarousel
+      title="Vous aimerez aussi"
+      products={related.alternatives}
+      emptyLabel="Aucune alternative publiée dans cette catégorie."
+    />
+  </>;
 }
