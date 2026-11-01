@@ -3,6 +3,7 @@
 import { and, eq, gte, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
 import { auth } from "@/auth";
+import { assertActiveAccount } from "@/lib/session-account";
 import { getDb } from "@/lib/db";
 import { orderEvents, orderItems, orders, payments, pickupPoints, products, sellerProfiles, users } from "@/lib/db/schema";
 import { getPaymentProvider, type PayMethod } from "@/lib/payments/provider";
@@ -19,6 +20,8 @@ type CartInput = { slug: string; qty: number };
 export async function createCheckoutAction(formData: FormData): Promise<{ error?: string; orderIds?: string[] }> {
   const session = await auth();
   if (!session?.user?.id) return { error: "Connectez-vous ou créez un compte avant de commander." };
+  try { await assertActiveAccount(session.user.id, "buyer"); }
+  catch { return { error: "Votre compte ne permet pas de passer commande. Contactez le support." }; }
   const parsed = checkoutSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { error: parsed.error.issues[0]?.message || "Vérifiez les informations de livraison." };
   if (!destinationCountries.some((country) => country.code === parsed.data.countryCode)) return { error: "Choisissez un pays de livraison valide." };

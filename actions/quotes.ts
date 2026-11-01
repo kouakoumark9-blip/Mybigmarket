@@ -4,6 +4,7 @@ import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { auth } from "@/auth";
+import { assertActiveAccount } from "@/lib/session-account";
 import { getDb } from "@/lib/db";
 import { conversations, messages, products, quoteRequests, sellerProfiles, users } from "@/lib/db/schema";
 
@@ -32,6 +33,8 @@ export async function createQuoteRequestAction(_previous: QuoteActionState, form
   const [buyer] = await db.select({ id: users.id, phone: users.phone, role: users.role, status: users.status })
     .from(users).where(eq(users.id, session.user.id)).limit(1);
   if (!buyer || buyer.status !== "active" || buyer.role !== "buyer") return { error: "Votre compte ne permet pas d’envoyer cette demande." };
+  try { await assertActiveAccount(buyer.id, "buyer"); }
+  catch { return { error: "Votre compte ne permet pas d’envoyer cette demande." }; }
 
   let sellerId: string | null = null;
   let productId: string | null = null;

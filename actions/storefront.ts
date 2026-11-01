@@ -4,8 +4,9 @@ import { and, eq, ne } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { auth } from "@/auth";
+import { assertActiveAccount } from "@/lib/session-account";
 import { getDb } from "@/lib/db";
-import { sellerProfiles, sellerStorefronts, users } from "@/lib/db/schema";
+import { sellerProfiles, sellerStorefronts } from "@/lib/db/schema";
 
 export type StorefrontFormState = { error?: string; success?: string; slug?: string };
 const storefrontSchema = z.object({
@@ -24,9 +25,10 @@ export async function saveStorefrontAction(_previous: StorefrontFormState, formD
   const parsed = storefrontSchema.safeParse({ ...Object.fromEntries(formData), isPublished: formData.get("isPublished") === "on" });
   if (!parsed.success) return { error: parsed.error.issues[0]?.message || "Vérifiez les champs de la boutique." };
   const db = getDb();
-  const [actor] = await db.select({ role: users.role, status: users.status }).from(users).where(eq(users.id, session.user.id)).limit(1);
+  try { await assertActiveAccount(session.user.id, "seller"); }
+  catch { return { error: "Seuls les vendeurs vérifiés peuvent modifier leur boutique." }; }
   const [profile] = await db.select({ verificationStatus: sellerProfiles.verificationStatus }).from(sellerProfiles).where(eq(sellerProfiles.userId, session.user.id)).limit(1);
-  if (!actor || actor.role !== "seller" || actor.status !== "active" || !profile || profile.verificationStatus !== "approved") {
+  if (!profile || profile.verificationStatus !== "approved") {
     return { error: "Seuls les vendeurs vérifiés peuvent modifier leur boutique." };
   }
   const [slugOwner] = await db.select({ sellerId: sellerStorefronts.sellerId }).from(sellerStorefronts)

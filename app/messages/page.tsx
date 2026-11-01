@@ -29,7 +29,7 @@ export default async function MessagesPage({ searchParams }: Props) {
     .innerJoin(seller, eq(seller.id, conversations.sellerId))
     .where(or(eq(conversations.buyerId, current.id), eq(conversations.sellerId, current.id)))
     .orderBy(desc(conversations.lastMessageAt)).limit(100);
-  const notice = params.info === "acheteur" ? "Les comptes vendeurs peuvent répondre depuis leur boîte de réception. Pour contacter un autre vendeur, utilisez un compte acheteur." : params.erreur ? "La conversation n’a pas pu être ouverte. Vérifiez que le produit et le vendeur sont toujours actifs." : "";
+  const notice = params.info === "acheteur" ? "Les comptes vendeurs peuvent répondre depuis leur boîte de réception. Pour contacter un autre vendeur, utilisez un compte acheteur." : params.info === "compte" ? "Votre compte ne permet pas d’ouvrir une conversation. Contactez le support si vous pensez qu’il s’agit d’une erreur." : params.erreur ? "La conversation n’a pas pu être ouverte. Vérifiez que le produit et le vendeur sont toujours actifs." : "";
   return <main className="shell page-space">
     <div className="breadcrumbs"><Link href="/">Accueil</Link><span>›</span><span>Messages</span></div>
     <div className="messages-heading"><div><span className="eyebrow">ÉCHANGES AVEC LES VENDEURS</span><h1 className="page-title">Ma messagerie</h1><p className="page-subtitle">Posez vos questions et échangez directement dans mybigmarket.</p></div><Link className="button button-outline" href="/produits">Parcourir les produits</Link></div>
