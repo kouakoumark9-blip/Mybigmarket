@@ -206,7 +206,7 @@ export async function issueInvoiceAction(formData: FormData) {
   await getAdminDb().transaction(async (tx) => {
     const [order] = await tx.select({
       id: adminOrders.id, status: adminOrders.status, subtotalXof: adminOrders.subtotalXof,
-      discountXof: adminOrders.discountXof, taxXof: adminOrders.taxXof, shippingXof: adminOrders.shippingXof,
+      discountXof: adminOrders.discountXof, taxXof: adminOrders.taxXof, shippingCostXof: adminOrders.shippingCostXof,
       totalXof: adminOrders.totalXof, reference: adminOrders.reference, deliveryAddress: adminOrders.deliveryAddress,
     }).from(adminOrders).where(and(eq(adminOrders.id, orderId), isNull(adminOrders.deletedAt))).limit(1);
 
@@ -235,7 +235,7 @@ export async function issueInvoiceAction(formData: FormData) {
       status: "issued",
       subtotalXof: order.subtotalXof,
       discountXof: order.discountXof,
-      shippingXof: order.shippingXof,
+      shippingXof: order.shippingCostXof,
       taxXof: order.taxXof,
       totalXof: order.totalXof,
       issuedAt: now,

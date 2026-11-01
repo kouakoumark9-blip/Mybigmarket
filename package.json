@@ -15,7 +15,8 @@
     "db:seed:demo": "tsx lib/db/seed.ts",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "db:sql:all": "node scripts/build-migrate-all.mjs"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.2",
