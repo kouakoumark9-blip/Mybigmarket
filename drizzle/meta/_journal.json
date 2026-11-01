@@ -78,6 +78,13 @@
       "when": 1793536843140,
       "tag": "0010_clear_madame_hydra",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1793537690730,
+      "tag": "0011_little_warstar",
+      "breakpoints": true
     }
   ]
 }
