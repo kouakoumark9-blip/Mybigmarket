@@ -18,7 +18,10 @@ const categoryIcons: Record<string, LucideIcon> = {
 };
 
 export default async function HomePage() {
-  const products = await getCatalogProducts();
+  // Accueil vitrine : rendu sans dépendre de la base. Un accueil en 500 parce
+  // que la base est momentanément indisponible fait perdre visiteurs et
+  // crédibilité ; le catalogue temps réel reste sur /produits.
+  const products = await getCatalogProducts({ forceDemo: true });
   const byCategory = categories.map((category) => products.filter((product) => product.categorySlug === category.slug));
   const mixedProducts = Array.from({ length: Math.max(0, ...byCategory.map((group) => group.length)) }, (_, index) => byCategory.flatMap((group) => group[index] ? [group[index]] : [])).flat();
   const featuredProducts = mixedProducts.slice(0, 3);
