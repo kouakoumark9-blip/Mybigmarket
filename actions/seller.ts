@@ -3,6 +3,7 @@
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 import { auth } from "@/auth";
+import { assertActiveAccount } from "@/lib/session-account";
 import { getDb } from "@/lib/db";
 import { categories, productImages, products, sellerProfiles, users } from "@/lib/db/schema";
 import { deletePublicBlobs, uploadPrivateDocuments, uploadPublicImages, validateFiles } from "@/lib/uploads";
@@ -14,6 +15,8 @@ const productSchema = z.object({ title: z.string().min(3).max(190), description:
 export async function createSellerApplication(_prev: FormState, formData: FormData): Promise<FormState> {
   const session = await auth();
   if (!session?.user?.id) return { error: "Connectez-vous pour envoyer votre demande vendeur." };
+  try { await assertActiveAccount(session.user.id); }
+  catch { return { error: "Votre compte est suspendu : cette demande ne peut pas être envoyée." }; }
   const parsed = applicationSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { error: "Vérifiez les informations de votre profil." };
   const files = formData.getAll("documents").filter((value): value is File => value instanceof File && value.size > 0);
@@ -32,8 +35,8 @@ export async function createProductAction(_prev: FormState, formData: FormData):
   const session = await auth();
   if (!session?.user?.id) return { error: "Accès vendeur requis." };
   const db = getDb();
-  const [actor] = await db.select({role:users.role}).from(users).where(eq(users.id,session.user.id)).limit(1);
-  if(actor?.role!=="seller")return { error: "Accès vendeur requis." };
+  try { await assertActiveAccount(session.user.id, "seller"); }
+  catch { return { error: "Accès vendeur requis." }; }
   const [profile] = await db.select().from(sellerProfiles).where(eq(sellerProfiles.userId, session.user.id)).limit(1);
   if (!profile || profile.verificationStatus !== "approved") return { error: "Seuls les vendeurs vérifiés peuvent proposer des produits." };
   const parsed = productSchema.safeParse(Object.fromEntries(formData));
@@ -66,8 +69,8 @@ export async function archiveProductAction(productId: string): Promise<FormState
   const session = await auth();
   if (!session?.user?.id) return { error: "Accès vendeur requis." };
   const db = getDb();
-  const [actor] = await db.select({role:users.role}).from(users).where(eq(users.id,session.user.id)).limit(1);
-  if(actor?.role!=="seller")return { error: "Accès vendeur requis." };
+  try { await assertActiveAccount(session.user.id, "seller"); }
+  catch { return { error: "Accès vendeur requis." }; }
   await db.update(products).set({ status: "archived", updatedAt: new Date() }).where(and(eq(products.id, productId), eq(products.sellerId, session.user.id)));
   return { success: "Produit archivé." };
 }

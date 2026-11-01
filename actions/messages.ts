@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { auth } from "@/auth";
+import { assertActiveAccount } from "@/lib/session-account";
 import { getDb } from "@/lib/db";
 import { conversations, messages, products, sellerProfiles, users } from "@/lib/db/schema";
 
@@ -19,6 +20,8 @@ export async function startConversationAction(formData: FormData): Promise<void>
   const session = await auth();
   if (!session?.user?.id) redirect(`/connexion?callbackUrl=${encodeURIComponent(destination)}`);
   if (session.user.role !== "buyer") redirect("/messages?info=acheteur");
+  try { await assertActiveAccount(session.user.id, "buyer"); }
+  catch { redirect("/messages?info=compte"); }
 
   const db = getDb();
   const [listing] = await db.select({ productId: products.id, sellerId: products.sellerId })
@@ -44,6 +47,8 @@ export async function sendMessageAction(formData: FormData): Promise<void> {
   if (!parsed.success) return;
   const session = await auth();
   if (!session?.user?.id || !process.env.DATABASE_URL) return;
+  try { await assertActiveAccount(session.user.id); }
+  catch { return; }
   const db = getDb();
   const [thread] = await db.select({ id: conversations.id, buyerId: conversations.buyerId, sellerId: conversations.sellerId })
     .from(conversations).where(eq(conversations.id, parsed.data.conversationId)).limit(1);
