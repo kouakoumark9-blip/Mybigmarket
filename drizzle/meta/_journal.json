@@ -85,6 +85,13 @@
       "when": 1793537690730,
       "tag": "0011_little_warstar",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1793539212708,
+      "tag": "0012_new_fantastic_four",
+      "breakpoints": true
     }
   ]
 }

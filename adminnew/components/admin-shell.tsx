@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
-import { Activity, BadgePercent, Bell, Boxes, Calculator, ChevronRight, CircleHelp, ClipboardList, CreditCard, FileText, Globe2, Headset, Image, LayoutDashboard, Menu, PackageSearch, MapPin, Plane, Ruler, Search, Settings2, Shield, Trash2, Truck, Users, X } from "lucide-react";
+import { Activity, BadgePercent, Bell, Boxes, Calculator, ChevronRight, CircleHelp, ClipboardList, CreditCard, FileText, Globe2, Headset, Image, LayoutDashboard, Menu, PackageSearch, MapPin, Plane, Ruler, Search, Settings2, Shield, Trash2, Truck, UserCog, Users, X } from "lucide-react";
 import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 
@@ -27,6 +27,8 @@ const navGroups: NavGroup[] = [
   ] },
   { label: "Relations clients", items: [
     { label: "Clients et adresses", href: "/clients", permission: "customers.read", icon: Users, implemented: true },
+    { label: "Groupes de clients", href: "/clients/groupes", permission: "customers.manage", icon: UserCog, implemented: true },
+    { label: "Corbeille clients", href: "/clients/corbeille", permission: "customers.manage", icon: Trash2, implemented: true },
     { label: "Service client", href: "/service-client", permission: "support.messages.read", icon: Headset, implemented: true },
   ] },
   { label: "Opérations", items: [
