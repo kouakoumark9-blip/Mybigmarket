@@ -51,6 +51,8 @@ export const users = pgTable("users", {
   status: userStatusEnum("status").notNull().default("active"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  anonymizedAt: timestamp("anonymized_at", { withTimezone: true }),
+  deletedAt: timestamp("deleted_at", { withTimezone: true }),
 }, (t) => [uniqueIndex("users_email_unique").on(t.email), index("users_role_idx").on(t.role)]);
 
 export const adminRoles = pgTable("roles", {
@@ -179,6 +181,11 @@ export const categories = pgTable("categories", {
   description: text("description"),
   isActive: boolean("is_active").notNull().default(true),
   sortOrder: integer("sort_order").notNull().default(0),
+  imageUrl: text("image_url"),
+  bannerUrl: text("banner_url"),
+  metaTitle: varchar("meta_title", { length: 190 }),
+  metaDescription: varchar("meta_description", { length: 320 }),
+  deletedAt: timestamp("deleted_at", { withTimezone: true }),
 }, (t) => [uniqueIndex("categories_slug_unique").on(t.slug), index("categories_parent_idx").on(t.parentId)]);
 
 export const brands = pgTable("brands", {
@@ -189,6 +196,10 @@ export const brands = pgTable("brands", {
   isActive: boolean("is_active").notNull().default(true),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  description: text("description"),
+  metaTitle: varchar("meta_title", { length: 190 }),
+  metaDescription: varchar("meta_description", { length: 320 }),
+  deletedAt: timestamp("deleted_at", { withTimezone: true }),
 }, (t) => [uniqueIndex("brands_slug_unique").on(t.slug), uniqueIndex("brands_name_unique").on(t.name)]);
 
 export const suppliers = pgTable("suppliers", {
@@ -208,6 +219,10 @@ export const suppliers = pgTable("suppliers", {
   isActive: boolean("is_active").notNull().default(true),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  logoUrl: text("logo_url"),
+  description: text("description"),
+  contactEmail: varchar("contact_email", { length: 190 }),
+  deletedAt: timestamp("deleted_at", { withTimezone: true }),
 }, (t) => [uniqueIndex("suppliers_slug_unique").on(t.slug), index("suppliers_country_active_idx").on(t.countryCode, t.isActive), index("suppliers_user_idx").on(t.sellerUserId)]);
 
 export const products = pgTable("products", {
@@ -238,6 +253,9 @@ export const products = pgTable("products", {
   isFeatured: boolean("is_featured").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  deletedAt: timestamp("deleted_at", { withTimezone: true }),
+  version: integer("version").notNull().default(0),
+  position: integer("position").notNull().default(0),
 }, (t) => [uniqueIndex("products_slug_unique").on(t.slug), uniqueIndex("products_sku_unique").on(t.sku), index("products_seller_idx").on(t.sellerId), index("products_supplier_idx").on(t.supplierId), index("products_brand_idx").on(t.brandId), index("products_category_idx").on(t.categoryId), index("products_listing_idx").on(t.status, t.categoryId)]);
 
 export const productImages = pgTable("product_images", {
@@ -262,6 +280,13 @@ export const productVariants = pgTable("product_variants", {
   lowStockThreshold: integer("low_stock_threshold").notNull().default(5),
   imageUrl: text("image_url"),
   isActive: boolean("is_active").notNull().default(true),
+  ean13: varchar("ean13", { length: 13 }),
+  upc: varchar("upc", { length: 12 }),
+  weightImpactGrams: integer("weight_impact_grams").notNull().default(0),
+  minimumQuantity: integer("minimum_quantity"),
+  isDefault: boolean("is_default").notNull().default(false),
+  combinationKey: varchar("combination_key", { length: 64 }),
+  deletedAt: timestamp("deleted_at", { withTimezone: true }),
 }, (t) => [uniqueIndex("product_variants_product_name_value_unique").on(t.productId, t.name, t.value), uniqueIndex("product_variants_sku_unique").on(t.sku), index("product_variants_product_idx").on(t.productId, t.isActive)]);
 
 export const pickupPoints = pgTable("pickup_points", {
@@ -300,6 +325,8 @@ export const orders = pgTable("orders", {
   paymentExpiresAt: timestamp("payment_expires_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  version: integer("version").notNull().default(0),
+  deletedAt: timestamp("deleted_at", { withTimezone: true }),
 }, (t) => [index("orders_buyer_idx").on(t.buyerId, t.createdAt), index("orders_status_idx").on(t.status), index("orders_shipment_idx").on(t.shipmentId)]);
 
 export const conversations = pgTable("conversations", {
@@ -466,6 +493,9 @@ export const adminAuditLog = pgTable("admin_audit_log", {
   details: jsonb("details").$type<Record<string, unknown>>(),
   ipAddress: varchar("ip_address", { length: 45 }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  beforeState: jsonb("before_state").$type<Record<string, unknown>>(),
+  afterState: jsonb("after_state").$type<Record<string, unknown>>(),
+  changedFields: jsonb("changed_fields").$type<string[]>().notNull().default([]),
 }, (t) => [index("admin_audit_actor_time_idx").on(t.actorUserId, t.createdAt), index("admin_audit_entity_idx").on(t.entityType, t.entityId)]);
 
 export const customerGroups = pgTable("customer_groups", {
@@ -783,6 +813,7 @@ export const cmsPages = pgTable("cms_pages", {
   publishedAt: timestamp("published_at", { withTimezone: true }),
   updatedByEmployeeId: uuid("updated_by_employee_id").references(() => employees.id, { onDelete: "set null" }),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  deletedAt: timestamp("deleted_at", { withTimezone: true }),
 }, (t) => [uniqueIndex("cms_pages_slug_unique").on(t.slug), index("cms_pages_status_idx").on(t.status)]);
 
 export const banners = pgTable("banners", {
@@ -863,3 +894,126 @@ export const productsRelations = relations(products, ({ one, many }) => ({
 export const categoriesRelations = relations(categories, ({ one, many }) => ({ parent: one(categories, { fields: [categories.parentId], references: [categories.id], relationName: "categoryTree" }), children: many(categories, { relationName: "categoryTree" }), products: many(products) }));
 export const ordersRelations = relations(orders, ({ one, many }) => ({ buyer: one(users, { fields: [orders.buyerId], references: [users.id] }), items: many(orderItems), events: many(orderEvents), payment: one(payments), escrow: one(escrowEntries) }));
 export const orderItemsRelations = relations(orderItems, ({ one }) => ({ order: one(orders, { fields: [orderItems.orderId], references: [orders.id] }), product: one(products, { fields: [orderItems.productId], references: [products.id] }), seller: one(users, { fields: [orderItems.sellerId], references: [users.id] }) }));
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Étape 1 — socle : extensions extensibilité, attributs normalisés, corbeille,
+// clés d'API et traductions. Aucune table existante n'est renommée ni supprimée.
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const attributeDisplayTypeEnum = pgEnum("attribute_display_type", ["color", "texture", "select", "radio"]);
+export const moduleHookStatusEnum = pgEnum("module_hook_status", ["idle", "ok", "error"]);
+
+export const attributeGroups = pgTable("attribute_groups", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  code: varchar("code", { length: 60 }).notNull(),
+  name: varchar("name", { length: 120 }).notNull(),
+  displayType: attributeDisplayTypeEnum("display_type").notNull().default("select"),
+  position: integer("position").notNull().default(0),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [uniqueIndex("attribute_groups_code_unique").on(t.code), index("attribute_groups_active_position_idx").on(t.isActive, t.position)]);
+
+export const attributeValues = pgTable("attribute_values", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  groupId: uuid("group_id").notNull().references(() => attributeGroups.id, { onDelete: "cascade" }),
+  code: varchar("code", { length: 60 }).notNull(),
+  name: varchar("name", { length: 120 }).notNull(),
+  colorHex: varchar("color_hex", { length: 7 }),
+  textureUrl: text("texture_url"),
+  position: integer("position").notNull().default(0),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [uniqueIndex("attribute_values_group_code_unique").on(t.groupId, t.code), index("attribute_values_group_position_idx").on(t.groupId, t.position)]);
+
+export const features = pgTable("features", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  code: varchar("code", { length: 60 }).notNull(),
+  name: varchar("name", { length: 120 }).notNull(),
+  position: integer("position").notNull().default(0),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [uniqueIndex("features_code_unique").on(t.code), index("features_active_position_idx").on(t.isActive, t.position)]);
+
+export const featureValues = pgTable("feature_values", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  featureId: uuid("feature_id").notNull().references(() => features.id, { onDelete: "cascade" }),
+  value: varchar("value", { length: 190 }).notNull(),
+  position: integer("position").notNull().default(0),
+}, (t) => [uniqueIndex("feature_values_feature_value_unique").on(t.featureId, t.value), index("feature_values_feature_position_idx").on(t.featureId, t.position)]);
+
+export const productFeatureValues = pgTable("product_feature_values", {
+  id: serial("id").primaryKey(),
+  productId: uuid("product_id").notNull().references(() => products.id, { onDelete: "cascade" }),
+  featureId: uuid("feature_id").notNull().references(() => features.id, { onDelete: "cascade" }),
+  featureValueId: uuid("feature_value_id").references(() => featureValues.id, { onDelete: "set null" }),
+  customValue: varchar("custom_value", { length: 190 }),
+}, (t) => [uniqueIndex("product_feature_values_unique").on(t.productId, t.featureId), index("product_feature_values_feature_idx").on(t.featureId, t.featureValueId)]);
+
+export const productCombinationAttributes = pgTable("product_combination_attributes", {
+  id: serial("id").primaryKey(),
+  variantId: integer("variant_id").notNull().references(() => productVariants.id, { onDelete: "cascade" }),
+  attributeValueId: uuid("attribute_value_id").notNull().references(() => attributeValues.id, { onDelete: "restrict" }),
+}, (t) => [uniqueIndex("product_combination_attributes_unique").on(t.variantId, t.attributeValueId), index("product_combination_attributes_value_idx").on(t.attributeValueId)]);
+
+export const modules = pgTable("modules", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  code: varchar("code", { length: 60 }).notNull(),
+  name: varchar("name", { length: 120 }).notNull(),
+  version: varchar("version", { length: 20 }).notNull().default("1.0.0"),
+  description: text("description").notNull().default(""),
+  isActive: boolean("is_active").notNull().default(false),
+  config: jsonb("config").$type<Record<string, unknown>>().notNull().default({}),
+  installedAt: timestamp("installed_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [uniqueIndex("modules_code_unique").on(t.code), index("modules_active_idx").on(t.isActive)]);
+
+export const hooks = pgTable("hooks", {
+  id: serial("id").primaryKey(),
+  code: varchar("code", { length: 80 }).notNull(),
+  label: varchar("label", { length: 160 }).notNull(),
+  description: text("description").notNull().default(""),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [uniqueIndex("hooks_code_unique").on(t.code)]);
+
+export const moduleHooks = pgTable("module_hooks", {
+  id: serial("id").primaryKey(),
+  moduleId: uuid("module_id").notNull().references(() => modules.id, { onDelete: "cascade" }),
+  hookCode: varchar("hook_code", { length: 80 }).notNull().references(() => hooks.code, { onDelete: "cascade", onUpdate: "cascade" }),
+  priority: integer("priority").notNull().default(10),
+  isActive: boolean("is_active").notNull().default(true),
+}, (t) => [uniqueIndex("module_hooks_unique").on(t.moduleId, t.hookCode), index("module_hooks_lookup_idx").on(t.hookCode, t.isActive, t.priority)]);
+
+export const moduleEventsLog = pgTable("module_events_log", {
+  id: serial("id").primaryKey(),
+  hookCode: varchar("hook_code", { length: 80 }).notNull(),
+  moduleCode: varchar("module_code", { length: 60 }).notNull(),
+  status: moduleHookStatusEnum("status").notNull().default("ok"),
+  payloadHash: varchar("payload_hash", { length: 64 }),
+  error: text("error"),
+  durationMs: integer("duration_ms"),
+  executedAt: timestamp("executed_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [index("module_events_log_hook_idx").on(t.hookCode, t.executedAt), index("module_events_log_module_idx").on(t.moduleCode, t.executedAt)]);
+
+export const apiKeys = pgTable("api_keys", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  label: varchar("label", { length: 120 }).notNull(),
+  keyPrefix: varchar("key_prefix", { length: 12 }).notNull(),
+  keyHash: varchar("key_hash", { length: 64 }).notNull(),
+  permissions: jsonb("permissions").$type<Record<string, Array<"GET" | "POST" | "PUT" | "DELETE">>>().notNull().default({}),
+  allowedIps: jsonb("allowed_ips").$type<string[]>().notNull().default([]),
+  isActive: boolean("is_active").notNull().default(true),
+  lastUsedAt: timestamp("last_used_at", { withTimezone: true }),
+  createdByEmployeeId: uuid("created_by_employee_id").references(() => employees.id, { onDelete: "set null" }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [uniqueIndex("api_keys_hash_unique").on(t.keyHash), index("api_keys_prefix_idx").on(t.keyPrefix), index("api_keys_active_idx").on(t.isActive)]);
+
+export const translations = pgTable("translations", {
+  id: serial("id").primaryKey(),
+  entity: varchar("entity", { length: 40 }).notNull(),
+  entityId: varchar("entity_id", { length: 100 }).notNull(),
+  locale: varchar("locale", { length: 5 }).notNull(),
+  field: varchar("field", { length: 40 }).notNull(),
+  value: text("value").notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [uniqueIndex("translations_unique").on(t.entity, t.entityId, t.locale, t.field), index("translations_lookup_idx").on(t.entity, t.entityId, t.locale)]);

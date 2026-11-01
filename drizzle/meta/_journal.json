@@ -57,6 +57,13 @@
       "when": 1793495353897,
       "tag": "0007_sticky_gamora",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1793533878154,
+      "tag": "0008_brief_johnny_blaze",
+      "breakpoints": true
     }
   ]
 }

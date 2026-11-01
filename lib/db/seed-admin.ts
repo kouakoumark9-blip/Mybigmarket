@@ -75,6 +75,14 @@ const permissionSeeds = [
   ["roles.manage", "Gérer les rôles et permissions", "roles", "manage"],
   ["logs.read", "Consulter les journaux", "logs", "read"],
   ["system.read", "Consulter les informations système", "system", "read"],
+  // Étape 1 — socle : extensibilité, attributs, traductions, clés d'API.
+  ["catalog.features.manage", "Gérer les caractéristiques", "catalog.features", "manage"],
+  ["catalog.import", "Importer des données (CSV)", "catalog", "import"],
+  ["catalog.export", "Exporter des données (CSV)", "catalog", "export"],
+  ["catalog.trash.manage", "Gérer la corbeille du catalogue", "catalog.trash", "manage"],
+  ["modules.manage", "Activer et configurer les modules", "modules", "manage"],
+  ["localization.translations.manage", "Gérer les traductions", "localization.translations", "manage"],
+  ["apiKeys.manage", "Gérer les clés du webservice", "apiKeys", "manage"],
 ] as const;
 
 const roleSeeds = [
@@ -87,7 +95,7 @@ const roleSeeds = [
 
 const rolePermissionCodes: Record<string, string[]> = {
   super_admin: permissionSeeds.map(([code]) => code),
-  catalog_manager: ["dashboard.read", "catalog.products.read", "catalog.products.create", "catalog.products.update", "catalog.products.publish", "catalog.categories.manage", "catalog.brands.manage", "catalog.suppliers.manage", "catalog.attributes.manage", "catalog.stock.read", "catalog.stock.update", "catalog.reviews.moderate", "analytics.read"],
+  catalog_manager: ["dashboard.read", "catalog.products.read", "catalog.products.create", "catalog.products.update", "catalog.products.publish", "catalog.categories.manage", "catalog.brands.manage", "catalog.suppliers.manage", "catalog.attributes.manage", "catalog.features.manage", "catalog.import", "catalog.export", "catalog.trash.manage", "catalog.stock.read", "catalog.stock.update", "catalog.reviews.moderate", "analytics.read"],
   orders_manager: ["dashboard.read", "orders.read", "orders.update", "orders.status.update", "orders.documents.manage", "orders.export", "customers.read", "customers.update", "payments.read", "analytics.read"],
   logistician: ["dashboard.read", "orders.read", "orders.status.update", "catalog.stock.read", "catalog.stock.update", "shipping.read", "shipping.manage", "analytics.read"],
   customer_service: ["dashboard.read", "orders.read", "customers.read", "customers.update", "support.messages.read", "support.messages.reply", "support.disputes.manage"],

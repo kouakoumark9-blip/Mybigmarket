@@ -12,16 +12,21 @@
     "db:seed": "tsx lib/db/seed-admin.ts",
     "payment:mock-webhook": "tsx scripts/mock-payment-webhook.ts",
     "db:seed:admin": "tsx lib/db/seed-admin.ts",
-    "db:seed:demo": "tsx lib/db/seed.ts"
+    "db:seed:demo": "tsx lib/db/seed.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.2",
+    "@react-pdf/renderer": "^4.9.0",
     "@vercel/blob": "^2.8.0",
     "bcryptjs": "^3.0.2",
     "drizzle-orm": "^0.45.3",
     "lucide-react": "^0.468.0",
     "next": "^16.3.6",
     "next-auth": "5.0.0-beta.32",
+    "nodemailer": "^7.0.13",
     "postgres": "^3.4.7",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
@@ -31,13 +36,16 @@
     "@tailwindcss/postcss": "^4.3.3",
     "@types/bcryptjs": "^2.4.6",
     "@types/node": "^22.19.0",
+    "@types/nodemailer": "^8.0.2",
     "@types/react": "^19.2.5",
     "@types/react-dom": "^19.2.3",
+    "@vitest/coverage-v8": "^3.2.7",
     "drizzle-kit": "^0.31.11",
     "eslint": "^9.39.1",
     "eslint-config-next": "^16.3.6",
     "tailwindcss": "^4.3.3",
     "tsx": "^4.20.6",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.7"
   }
 }
