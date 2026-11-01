@@ -19,3 +19,15 @@ export async function requireRole(role: "buyer" | "seller" | "admin") {
   if (user.role !== role) redirect("/");
   return user;
 }
+
+/**
+ * Vérifie l'état du compte directement en base à chaque écriture sensible.
+ * La session JWT peut rester valide après une suspension : on ne s'y fie pas pour agir.
+ */
+export async function assertActiveAccount(userId: string, expectedRole?: "buyer" | "seller" | "admin") {
+  if (!process.env.DATABASE_URL) return;
+  const db = getDb();
+  const [current] = await db.select({ status: users.status, role: users.role }).from(users).where(eq(users.id, userId)).limit(1);
+  if (!current || current.status !== "active") throw new Error("ACCOUNT_INACTIVE");
+  if (expectedRole && current.role !== expectedRole) throw new Error("ACCOUNT_ROLE_MISMATCH");
+}

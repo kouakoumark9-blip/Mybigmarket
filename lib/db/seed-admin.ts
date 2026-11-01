@@ -44,6 +44,7 @@ const permissionSeeds = [
   ["orders.update", "Modifier les commandes", "orders", "update"],
   ["orders.status.update", "Changer les statuts", "orders", "status.update"],
   ["orders.documents.manage", "Gérer factures et avoirs", "orders", "documents.manage"],
+  ["orders.export", "Exporter les commandes (CSV)", "orders", "export"],
   ["catalog.products.read", "Consulter les produits", "catalog.products", "read"],
   ["catalog.products.create", "Créer des produits", "catalog.products", "create"],
   ["catalog.products.update", "Modifier les produits", "catalog.products", "update"],
@@ -87,7 +88,7 @@ const roleSeeds = [
 const rolePermissionCodes: Record<string, string[]> = {
   super_admin: permissionSeeds.map(([code]) => code),
   catalog_manager: ["dashboard.read", "catalog.products.read", "catalog.products.create", "catalog.products.update", "catalog.products.publish", "catalog.categories.manage", "catalog.brands.manage", "catalog.suppliers.manage", "catalog.attributes.manage", "catalog.stock.read", "catalog.stock.update", "catalog.reviews.moderate", "analytics.read"],
-  orders_manager: ["dashboard.read", "orders.read", "orders.update", "orders.status.update", "orders.documents.manage", "customers.read", "customers.update", "payments.read", "analytics.read"],
+  orders_manager: ["dashboard.read", "orders.read", "orders.update", "orders.status.update", "orders.documents.manage", "orders.export", "customers.read", "customers.update", "payments.read", "analytics.read"],
   logistician: ["dashboard.read", "orders.read", "orders.status.update", "catalog.stock.read", "catalog.stock.update", "shipping.read", "shipping.manage", "analytics.read"],
   customer_service: ["dashboard.read", "orders.read", "customers.read", "customers.update", "support.messages.read", "support.messages.reply", "support.disputes.manage"],
 };

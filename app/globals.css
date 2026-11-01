@@ -2015,3 +2015,23 @@ main .catalog-category-product-grid .product-card-price{color:#ff8000!important}
     font-size: 13px}
 .product-page-typography .pdp-margin-calculator>small{
     font-size: 11.7px}
+.review-form{display:grid;gap:9px;margin-top:12px;padding:13px;border:1px solid var(--line);border-radius:7px;background:#fff}
+.review-form fieldset{border:0;margin:0;padding:0;display:grid;gap:6px}
+.review-form legend{display:flex;align-items:center;gap:6px;padding:0;color:#47525c;font-size:12px;font-weight:700}
+.review-form legend svg{color:var(--orange)}
+.review-rating{display:flex;gap:6px}
+.review-rating label{display:grid;place-items:center;width:34px;height:34px;border:1px solid #dfe3e6;border-radius:5px;color:#6b757e;font-size:12px;font-weight:700;cursor:pointer}
+.review-rating label:has(input:checked){border-color:var(--orange);background:#fff9f0;color:var(--orange)}
+.review-rating input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+.review-rating label:has(input:focus-visible){outline:3px solid var(--orange);outline-offset:2px}
+.review-form>label{color:#47525c;font-size:12px;font-weight:700}
+.review-form textarea{width:100%;min-height:70px;resize:vertical;border:1px solid #dfe3e6;border-radius:4px;padding:9px 10px;font-size:13.2px;background:#fff;color:#31383f}
+.review-form .button{justify-self:start}
+.review-form small{color:#828b93;font-size:10.8px;line-height:1.45}
+.review-form .form-error,.review-form .form-success{margin:0}
+.review-list{display:grid;gap:9px;margin-top:11px}
+.review-item{padding:11px 12px;border:1px solid var(--line);border-radius:6px;background:#fff}
+.review-item-head{display:flex;align-items:center;gap:7px;color:#ff8000;font-size:11.4px;font-weight:750}
+.review-item-head small{color:#828b93;font-weight:500}
+.review-item p{margin:6px 0 0;color:#4c565f;font-size:12px;line-height:1.55}
+.review-verified{display:inline-flex;align-items:center;gap:3px;padding:2px 6px;border-radius:20px;background:#fff3e5;color:#ff8000;font-size:9.6px;font-weight:750}

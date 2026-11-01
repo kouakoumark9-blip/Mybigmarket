@@ -20,5 +20,7 @@ export default auth((request) => {
 });
 
 export const config = {
-  matcher: ["/((?!api/auth|_next/static|_next/image|favicon.ico|robots.txt).*)"],
+  // L'export CSV fait sa propre vérification (session + permission + statut employé en base)
+  // et doit répondre en JSON/CSV, pas par une redirection HTML vers /login.
+  matcher: ["/((?!api/auth|api/commandes/export|_next/static|_next/image|favicon.ico|robots.txt).*)"],
 };

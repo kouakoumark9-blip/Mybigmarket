@@ -20,6 +20,28 @@ async function audit(actorId: string, action: string, type: string, entityId: st
   await db.insert(adminAuditLog).values({ actorUserId: actorId, action, entityType: type, entityId, details });
 }
 
+/**
+ * Suspension d'un compte vendeur.
+ * La suspension est écrite en base (`users.status`) : toutes les lectures publiques
+ * (catalogue, boutique, messagerie, devis) et `requireUser` la prennent en compte,
+ * ce qui coupe l'accès aux pages protégées dès la requête suivante.
+ */
+export async function suspendSeller(profileId: string, reason: string): Promise<FormState> {
+  const admin = await adminContext();
+  const db = getDb();
+  const [profile] = await db.select().from(sellerProfiles).where(eq(sellerProfiles.id, profileId)).limit(1);
+  if (!profile) return { error: "Profil vendeur introuvable." };
+  const note = reason.trim();
+  if (note.length < 5) return { error: "Indiquez un motif de suspension (5 caractères minimum)." };
+  const now = new Date();
+  await db.transaction(async (tx) => {
+    await tx.update(sellerProfiles).set({ verificationStatus: "suspended", updatedAt: now }).where(eq(sellerProfiles.id, profileId));
+    await tx.update(users).set({ status: "suspended", updatedAt: now }).where(eq(users.id, profile.userId));
+    await tx.insert(adminAuditLog).values({ actorUserId: admin.id, action: "seller_suspended", entityType: "seller_profile", entityId: profileId, details: { reason: note } });
+  });
+  return { success: "Vendeur suspendu : son catalogue n’est plus visible et son compte est bloqué." };
+}
+
 export async function reviewSeller(profileId: string, decision: "approved" | "rejected"): Promise<FormState> {
   const admin = await adminContext();
   const db = getDb();

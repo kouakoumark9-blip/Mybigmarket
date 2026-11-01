@@ -1,5 +1,5 @@
 import "server-only";
-import { and, desc, eq, inArray } from "drizzle-orm";
+import { and, count, desc, eq, inArray, sql } from "drizzle-orm";
 import { categories, productImages, products, sellerProfiles, sellerStorefronts, users } from "@/lib/db/schema";
 import { getDb } from "@/lib/db";
 import { products as demoProducts, sellers as demoSellers, type DemoProduct } from "@/lib/demo-data";
@@ -30,18 +30,32 @@ export async function getPublicStorefrontBySlug(slug:string):Promise<PublicStore
     .where(and(eq(sellerStorefronts.slug,slug),eq(sellerStorefronts.isPublished,true),eq(sellerProfiles.verificationStatus,"approved"),eq(users.status,"active"))).limit(1);
   if(!row)return undefined;
   const sellerSlug=row.user.email.split("@")[0];
-  const catalog=await getCatalogProducts();
-  return {slug:row.store.slug,storeName:row.store.storeName,headline:row.store.headline,description:row.store.description,announcement:row.store.announcement,sellerSlug,sellerName:row.user.name,university:row.profile.university,city:row.profile.cityChina,rating:Number(row.profile.ratingAvg),productCount:catalog.filter((product)=>product.sellerSlug===sellerSlug).length,isDemo:false};
+  const productCount=await countCatalogProductsForSeller(sellerSlug);
+  return {slug:row.store.slug,storeName:row.store.storeName,headline:row.store.headline,description:row.store.description,announcement:row.store.announcement,sellerSlug,sellerName:row.user.name,university:row.profile.university,city:row.profile.cityChina,rating:Number(row.profile.ratingAvg),productCount,isDemo:false};
 }
 
 export async function getStorefrontProducts(sellerSlug:string):Promise<DemoProduct[]>{
   return (await getCatalogProducts()).filter((product)=>product.sellerSlug===sellerSlug);
 }
 
+/**
+ * Nombre de produits réellement publiés pour un vendeur.
+ * Évite de dépendre du plafond de 100 lignes du catalogue général.
+ */
+export async function countCatalogProductsForSeller(sellerSlug:string):Promise<number>{
+  if(!process.env.DATABASE_URL)return demoProducts.filter((product)=>product.sellerSlug===sellerSlug).length;
+  const db=getDb();
+  const [row]=await db.select({value:count()}).from(products)
+    .innerJoin(users,eq(users.id,products.sellerId))
+    .innerJoin(sellerProfiles,eq(sellerProfiles.userId,users.id))
+    .where(and(eq(products.status,"approved"),eq(sellerProfiles.verificationStatus,"approved"),eq(users.status,"active"),sql`split_part(${users.email}, '@', 1) = ${sellerSlug}`));
+  return Number(row?.value||0);
+}
+
 export async function getCatalogProducts(options:{featured?:boolean}={}) : Promise<DemoProduct[]> {
   if (!process.env.DATABASE_URL) return options.featured ? [smartphoneCamon50Pro, ...demoProducts.filter((p)=>p.slug.includes("sac")||p.slug.includes("montre")||p.slug.includes("lunettes")||p.slug.includes("ecouteurs")||p.slug.includes("support")||p.slug.includes("lampe")||p.slug.includes("pinceaux"))].slice(0,8) : [smartphoneCamon50Pro, ...demoProducts];
   const db=getDb();
-  const where=options.featured?and(eq(products.status,"approved"),eq(products.isFeatured,true),eq(sellerProfiles.verificationStatus,"approved")):and(eq(products.status,"approved"),eq(sellerProfiles.verificationStatus,"approved"));
+  const where=options.featured?and(eq(products.status,"approved"),eq(products.isFeatured,true),eq(sellerProfiles.verificationStatus,"approved"),eq(users.status,"active")):and(eq(products.status,"approved"),eq(sellerProfiles.verificationStatus,"approved"),eq(users.status,"active"));
   const rows=await db.select({product:products,category:categories,user:users,profile:sellerProfiles}).from(products).innerJoin(categories,eq(categories.id,products.categoryId)).innerJoin(users,eq(users.id,products.sellerId)).innerJoin(sellerProfiles,eq(sellerProfiles.userId,users.id)).where(where).orderBy(desc(products.createdAt)).limit(options.featured?8:100);
   if(!rows.length)return [];
   const ids=rows.map((row)=>row.product.id);
@@ -63,6 +77,6 @@ export async function getCatalogProduct(slug:string):Promise<DemoProduct|undefin
 export async function getStoreSellers():Promise<StoreSeller[]>{
   if(!process.env.DATABASE_URL)return demoSellers;
   const db=getDb();
-  const rows=await db.select({user:users,profile:sellerProfiles}).from(sellerProfiles).innerJoin(users,eq(users.id,sellerProfiles.userId)).where(eq(sellerProfiles.verificationStatus,"approved")).orderBy(desc(sellerProfiles.ratingAvg)).limit(50);
+  const rows=await db.select({user:users,profile:sellerProfiles}).from(sellerProfiles).innerJoin(users,eq(users.id,sellerProfiles.userId)).where(and(eq(sellerProfiles.verificationStatus,"approved"),eq(users.status,"active"))).orderBy(desc(sellerProfiles.ratingAvg)).limit(50);
   return rows.map(({user,profile})=>({slug:user.email.split("@")[0],name:user.name,university:profile.university,city:profile.cityChina,rating:Number(profile.ratingAvg),orders:profile.ratingCount,initials:user.name.split(/\s+/).map((part)=>part[0]).join("").slice(0,2).toUpperCase()}));
 }

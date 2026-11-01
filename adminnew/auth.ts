@@ -6,6 +6,7 @@ import { z } from "zod";
 import { authConfig } from "./auth.config";
 import { getAdminDb } from "@/lib/db";
 import { employeeLoginEvents, employees, permissions, roles, rolePermissions } from "@/lib/db/schema";
+import { effectiveEmployeeStatus } from "@/lib/employee-status";
 import { decryptTotpSecret, verifyTotp } from "@/lib/totp";
 
 const loginSchema = z.object({
@@ -61,13 +62,10 @@ async function authorize(credentials: Partial<Record<string, unknown>>, request:
   const hash = employee?.passwordHash || await (dummyPasswordHash ||= bcrypt.hash("invalid-login-timing-pad", 12));
   const passwordMatches = await bcrypt.compare(parsed.data.password, hash);
   const now = new Date();
-  const isLocked = employee?.status === "locked" && employee.lockedUntil && employee.lockedUntil > now;
-  if (!employee || employee.status !== "active" || isLocked || !passwordMatches) {
+  const status = employee ? effectiveEmployeeStatus(employee.status, employee.lockedUntil, now) : "disabled";
+  if (!employee || status !== "active" || !passwordMatches) {
     const failureCount = employee ? employee.failedLoginCount + 1 : 0;
-    if (employee && employee.status === "locked" && employee.lockedUntil && employee.lockedUntil <= now) {
-      await db.update(employees).set({ status: "active", failedLoginCount: 0, lockedUntil: null }).where(eq(employees.id, employee.id));
-    }
-    if (employee && employee.status === "active") {
+    if (employee && status === "active") {
       const shouldLock = failureCount >= MAX_ATTEMPTS_PER_EMAIL;
       await db.update(employees).set({
         failedLoginCount: failureCount,

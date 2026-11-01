@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowRight, ChevronRight, MessageCircle, ShieldAlert, ShoppingCart } from "lucide-react";
+import { ArrowRight, BadgeCheck, ChevronRight, MessageCircle, ShieldAlert, ShoppingCart } from "lucide-react";
 import type { DetailedProduct } from "@/lib/product";
 import { priceTierForQuantity } from "@/lib/product";
 import { ProductGallery } from "@/components/product-detail/product-gallery";
@@ -17,7 +17,9 @@ import { SimilarSearches } from "@/components/product-detail/similar-searches";
 import { useCart } from "@/components/cart-provider";
 import { useCountryPreferences } from "@/components/country-preferences";
 
-export function ProductDetailExperience({ product }: { product: DetailedProduct }) {
+export type PublicReview = { id: string; rating: number; comment: string | null; createdAt: Date };
+
+export function ProductDetailExperience({ product, publishedReviews = [] }: { product: DetailedProduct; publishedReviews?: PublicReview[] }) {
   const router = useRouter();
   const { addItem } = useCart();
   const { formatPrice } = useCountryPreferences();
@@ -50,7 +52,7 @@ export function ProductDetailExperience({ product }: { product: DetailedProduct 
           <section className="pdp-reviews-section" id="pdp-reviews" aria-labelledby="pdp-reviews-title">
             <div className="pdp-section-heading"><div><span className="pdp-eyebrow">RETOURS CLIENTS · EXEMPLE</span><h2 id="pdp-reviews-title">Donnez votre avis</h2></div><span className="pdp-demo-tag">Avis non vérifiés</span></div>
             <div className="pdp-review-tabs"><button type="button" className="is-active">Avis sur le produit ({product.reviewCount})</button><button type="button">Avis sur le profil fournisseur ({product.supplier.reviewCount})</button></div>
-            <div className="pdp-review-placeholder"><MessageCircle size={20}/><p>Les avis affichés sur cette fiche sont des données de démonstration; aucune évaluation client vérifiée n’est publiée.</p></div>
+            {publishedReviews.length > 0 ? <div className="review-list">{publishedReviews.map((review) => <article className="review-item" key={review.id}><div className="review-item-head"><span aria-label={`Note ${review.rating} sur 5`}>{"★".repeat(review.rating)}{"☆".repeat(5 - review.rating)}</span><span className="review-verified"><BadgeCheck size={11}/> achat vérifié</span><small>{new Intl.DateTimeFormat("fr-FR", { dateStyle: "medium" }).format(review.createdAt)}</small></div>{review.comment && <p>{review.comment}</p>}</article>)}</div> : <div className="pdp-review-placeholder"><MessageCircle size={20}/><p>Les avis affichés sur cette fiche sont des données de démonstration; aucune évaluation client vérifiée n’est publiée.</p></div>}
           </section>
           <section className="pdp-description-section" id="pdp-description" aria-labelledby="pdp-description-title">
             <div className="pdp-section-heading"><div><span className="pdp-eyebrow">DESCRIPTION</span><h2 id="pdp-description-title">Description du produit</h2></div></div>
