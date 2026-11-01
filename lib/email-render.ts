@@ -91,6 +91,13 @@ export function renderEmail(template: EmailTemplate, variables: EmailVariables):
 export const DEFAULT_EMAIL_TEMPLATES: Array<{ code: string; name: string; variables: string[] }> = [
   { code: "order_confirmation", name: "Confirmation de commande", variables: ["customerName", "orderReference", "orderTotal", "orderUrl"] },
   { code: "order_status_update", name: "Changement de statut de commande", variables: ["customerName", "orderReference", "statusLabel", "orderUrl"] },
+  // Déclencheurs émis par `emailTriggerForTransition` (module 6) : chaque
+  // transition du moteur a son modèle, sinon la notification serait perdue.
+  { code: "payment_confirmed", name: "Paiement confirmé sous séquestre", variables: ["customerName", "orderReference", "orderTotal", "orderUrl"] },
+  { code: "order_shipped", name: "Commande expédiée", variables: ["customerName", "orderReference", "trackingNumber", "orderUrl"] },
+  { code: "order_delivered", name: "Commande livrée", variables: ["customerName", "orderReference", "orderUrl"] },
+  { code: "order_cancelled", name: "Commande annulée", variables: ["customerName", "orderReference", "refundDelayDays", "orderUrl"] },
+  { code: "order_refunded", name: "Commande remboursée", variables: ["customerName", "orderReference", "refundAmount", "orderUrl"] },
   { code: "invoice_available", name: "Facture disponible", variables: ["customerName", "invoiceNumber", "invoiceTotal", "orderUrl"] },
   { code: "account_created", name: "Nouveau compte client", variables: ["customerName", "loginUrl"] },
   { code: "password_reset", name: "Mot de passe oublié", variables: ["customerName", "resetUrl", "validityMinutes"] },
