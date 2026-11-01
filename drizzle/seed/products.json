@@ -1,0 +1,659 @@
+[
+  {
+    "sku": "CAMON50PRO-512-001",
+    "slug": "smartphone-camon-50-pro",
+    "title": "Smartphone 5G 50 Pro, 512 Go, Android 15",
+    "shortDescription": "Smartphone 5G, 512 Go, écran 6,9 pouces. Données de catalogue à confirmer avant publication.",
+    "description": "Smartphone 5G avec écran 6,9 pouces, 512 Go de stockage et Android 15. Les caractéristiques, la compatibilité réseau, les accessoires inclus, la disponibilité et les conditions de vente doivent être validés avant publication.",
+    "internalNote": "Fiche issue de l’ancienne page catalogue. Confirmer le modèle, les images, les spécifications, le fournisseur, le stock, les prix et l’expédition avant publication. Les métriques fournisseur/avis ne sont pas reprises sans preuve.",
+    "category": {
+      "name": "Téléphones mobiles",
+      "slug": "electronique"
+    },
+    "brand": "Other",
+    "supplier": {
+      "companyName": "Shenzhen Nayu Technology Co., Ltd.",
+      "slug": "shenzhen-nayu-technology",
+      "countryCode": "CN",
+      "city": "Shenzhen",
+      "profileStatus": "unverified"
+    },
+    "priceXof": 46172,
+    "minimumQuantity": 1,
+    "quantity": 0,
+    "leadTimeDays": 30,
+    "status": "draft",
+    "seoTitle": "Smartphone 5G 50 Pro, 512 Go, Android 15 | mybigmarket",
+    "seoDescription": "Smartphone 5G 50 Pro avec 512 Go de stockage. Confirmez les spécifications, variantes et conditions d’expédition avant commande.",
+    "images": [
+      {
+        "url": "/products/smartphone-generic.jpg",
+        "alt": "Smartphone générique, vues avant et arrière, image à confirmer",
+        "isPrimary": true
+      },
+      {
+        "url": "/products/smartphone-front.jpg",
+        "alt": "Vue avant du smartphone générique, image à confirmer"
+      },
+      {
+        "url": "/products/smartphone-camera.jpg",
+        "alt": "Détail du bloc photo, image à confirmer"
+      },
+      {
+        "url": "/products/smartphone-orange.jpg",
+        "alt": "Smartphone générique coloris orange, image à confirmer"
+      },
+      {
+        "url": "/products/smartphone-lavender.jpg",
+        "alt": "Smartphone générique coloris lavande, image à confirmer"
+      },
+      {
+        "url": "/products/smartphone-silver.jpg",
+        "alt": "Smartphone générique coloris argent, image à confirmer"
+      }
+    ],
+    "variants": [
+      {
+        "name": "Graphite · AU",
+        "value": "Graphite · AU",
+        "attributes": {
+          "color": "Graphite",
+          "swatch": "#4b4f54",
+          "region": "AU",
+          "regionLabel": "Australie"
+        },
+        "priceXof": 46172,
+        "stock": 0,
+        "imageUrl": "/products/smartphone-generic.jpg"
+      },
+      {
+        "name": "Graphite · UE",
+        "value": "Graphite · UE",
+        "attributes": {
+          "color": "Graphite",
+          "swatch": "#4b4f54",
+          "region": "UE",
+          "regionLabel": "Union européenne"
+        },
+        "priceXof": 46172,
+        "stock": 0,
+        "imageUrl": "/products/smartphone-generic.jpg"
+      },
+      {
+        "name": "Graphite · UK",
+        "value": "Graphite · UK",
+        "attributes": {
+          "color": "Graphite",
+          "swatch": "#4b4f54",
+          "region": "UK",
+          "regionLabel": "Royaume-Uni"
+        },
+        "priceXof": 46172,
+        "stock": 0,
+        "imageUrl": "/products/smartphone-generic.jpg"
+      },
+      {
+        "name": "Graphite · US",
+        "value": "Graphite · US",
+        "attributes": {
+          "color": "Graphite",
+          "swatch": "#4b4f54",
+          "region": "US",
+          "regionLabel": "États-Unis"
+        },
+        "priceXof": 46172,
+        "stock": 0,
+        "imageUrl": "/products/smartphone-generic.jpg"
+      },
+      {
+        "name": "Orange · AU",
+        "value": "Orange · AU",
+        "attributes": {
+          "color": "Orange",
+          "swatch": "#dc773b",
+          "region": "AU",
+          "regionLabel": "Australie"
+        },
+        "priceXof": 46172,
+        "stock": 0,
+        "imageUrl": "/products/smartphone-orange.jpg"
+      },
+      {
+        "name": "Orange · UE",
+        "value": "Orange · UE",
+        "attributes": {
+          "color": "Orange",
+          "swatch": "#dc773b",
+          "region": "UE",
+          "regionLabel": "Union européenne"
+        },
+        "priceXof": 46172,
+        "stock": 0,
+        "imageUrl": "/products/smartphone-orange.jpg"
+      },
+      {
+        "name": "Orange · UK",
+        "value": "Orange · UK",
+        "attributes": {
+          "color": "Orange",
+          "swatch": "#dc773b",
+          "region": "UK",
+          "regionLabel": "Royaume-Uni"
+        },
+        "priceXof": 46172,
+        "stock": 0,
+        "imageUrl": "/products/smartphone-orange.jpg"
+      },
+      {
+        "name": "Orange · US",
+        "value": "Orange · US",
+        "attributes": {
+          "color": "Orange",
+          "swatch": "#dc773b",
+          "region": "US",
+          "regionLabel": "États-Unis"
+        },
+        "priceXof": 46172,
+        "stock": 0,
+        "imageUrl": "/products/smartphone-orange.jpg"
+      },
+      {
+        "name": "Lavande · AU",
+        "value": "Lavande · AU",
+        "attributes": {
+          "color": "Lavande",
+          "swatch": "#a9a4b8",
+          "region": "AU",
+          "regionLabel": "Australie"
+        },
+        "priceXof": 46172,
+        "stock": 0,
+        "imageUrl": "/products/smartphone-lavender.jpg"
+      },
+      {
+        "name": "Lavande · UE",
+        "value": "Lavande · UE",
+        "attributes": {
+          "color": "Lavande",
+          "swatch": "#a9a4b8",
+          "region": "UE",
+          "regionLabel": "Union européenne"
+        },
+        "priceXof": 46172,
+        "stock": 0,
+        "imageUrl": "/products/smartphone-lavender.jpg"
+      },
+      {
+        "name": "Lavande · UK",
+        "value": "Lavande · UK",
+        "attributes": {
+          "color": "Lavande",
+          "swatch": "#a9a4b8",
+          "region": "UK",
+          "regionLabel": "Royaume-Uni"
+        },
+        "priceXof": 46172,
+        "stock": 0,
+        "imageUrl": "/products/smartphone-lavender.jpg"
+      },
+      {
+        "name": "Lavande · US",
+        "value": "Lavande · US",
+        "attributes": {
+          "color": "Lavande",
+          "swatch": "#a9a4b8",
+          "region": "US",
+          "regionLabel": "États-Unis"
+        },
+        "priceXof": 46172,
+        "stock": 0,
+        "imageUrl": "/products/smartphone-lavender.jpg"
+      },
+      {
+        "name": "Argent · AU",
+        "value": "Argent · AU",
+        "attributes": {
+          "color": "Argent",
+          "swatch": "#d7d9d9",
+          "region": "AU",
+          "regionLabel": "Australie"
+        },
+        "priceXof": 46172,
+        "stock": 0,
+        "imageUrl": "/products/smartphone-silver.jpg"
+      },
+      {
+        "name": "Argent · UE",
+        "value": "Argent · UE",
+        "attributes": {
+          "color": "Argent",
+          "swatch": "#d7d9d9",
+          "region": "UE",
+          "regionLabel": "Union européenne"
+        },
+        "priceXof": 46172,
+        "stock": 0,
+        "imageUrl": "/products/smartphone-silver.jpg"
+      },
+      {
+        "name": "Argent · UK",
+        "value": "Argent · UK",
+        "attributes": {
+          "color": "Argent",
+          "swatch": "#d7d9d9",
+          "region": "UK",
+          "regionLabel": "Royaume-Uni"
+        },
+        "priceXof": 46172,
+        "stock": 0,
+        "imageUrl": "/products/smartphone-silver.jpg"
+      },
+      {
+        "name": "Argent · US",
+        "value": "Argent · US",
+        "attributes": {
+          "color": "Argent",
+          "swatch": "#d7d9d9",
+          "region": "US",
+          "regionLabel": "États-Unis"
+        },
+        "priceXof": 46172,
+        "stock": 0,
+        "imageUrl": "/products/smartphone-silver.jpg"
+      }
+    ],
+    "tiers": [
+      {
+        "minimumQuantity": 1,
+        "maximumQuantity": 19,
+        "unitPriceXof": 46172
+      },
+      {
+        "minimumQuantity": 20,
+        "maximumQuantity": 99,
+        "unitPriceXof": 44325
+      },
+      {
+        "minimumQuantity": 100,
+        "maximumQuantity": 999,
+        "unitPriceXof": 41247
+      },
+      {
+        "minimumQuantity": 1000,
+        "maximumQuantity": null,
+        "unitPriceXof": 32136
+      }
+    ],
+    "attributes": [
+      {
+        "name": "Réseau cellulaire",
+        "value": "5G"
+      },
+      {
+        "name": "Capacité de la batterie",
+        "value": "6 000–6 999 mAh"
+      },
+      {
+        "name": "Écran",
+        "value": "6,9″"
+      },
+      {
+        "name": "Type d’affichage",
+        "value": "LED"
+      },
+      {
+        "name": "Caméra arrière",
+        "value": "50 MP"
+      },
+      {
+        "name": "Charge rapide",
+        "value": "20–29 W"
+      },
+      {
+        "name": "Taux de rafraîchissement",
+        "value": "120 Hz"
+      },
+      {
+        "name": "Caméra frontale",
+        "value": "32 MP"
+      },
+      {
+        "name": "Caractéristiques",
+        "value": "Caméra beauté, double SIM, jeux"
+      },
+      {
+        "name": "Système d’exploitation",
+        "value": "Android 15"
+      },
+      {
+        "name": "Langues du système",
+        "value": "Anglais, néerlandais, français, allemand, espagnol"
+      },
+      {
+        "name": "Nom de marque",
+        "value": "Other"
+      },
+      {
+        "name": "Résolution d’écran",
+        "value": "HD"
+      },
+      {
+        "name": "Processeur (CPU)",
+        "value": "Deca Core"
+      },
+      {
+        "name": "Numéro de modèle",
+        "value": "camon50pro"
+      },
+      {
+        "name": "Lieu d’origine",
+        "value": "Guangdong, Chine"
+      },
+      {
+        "name": "Bandes de fréquence",
+        "value": "LTE / 5G"
+      }
+    ],
+    "keyAttributes": [
+      "Écran",
+      "Nom de marque",
+      "Système d’exploitation",
+      "Résolution d’écran",
+      "Numéro de modèle",
+      "Taux de rafraîchissement"
+    ],
+    "packaging": {
+      "unitsPerSale": 1,
+      "lengthCm": "20",
+      "widthCm": "15",
+      "heightCm": "10",
+      "grossWeightKg": "0.500",
+      "shippingPreference": "automatic"
+    },
+    "leadTimes": [
+      {
+        "minimumQuantity": 1,
+        "maximumQuantity": 5,
+        "preparationDays": 7
+      },
+      {
+        "minimumQuantity": 6,
+        "maximumQuantity": 7,
+        "preparationDays": 15
+      },
+      {
+        "minimumQuantity": 8,
+        "maximumQuantity": null,
+        "preparationDays": null,
+        "negotiable": true
+      }
+    ],
+    "keywords": [
+      "smartphone 5G double SIM",
+      "téléphone Android 512 Go",
+      "smartphone écran 6,9 pouces",
+      "téléphone Android 15"
+    ]
+  },
+  {
+    "sku": "SAMPLE-USB-C-65W",
+    "slug": "chargeur-usb-c-gan-65w",
+    "title": "Chargeur USB-C GaN 65 W multiport",
+    "shortDescription": "Chargeur USB-C GaN 65 W multiport. Fiche à valider avant publication.",
+    "description": "Chargeur USB-C GaN 65 W multiport. Confirmer les caractéristiques techniques, la compatibilité, la disponibilité et les conditions de vente avant publication.",
+    "internalNote": "Produit d’exemple de catalogue, non validé. Conserver en brouillon jusqu’à vérification.",
+    "category": {
+      "name": "Accessoires électroniques",
+      "slug": "electronique"
+    },
+    "brand": "Other",
+    "supplier": null,
+    "priceXof": 10000,
+    "minimumQuantity": 2,
+    "quantity": 0,
+    "leadTimeDays": 30,
+    "status": "draft",
+    "seoTitle": "Chargeur USB-C GaN 65 W multiport | mybigmarket",
+    "seoDescription": "Chargeur USB-C GaN 65 W multiport. Données et conditions à confirmer avant commande.",
+    "images": [
+      {
+        "url": "/products/tech-charger.png",
+        "alt": "Chargeur USB-C multiport — image à confirmer",
+        "isPrimary": true
+      }
+    ],
+    "variants": [
+      {
+        "name": "Option",
+        "value": "Standard",
+        "attributes": {
+          "option": "Standard"
+        },
+        "priceXof": 10000,
+        "stock": 0,
+        "imageUrl": "/products/tech-charger.png"
+      }
+    ],
+    "tiers": [
+      {
+        "minimumQuantity": 2,
+        "maximumQuantity": 49,
+        "unitPriceXof": 10000
+      },
+      {
+        "minimumQuantity": 50,
+        "maximumQuantity": null,
+        "unitPriceXof": 9000
+      }
+    ],
+    "attributes": [
+      {
+        "name": "Puissance annoncée",
+        "value": "65 W (à vérifier)"
+      },
+      {
+        "name": "Connectique",
+        "value": "USB-C (à vérifier)"
+      }
+    ],
+    "keyAttributes": [
+      "Puissance annoncée",
+      "Connectique"
+    ],
+    "packaging": {
+      "unitsPerSale": 1,
+      "lengthCm": "0",
+      "widthCm": "0",
+      "heightCm": "0",
+      "grossWeightKg": "0",
+      "shippingPreference": "automatic"
+    },
+    "leadTimes": [
+      {
+        "minimumQuantity": 1,
+        "maximumQuantity": null,
+        "preparationDays": null,
+        "negotiable": true
+      }
+    ],
+    "keywords": [
+      "chargeur usb c 65w",
+      "chargeur rapide",
+      "adaptateur secteur"
+    ]
+  },
+  {
+    "sku": "SAMPLE-EARBUDS-BT",
+    "slug": "ecouteurs-bluetooth-sans-fil",
+    "title": "Écouteurs Bluetooth sans fil avec boîtier",
+    "shortDescription": "Écouteurs Bluetooth sans fil avec boîtier. Fiche à valider avant publication.",
+    "description": "Écouteurs Bluetooth sans fil avec boîtier. Confirmer les caractéristiques techniques, la compatibilité, la disponibilité et les conditions de vente avant publication.",
+    "internalNote": "Produit d’exemple de catalogue, non validé. Conserver en brouillon jusqu’à vérification.",
+    "category": {
+      "name": "Accessoires électroniques",
+      "slug": "electronique"
+    },
+    "brand": "Other",
+    "supplier": null,
+    "priceXof": 14500,
+    "minimumQuantity": 2,
+    "quantity": 0,
+    "leadTimeDays": 30,
+    "status": "draft",
+    "seoTitle": "Écouteurs Bluetooth sans fil avec boîtier | mybigmarket",
+    "seoDescription": "Écouteurs Bluetooth sans fil avec boîtier. Données et conditions à confirmer avant commande.",
+    "images": [
+      {
+        "url": "/product-audio.jpg",
+        "alt": "Écouteurs sans fil — image à confirmer",
+        "isPrimary": true
+      }
+    ],
+    "variants": [
+      {
+        "name": "Option",
+        "value": "Standard",
+        "attributes": {
+          "option": "Standard"
+        },
+        "priceXof": 14500,
+        "stock": 0,
+        "imageUrl": "/product-audio.jpg"
+      }
+    ],
+    "tiers": [
+      {
+        "minimumQuantity": 2,
+        "maximumQuantity": 49,
+        "unitPriceXof": 14500
+      },
+      {
+        "minimumQuantity": 50,
+        "maximumQuantity": null,
+        "unitPriceXof": 13050
+      }
+    ],
+    "attributes": [
+      {
+        "name": "Connectivité",
+        "value": "Bluetooth (à vérifier)"
+      },
+      {
+        "name": "Boîtier de recharge",
+        "value": "Détails à vérifier"
+      }
+    ],
+    "keyAttributes": [
+      "Connectivité",
+      "Boîtier de recharge"
+    ],
+    "packaging": {
+      "unitsPerSale": 1,
+      "lengthCm": "0",
+      "widthCm": "0",
+      "heightCm": "0",
+      "grossWeightKg": "0",
+      "shippingPreference": "automatic"
+    },
+    "leadTimes": [
+      {
+        "minimumQuantity": 1,
+        "maximumQuantity": null,
+        "preparationDays": null,
+        "negotiable": true
+      }
+    ],
+    "keywords": [
+      "écouteurs bluetooth",
+      "écouteurs sans fil",
+      "earbuds avec boîtier"
+    ]
+  },
+  {
+    "sku": "SAMPLE-SMARTWATCH-GPS",
+    "slug": "montre-connectee-gps",
+    "title": "Montre connectée avec GPS et écran tactile",
+    "shortDescription": "Montre connectée avec GPS et écran tactile. Fiche à valider avant publication.",
+    "description": "Montre connectée avec GPS et écran tactile. Confirmer les caractéristiques techniques, la compatibilité, la disponibilité et les conditions de vente avant publication.",
+    "internalNote": "Produit d’exemple de catalogue, non validé. Conserver en brouillon jusqu’à vérification.",
+    "category": {
+      "name": "Accessoires électroniques",
+      "slug": "electronique"
+    },
+    "brand": "Other",
+    "supplier": null,
+    "priceXof": 15822,
+    "minimumQuantity": 2,
+    "quantity": 0,
+    "leadTimeDays": 30,
+    "status": "draft",
+    "seoTitle": "Montre connectée avec GPS et écran tactile | mybigmarket",
+    "seoDescription": "Montre connectée avec GPS et écran tactile. Données et conditions à confirmer avant commande.",
+    "images": [
+      {
+        "url": "/product-watch.jpg",
+        "alt": "Montre connectée — image à confirmer",
+        "isPrimary": true
+      }
+    ],
+    "variants": [
+      {
+        "name": "Option",
+        "value": "Standard",
+        "attributes": {
+          "option": "Standard"
+        },
+        "priceXof": 15822,
+        "stock": 0,
+        "imageUrl": "/product-watch.jpg"
+      }
+    ],
+    "tiers": [
+      {
+        "minimumQuantity": 2,
+        "maximumQuantity": 49,
+        "unitPriceXof": 15822
+      },
+      {
+        "minimumQuantity": 50,
+        "maximumQuantity": null,
+        "unitPriceXof": 14239
+      }
+    ],
+    "attributes": [
+      {
+        "name": "GPS",
+        "value": "Détails à vérifier"
+      },
+      {
+        "name": "Écran tactile",
+        "value": "Détails à vérifier"
+      }
+    ],
+    "keyAttributes": [
+      "GPS",
+      "Écran tactile"
+    ],
+    "packaging": {
+      "unitsPerSale": 1,
+      "lengthCm": "0",
+      "widthCm": "0",
+      "heightCm": "0",
+      "grossWeightKg": "0",
+      "shippingPreference": "automatic"
+    },
+    "leadTimes": [
+      {
+        "minimumQuantity": 1,
+        "maximumQuantity": null,
+        "preparationDays": null,
+        "negotiable": true
+      }
+    ],
+    "keywords": [
+      "montre connectée gps",
+      "smartwatch",
+      "montre écran tactile"
+    ]
+  }
+]

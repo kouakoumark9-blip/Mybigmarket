@@ -65,18 +65,18 @@ openssl rand -base64 32   # AUTH_SECRET
 openssl rand -hex 32      # MOCK_WEBHOOK_SECRET
 ```
 
-Puis :
+Puis, sur une base de développement ou staging dédiée :
 
 ```bash
 npm run db:generate     # à refaire après modification du schéma Drizzle
 npm run db:migrate      # applique les migrations à DATABASE_URL
-npm run db:seed         # sandbox seulement; demande SEED_DEMO_PASSWORD (10 caractères min.)
+npm run db:seed         # bootstrap du back office; exige SEED_SUPERADMIN_EMAIL et SEED_SUPERADMIN_PASSWORD
 npm run dev
 ```
 
-Le seed crée `admin@mybigmarket.example`, trois vendeurs démo, trois catégories, vingt produits et deux points relais. Pour faciliter la démo, **le même mot de passe temporaire `SEED_DEMO_PASSWORD` est attribué aux comptes seedés**. Utilisez uniquement une base de test. Ne lancez pas ce seed en production; changez les mots de passe après import.
+Le seed principal crée les rôles/permissions et un SuperAdmin avec mot de passe haché bcrypt. Le mot de passe doit être unique et comporter au moins 16 caractères; il n’est ni affiché ni réinitialisé lors d’une seconde exécution. Il ajoute quatre produits en **brouillon**, sans stock, et des tarifs avion/bateau d’exemple qui restent **désactivés**. Les métriques non vérifiées ne sont pas seedées comme des avis réels. N’exécutez pas une migration ou un seed sur la base de production sans sauvegarde, contrôle de `DATABASE_URL` et validation explicite.
 
-Identifiants vendeurs créés : `lina-k@demo.mybigmarket.example`, `mamadou-d@demo.mybigmarket.example`, `aya-t@demo.mybigmarket.example`.
+L’ancien jeu de données marketplace est isolé derrière `npm run db:seed:demo`, sandbox seulement. Il utilise un mot de passe démo partagé et ne doit pas servir à créer ou sécuriser un compte d’administration.
 
 ## Tester le webhook mock
 
@@ -107,10 +107,16 @@ Le script signe l’événement avec `MOCK_WEBHOOK_SECRET`. Après validation HM
    npm run db:migrate
    ```
 
-   Générez un admin et les produits de test sur une base staging seulement avec `SEED_DEMO_PASSWORD=... npm run db:seed`. Créez votre premier administrateur de production par une procédure contrôlée (ne réutilisez pas les identifiants du seed).
+   Pour le bootstrap du back office, exécutez `npm run db:seed` depuis un environnement contrôlé en fournissant `SEED_SUPERADMIN_EMAIL`, `SEED_SUPERADMIN_NAME` et `SEED_SUPERADMIN_PASSWORD`; vérifiez soigneusement `DATABASE_URL`. Le seed est bloqué en production sauf opt-in ponctuel `ALLOW_PRODUCTION_ADMIN_SEED=true`. Les modes de paiement et de transport seedés demeurent désactivés jusqu’à configuration et validation réelle.
 7. Déployez. La CI GitHub (`.github/workflows/ci.yml`) lance `npm ci`, `npm run lint` et `npm run build` sur chaque push/PR.
 
 Vercel relancera un déploiement automatique à chaque push sur `main`. Ne commitez jamais `.env.local`, tokens, mots de passe ni données d’identité.
+
+### Back-office séparé
+
+Le projet Vercel `mybigmarket-adminnew` est séparé de la boutique et utilise le même dépôt avec **Root Directory = `adminnew`**. Son URL Vercel par défaut est `https://mybigmarket-adminnew.vercel.app`. Le dépôt client ne contient aucun lien vers cet espace. Le portail admin applique `noindex,nofollow`, un `X-Robots-Tag`, un `robots.txt` bloquant et une authentification employé.
+
+Dans les variables d’environnement du projet Vercel admin, configurez `DATABASE_URL` avec la même base Neon que la boutique. `AUTH_SECRET` et `ADMIN_TOTP_ENCRYPTION_KEY` sont déjà stockés comme secrets Vercel; ne les copiez pas dans le dépôt ni dans le chat. La base doit d’abord recevoir `npm run db:migrate`, puis `npm run db:seed` depuis un environnement contrôlé avec `SEED_SUPERADMIN_EMAIL` et `SEED_SUPERADMIN_PASSWORD`. Sans `DATABASE_URL`, l’écran de connexion est public mais aucune authentification ne peut réussir et aucun compte employé n’est créé.
 
 ## Commission et séquestre — limites importantes
 

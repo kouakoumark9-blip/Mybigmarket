@@ -9,8 +9,10 @@
     "lint": "eslint .",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "db:seed": "tsx lib/db/seed.ts",
-    "payment:mock-webhook": "tsx scripts/mock-payment-webhook.ts"
+    "db:seed": "tsx lib/db/seed-admin.ts",
+    "payment:mock-webhook": "tsx scripts/mock-payment-webhook.ts",
+    "db:seed:admin": "tsx lib/db/seed-admin.ts",
+    "db:seed:demo": "tsx lib/db/seed.ts"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.2",
