@@ -52,8 +52,33 @@ export async function countCatalogProductsForSeller(sellerSlug:string):Promise<n
   return Number(row?.value||0);
 }
 
-export async function getCatalogProducts(options:{featured?:boolean}={}) : Promise<DemoProduct[]> {
-  if (!process.env.DATABASE_URL) return options.featured ? [smartphoneCamon50Pro, ...demoProducts.filter((p)=>p.slug.includes("sac")||p.slug.includes("montre")||p.slug.includes("lunettes")||p.slug.includes("ecouteurs")||p.slug.includes("support")||p.slug.includes("lampe")||p.slug.includes("pinceaux"))].slice(0,8) : [smartphoneCamon50Pro, ...demoProducts];
+/**
+ * Lit le catalogue public.
+ *
+ * Une panne de base ne doit pas faire tomber la vitrine. Si Neon est suspendu,
+ * non migré ou mal configuré, on retombe sur le catalogue de démonstration
+ * embarqué dans le bundle : le site reste consultable, et l'état réel de la
+ * base reste lisible sur /api/health. L'erreur est journalisée, jamais avalée.
+ *
+ * `forceDemo` sert aux pages purement vitrines : elles se rendent alors sans
+ * toucher la base, donc sans 500 possible ni latence inutile.
+ */
+export async function getCatalogProducts(options:{featured?:boolean;forceDemo?:boolean}={}) : Promise<DemoProduct[]> {
+  if (options.forceDemo || !process.env.DATABASE_URL) return demoCatalog(options);
+  try {
+    return await queryCatalog(options);
+  } catch (error) {
+    console.error("[catalog] Base injoignable, repli sur le catalogue de démonstration :", error instanceof Error ? error.message : error);
+    return demoCatalog(options);
+  }
+}
+
+function demoCatalog(options:{featured?:boolean}={}):DemoProduct[] {
+  if (!options.featured) return [smartphoneCamon50Pro, ...demoProducts];
+  return [smartphoneCamon50Pro, ...demoProducts.filter((p)=>p.slug.includes("sac")||p.slug.includes("montre")||p.slug.includes("lunettes")||p.slug.includes("ecouteurs")||p.slug.includes("support")||p.slug.includes("lampe")||p.slug.includes("pinceaux"))].slice(0,8);
+}
+
+async function queryCatalog(options:{featured?:boolean}={}) : Promise<DemoProduct[]> {
   const db=getDb();
   const where=options.featured?and(eq(products.status,"approved"),eq(products.isFeatured,true),eq(sellerProfiles.verificationStatus,"approved"),eq(users.status,"active")):and(eq(products.status,"approved"),eq(sellerProfiles.verificationStatus,"approved"),eq(users.status,"active"));
   const rows=await db.select({product:products,category:categories,user:users,profile:sellerProfiles}).from(products).innerJoin(categories,eq(categories.id,products.categoryId)).innerJoin(users,eq(users.id,products.sellerId)).innerJoin(sellerProfiles,eq(sellerProfiles.userId,users.id)).where(where).orderBy(desc(products.createdAt)).limit(options.featured?8:100);
@@ -74,8 +99,21 @@ export async function getCatalogProduct(slug:string):Promise<DemoProduct|undefin
   return rows.find((product)=>product.slug===slug);
 }
 
+/**
+ * Vendeurs de la vitrine. Même filet que le catalogue : une base indisponible
+ * ne doit pas faire tomber la page, on retombe sur les vendeurs de démonstration.
+ */
 export async function getStoreSellers():Promise<StoreSeller[]>{
   if(!process.env.DATABASE_URL)return demoSellers;
+  try{
+    return await queryStoreSellers();
+  }catch(error){
+    console.error("[catalog] Base injoignable, repli sur les vendeurs de démonstration :", error instanceof Error ? error.message : error);
+    return demoSellers;
+  }
+}
+
+async function queryStoreSellers():Promise<StoreSeller[]>{
   const db=getDb();
   const rows=await db.select({user:users,profile:sellerProfiles}).from(sellerProfiles).innerJoin(users,eq(users.id,sellerProfiles.userId)).where(and(eq(sellerProfiles.verificationStatus,"approved"),eq(users.status,"active"))).orderBy(desc(sellerProfiles.ratingAvg)).limit(50);
   return rows.map(({user,profile})=>({slug:user.email.split("@")[0],name:user.name,university:profile.university,city:profile.cityChina,rating:Number(profile.ratingAvg),orders:profile.ratingCount,initials:user.name.split(/\s+/).map((part)=>part[0]).join("").slice(0,2).toUpperCase()}));
