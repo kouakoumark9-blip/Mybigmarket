@@ -87,6 +87,19 @@ export const adminProducts = pgTable("products", {
   isFeatured: boolean("is_featured").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull(),
+  productType: varchar("product_type", { length: 24 }).notNull().default("standard"),
+  reference: varchar("reference", { length: 64 }),
+  ean13: varchar("ean13", { length: 13 }),
+  upc: varchar("upc", { length: 12 }),
+  visibility: varchar("visibility", { length: 24 }).notNull().default("everywhere"),
+  availableForOrder: boolean("available_for_order").notNull().default(true),
+  showPrice: boolean("show_price").notNull().default(true),
+  ecotaxXof: integer("ecotax_xof").notNull().default(0),
+  weightGrams: integer("weight_grams").notNull().default(0),
+  description: text("description").notNull().default(""),
+  imageUrl: text("image_url"),
+  deletedAt: timestamp("deleted_at", { withTimezone: true }),
+  version: integer("version").notNull().default(0),
 });
 
 export const adminInventoryMovements = pgTable("inventory_movements", {
@@ -96,6 +109,21 @@ export const adminInventoryMovements = pgTable("inventory_movements", {
   movementType: varchar("movement_type", { length: 32 }).notNull(),
   reason: text("reason").notNull(),
   employeeId: uuid("employee_id"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
+});
+
+/** Mouvements de stock détaillés (étape 3) — before/after conservés pour l'audit. */
+export const adminStockMovements = pgTable("stock_movements", {
+  id: serial("id").primaryKey(),
+  productId: uuid("product_id").notNull(),
+  variantId: integer("variant_id"),
+  reason: varchar("reason", { length: 24 }).notNull(),
+  quantityDelta: integer("quantity_delta").notNull(),
+  quantityBefore: integer("quantity_before").notNull(),
+  quantityAfter: integer("quantity_after").notNull(),
+  orderId: uuid("order_id"),
+  employeeId: uuid("employee_id"),
+  note: varchar("note", { length: 240 }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
 });
 
