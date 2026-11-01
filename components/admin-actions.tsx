@@ -2,10 +2,24 @@
 
 import { useActionState, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Check, CircleDollarSign, X } from "lucide-react";
-import { adminChangeOrderStatus, prepareEscrowRefund, prepareEscrowRelease, reviewProduct, reviewSeller, updateCommissionAction } from "@/actions/admin";
+import { Ban, Check, CircleDollarSign, X } from "lucide-react";
+import { adminChangeOrderStatus, prepareEscrowRefund, prepareEscrowRelease, reviewProduct, reviewSeller, suspendSeller, updateCommissionAction } from "@/actions/admin";
 
 export function ReviewSellerButtons({id}:{id:string}){const [pending,start]=useTransition();const [message,setMessage]=useState("");const router=useRouter();return <div className="admin-row-actions"><button className="approve-button" disabled={pending} onClick={()=>start(async()=>{const r=await reviewSeller(id,"approved");setMessage(r.error||r.success||"");router.refresh();})}><Check size={13}/> Valider</button><button className="reject-button" disabled={pending} onClick={()=>start(async()=>{const r=await reviewSeller(id,"rejected");setMessage(r.error||r.success||"");router.refresh();})}><X size={13}/> Refuser</button>{message&&<span className="sr-only">{message}</span>}</div>}
+export function SuspendSellerButton({id}:{id:string}){
+  const [pending,start]=useTransition();
+  const [reason,setReason]=useState("");
+  const [message,setMessage]=useState("");
+  const [confirming,setConfirming]=useState(false);
+  const router=useRouter();
+  if(!confirming)return <div className="admin-row-actions"><button className="reject-button" disabled={pending} onClick={()=>setConfirming(true)}><Ban size={13}/> Suspendre</button>{message&&<span className="sr-only">{message}</span>}</div>;
+  return <form className="admin-row-actions" onSubmit={(event)=>{event.preventDefault();start(async()=>{const r=await suspendSeller(id,reason);setMessage(r.error||r.success||"");if(r.success)setConfirming(false);router.refresh();});}}>
+    <input value={reason} onChange={(event)=>setReason(event.target.value)} placeholder="Motif de suspension (5 caractères min.)" minLength={5} required aria-label="Motif de suspension"/>
+    <button className="reject-button" disabled={pending||reason.trim().length<5}>{pending?"…":"Confirmer"}</button>
+    <button type="button" className="approve-button" disabled={pending} onClick={()=>{setConfirming(false);setReason("");}}>Annuler</button>
+    {message&&<span className="sr-only">{message}</span>}
+  </form>;
+}
 export function ReviewProductButtons({id}:{id:string}){const [pending,start]=useTransition();const [message,setMessage]=useState("");const router=useRouter();return <div className="admin-row-actions"><button className="approve-button" disabled={pending} onClick={()=>start(async()=>{const r=await reviewProduct(id,"approved");setMessage(r.error||r.success||"");router.refresh();})}><Check size={13}/> Publier</button><button className="reject-button" disabled={pending} onClick={()=>start(async()=>{const r=await reviewProduct(id,"rejected");setMessage(r.error||r.success||"");router.refresh();})}><X size={13}/> Refuser</button>{message&&<span className="sr-only">{message}</span>}</div>}
 export function OrderStatusForm({id,current}:{id:string;current:string}){const [pending,start]=useTransition();const [message,setMessage]=useState("");const router=useRouter();const options:Record<string,string[]>={paid_escrow:["seller_confirmed","cancelled","dispute"],seller_confirmed:["received_collection_point","dispute"],received_collection_point:["shipped","dispute"],shipped:["arrived_abidjan","dispute"],arrived_abidjan:["out_for_delivery","delivered","dispute"],out_for_delivery:["delivered","dispute"],dispute:["refunded","delivered"]};return <form className="order-status-form" action={(fd)=>start(async()=>{const r=await adminChangeOrderStatus(id,String(fd.get("status")),String(fd.get("note")||""));setMessage(r.error||r.success||"");router.refresh();})}><select name="status" defaultValue=""><option value="" disabled>Mettre à jour</option>{(options[current]||[]).map((s)=><option key={s} value={s}>{s.replaceAll("_"," ")}</option>)}</select><input name="note" placeholder="Note interne"/><button className="approve-button" disabled={pending}>{pending?"…":"Appliquer"}</button>{message&&<span className="sr-only">{message}</span>}</form>}
 export function EscrowActions({id,status}:{id:string;status:string}){const [pending,start]=useTransition();const [message,setMessage]=useState("");const router=useRouter();return <div className="admin-row-actions">{status==="eligible"&&<button className="approve-button" disabled={pending} onClick={()=>start(async()=>{const r=await prepareEscrowRelease(id);setMessage(r.error||r.success||"");router.refresh();})}><CircleDollarSign size={13}/> Préparer le règlement</button>}{["blocked","eligible"].includes(status)&&<button className="reject-button" disabled={pending} onClick={()=>start(async()=>{const r=await prepareEscrowRefund(id);setMessage(r.error||r.success||"");router.refresh();})}><X size={13}/> Remboursement</button>}{message&&<span className="sr-only">{message}</span>}</div>}

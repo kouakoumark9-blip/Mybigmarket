@@ -5,6 +5,7 @@ import { Clock3, MapPin, PackageCheck, ShieldCheck, Star } from "lucide-react";
 import { getProductDescription } from "@/lib/demo-data";
 import { LocalPrice } from "@/components/country-preferences";
 import { getCatalogProduct, getCatalogProducts } from "@/lib/catalog";
+import { getPublishedReviewsForSlug } from "@/lib/reviews";
 import { ProductVisual, ProductCard } from "@/components/product-card";
 import { ProductDetailActions } from "@/components/product-detail-actions";
 import { DestinationPriceLabel } from "@/components/destination-labels";
@@ -25,7 +26,8 @@ export default async function ProductPage({ params }: Props) {
   const { slug } = await params;
   const product = await getCatalogProduct(slug);
   if (!product) notFound();
-  if (!process.env.DATABASE_URL && product.slug === smartphoneCamon50Pro.slug) return <ProductDetailExperience product={smartphoneCamon50Pro}/>;
+  const publishedReviews = await getPublishedReviewsForSlug(product.slug);
+  if (!process.env.DATABASE_URL && product.slug === smartphoneCamon50Pro.slug) return <ProductDetailExperience product={smartphoneCamon50Pro} publishedReviews={publishedReviews}/>;
   const productDescription = getProductDescription(product);
   const allProducts = await getCatalogProducts();
   const related = allProducts.filter((item) => item.categorySlug === product.categorySlug && item.slug !== product.slug).slice(0, 4);

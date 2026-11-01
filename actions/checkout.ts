@@ -4,7 +4,7 @@ import { and, eq, gte, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
 import { auth } from "@/auth";
 import { getDb } from "@/lib/db";
-import { orderEvents, orderItems, orders, payments, pickupPoints, products, sellerProfiles } from "@/lib/db/schema";
+import { orderEvents, orderItems, orders, payments, pickupPoints, products, sellerProfiles, users } from "@/lib/db/schema";
 import { getPaymentProvider, type PayMethod } from "@/lib/payments/provider";
 import { countryName, destinationCountries, destinationByCode } from "@/lib/west-africa";
 
@@ -30,12 +30,12 @@ export async function createCheckoutAction(formData: FormData): Promise<{ error?
 
   const db = getDb();
   const slugs = [...new Set(cart.map((line) => line.slug))];
-  const rows = await db.select({ product: products, seller: sellerProfiles }).from(products).innerJoin(sellerProfiles, eq(products.sellerId, sellerProfiles.userId)).where(inArray(products.slug, slugs));
+  const rows = await db.select({ product: products, seller: sellerProfiles, sellerStatus: users.status }).from(products).innerJoin(sellerProfiles, eq(products.sellerId, sellerProfiles.userId)).innerJoin(users, eq(users.id, products.sellerId)).where(inArray(products.slug, slugs));
   if (rows.length !== slugs.length) return { error: "Un ou plusieurs produits ne sont plus disponibles." };
   const bySlug = new Map(rows.map((row) => [row.product.slug, row]));
   for (const line of cart) {
     const row = bySlug.get(line.slug);
-    if (!row || row.product.status !== "approved" || row.seller.verificationStatus !== "approved") return { error: "Un produit ou son vendeur n’est pas validé." };
+    if (!row || row.product.status !== "approved" || row.seller.verificationStatus !== "approved" || row.sellerStatus !== "active") return { error: "Un produit ou son vendeur n’est pas validé." };
     if (line.qty < row.product.minimumQuantity) return { error: `La quantité minimum pour « ${row.product.title} » est de ${row.product.minimumQuantity}.` };
     if (line.qty > row.product.quantity) return { error: `Stock insuffisant pour « ${row.product.title} ».` };
   }
@@ -47,11 +47,16 @@ export async function createCheckoutAction(formData: FormData): Promise<{ error?
     if (!point) return { error: "Ce point relais n’est plus disponible." };
   }
 
+  // Deux lignes du panier peuvent viser le même produit (variantes différentes) : on cumule,
+  // sinon la contrainte unique (order_id, product_id) rejette la commande.
+  const mergedQty = new Map<string, number>();
+  for (const line of cart) mergedQty.set(line.slug, (mergedQty.get(line.slug) || 0) + line.qty);
   const grouped = new Map<string, { product: typeof products.$inferSelect; qty: number }[]>();
-  for (const line of cart) {
-    const row = bySlug.get(line.slug)!;
+  for (const [slug, qty] of mergedQty) {
+    const row = bySlug.get(slug)!;
+    if (qty > row.product.quantity) return { error: `Stock insuffisant pour « ${row.product.title} ».` };
     const list = grouped.get(row.product.sellerId) || [];
-    list.push({ product: row.product, qty: line.qty });
+    list.push({ product: row.product, qty });
     grouped.set(row.product.sellerId, list);
   }
   const provider = getPaymentProvider();

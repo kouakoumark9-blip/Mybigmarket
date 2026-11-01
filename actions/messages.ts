@@ -6,7 +6,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { auth } from "@/auth";
 import { getDb } from "@/lib/db";
-import { conversations, messages, products, sellerProfiles } from "@/lib/db/schema";
+import { conversations, messages, products, sellerProfiles, users } from "@/lib/db/schema";
 
 const productSchema = z.object({ productSlug: z.string().min(1).max(210) });
 const messageSchema = z.object({ conversationId: z.string().uuid(), body: z.string().trim().min(1, "Écrivez un message.").max(2000, "Le message ne peut pas dépasser 2 000 caractères.") });
@@ -24,7 +24,8 @@ export async function startConversationAction(formData: FormData): Promise<void>
   const [listing] = await db.select({ productId: products.id, sellerId: products.sellerId })
     .from(products)
     .innerJoin(sellerProfiles, eq(sellerProfiles.userId, products.sellerId))
-    .where(and(eq(products.slug, parsed.data.productSlug), eq(products.status, "approved"), eq(sellerProfiles.verificationStatus, "approved")))
+    .innerJoin(users, eq(users.id, products.sellerId))
+    .where(and(eq(products.slug, parsed.data.productSlug), eq(products.status, "approved"), eq(sellerProfiles.verificationStatus, "approved"), eq(users.status, "active")))
     .limit(1);
   if (!listing || listing.sellerId === session.user.id) redirect("/messages?erreur=produit");
 
