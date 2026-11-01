@@ -11,6 +11,10 @@ export const dynamic = "force-dynamic";
  * Les devis sont conservés 30 minutes côté client pour prouver le prix annoncé,
  * puis purgés par lots. Pas de suppression massive en une requête : la table
  * peut grossir vite et on ne veut pas bloquer la base.
+ *
+ * Cadence quotidienne : l'offre Vercel Hobby n'autorise qu'une exécution par
+ * jour ; une fréquence plus fine fait échouer le déploiement. Un devis expiré
+ * qui attend la purge suivante n'a aucun effet côté client.
  */
 export async function GET(request: Request) {
   const secret = process.env.CRON_SECRET;
