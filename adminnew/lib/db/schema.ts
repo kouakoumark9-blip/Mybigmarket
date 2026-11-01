@@ -226,6 +226,24 @@ export const adminShippingMethods = pgTable("shipping_methods", {
   sampleRatesOnly: boolean("sample_rates_only").notNull(),
   transitDaysMin: integer("transit_days_min").notNull(),
   transitDaysMax: integer("transit_days_max").notNull(),
+  volumetricDivisor: integer("volumetric_divisor").notNull().default(6000),
+  minimumBillableWeightKg: varchar("minimum_billable_weight_kg", { length: 30 }).notNull().default("0.5"),
+  seaMinimumVolumeM3: varchar("sea_minimum_volume_m3", { length: 30 }).notNull().default("0.1"),
+  minimumChargeXof: integer("minimum_charge_xof").notNull().default(0),
+  insurancePercent: varchar("insurance_percent", { length: 10 }).notNull().default("0"),
+  customsHandlingXof: integer("customs_handling_xof").notNull().default(0),
+  fragileSurchargeXof: integer("fragile_surcharge_xof").notNull().default(0),
+  billableBasis: varchar("billable_basis", { length: 12 }).notNull().default("both"),
+  freeAboveXof: integer("free_above_xof").notNull().default(0),
+  freeAboveWeightGrams: integer("free_above_weight_grams").notNull().default(0),
+  outOfRangeBehavior: varchar("out_of_range_behavior", { length: 20 }).notNull().default("disable"),
+  maxPackageWeightGrams: integer("max_package_weight_grams").notNull().default(30000),
+  maxPackageLengthCm: integer("max_package_length_cm").notNull().default(150),
+  deliveryTimeLabel: varchar("delivery_time_label", { length: 120 }).notNull().default(""),
+  trackingUrlPattern: varchar("tracking_url_pattern", { length: 255 }).notNull().default(""),
+  configurationNote: text("configuration_note").notNull().default(""),
+  deletedAt: timestamp("deleted_at", { withTimezone: true }),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
 export const adminShippingZones = pgTable("shipping_zones", {
@@ -234,6 +252,12 @@ export const adminShippingZones = pgTable("shipping_zones", {
   name: varchar("name", { length: 120 }).notNull(),
   countryCodes: jsonb("country_codes").$type<string[]>().notNull(),
   isActive: boolean("is_active").notNull(),
+  regionCodes: jsonb("region_codes").$type<string[]>().notNull().default([]),
+  cityNames: jsonb("city_names").$type<string[]>().notNull().default([]),
+  isDefault: boolean("is_default").notNull().default(false),
+  sortOrder: integer("sort_order").notNull().default(0),
+  notes: text("notes").notNull().default(""),
+  deletedAt: timestamp("deleted_at", { withTimezone: true }),
 });
 
 export const adminShippingRates = pgTable("shipping_rates", {
@@ -244,7 +268,27 @@ export const adminShippingRates = pgTable("shipping_rates", {
   maximumBillableUnits: varchar("maximum_billable_units", { length: 30 }),
   rateXofPerUnit: integer("rate_xof_per_unit").notNull(),
   sampleOnly: boolean("sample_only").notNull(),
-  sortOrder: integer("sort_order").notNull(),
+  sortOrder: integer("sort_order").notNull().default(0),
+  minimumChargeXof: integer("minimum_charge_xof").notNull().default(0),
+  handlingFeeXof: integer("handling_fee_xof").notNull().default(0),
+  customsFeeXof: integer("customs_fee_xof").notNull().default(0),
+  label: varchar("label", { length: 120 }).notNull().default(""),
+  transitDaysMin: integer("transit_days_min"),
+  transitDaysMax: integer("transit_days_max"),
+  isActive: boolean("is_active").notNull().default(true),
+  deletedAt: timestamp("deleted_at", { withTimezone: true }),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const adminShippingDiscountTiers = pgTable("shipping_discount_tiers", {
+  id: uuid("id").primaryKey(),
+  shippingMethodId: uuid("shipping_method_id").notNull(),
+  shippingZoneId: uuid("shipping_zone_id"),
+  minimumBillableUnits: varchar("minimum_billable_units", { length: 30 }).notNull(),
+  discountPercent: varchar("discount_percent", { length: 10 }).notNull(),
+  label: varchar("label", { length: 120 }).notNull().default(""),
+  isActive: boolean("is_active").notNull(),
+  sortOrder: integer("sort_order").notNull().default(0),
 });
 
 export const adminPaymentMethods = pgTable("payment_methods", {

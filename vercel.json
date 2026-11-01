@@ -1,5 +1,12 @@
 {
   "crons": [
-    { "path": "/api/cron/expire-orders", "schedule": "0 0 * * *" }
+    {
+      "path": "/api/cron/expire-orders",
+      "schedule": "0 0 * * *"
+    },
+    {
+      "path": "/api/cron/expire-quotes",
+      "schedule": "0 1 * * *"
+    }
   ]
 }

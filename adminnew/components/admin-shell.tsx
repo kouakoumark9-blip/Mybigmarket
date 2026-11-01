@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
-import { Activity, BadgePercent, Bell, Boxes, ChevronRight, CircleHelp, ClipboardList, CreditCard, FileText, Globe2, Headset, Image, LayoutDashboard, Menu, PackageSearch, Search, Settings2, Shield, Trash2, Truck, Users, X } from "lucide-react";
+import { Activity, BadgePercent, Bell, Boxes, Calculator, ChevronRight, CircleHelp, ClipboardList, CreditCard, FileText, Globe2, Headset, Image, LayoutDashboard, Menu, PackageSearch, MapPin, Plane, Ruler, Search, Settings2, Shield, Trash2, Truck, Users, X } from "lucide-react";
 import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 
@@ -31,6 +31,12 @@ const navGroups: NavGroup[] = [
   ] },
   { label: "Opérations", items: [
     { label: "Transport", href: "/transport", permission: "shipping.read", icon: Truck, implemented: true },
+    { label: "Transporteurs", href: "/transport/methodes", permission: "shipping.manage", icon: Plane, implemented: true },
+    { label: "Zones de livraison", href: "/transport/zones", permission: "shipping.manage", icon: MapPin, implemented: true },
+    { label: "Tranches tarifaires", href: "/transport/tarifs", permission: "shipping.manage", icon: Ruler, implemented: true },
+    { label: "Paliers de remise", href: "/transport/paliers", permission: "shipping.manage", icon: BadgePercent, implemented: true },
+    { label: "Simulateur de devis", href: "/transport/simulateur", permission: "shipping.read", icon: Calculator, implemented: true },
+    { label: "Corbeille transport", href: "/transport/corbeille", permission: "shipping.manage", icon: Trash2, implemented: true },
     { label: "Paiement", href: "/paiement", permission: "payments.read", icon: CreditCard, implemented: true },
   ] },
   { label: "Boutique", items: [

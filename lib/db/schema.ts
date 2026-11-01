@@ -1,4 +1,5 @@
 import {
+  bigint,
   boolean,
   decimal,
   index,
@@ -754,6 +755,9 @@ export const paymentCountryRules = pgTable("payment_country_rules", {
   maximumAmountXof: integer("maximum_amount_xof"),
 }, (t) => [uniqueIndex("payment_country_rules_method_country_unique").on(t.paymentMethodId, t.countryCode), index("payment_country_rules_country_idx").on(t.countryCode, t.isAllowed)]);
 
+export const billableBasisEnum = pgEnum("billable_basis", ["weight", "volume", "both"]);
+export const transitUnitEnum = pgEnum("transit_unit", ["days", "weeks"]);
+
 export const shippingMethods = pgTable("shipping_methods", {
   id: uuid("id").defaultRandom().primaryKey(),
   code: varchar("code", { length: 30 }).notNull(),
@@ -774,6 +778,20 @@ export const shippingMethods = pgTable("shipping_methods", {
   transitDaysMin: integer("transit_days_min").notNull(),
   transitDaysMax: integer("transit_days_max").notNull(),
   configurationNote: text("configuration_note").notNull().default(""),
+  /** Base de facturation réellement appliquée par la grille. */
+  billableBasis: billableBasisEnum("billable_basis").notNull().default("both"),
+  /** Franchises : port offert au-delà de ces seuils (0 = jamais offert). */
+  freeAboveXof: integer("free_above_xof").notNull().default(0),
+  freeAboveWeightGrams: integer("free_above_weight_grams").notNull().default(0),
+  /** Comportement au-delà de la dernière tranche. */
+  outOfRangeBehavior: varchar("out_of_range_behavior", { length: 20 }).notNull().default("disable"),
+  /** Transporteur attribué aux produits (facultatif, sert aux packs). */
+  maxPackageWeightGrams: integer("max_package_weight_grams").notNull().default(30000),
+  maxPackageLengthCm: integer("max_package_length_cm").notNull().default(150),
+  deliveryTimeLabel: varchar("delivery_time_label", { length: 120 }).notNull().default(""),
+  trackingUrlPattern: varchar("tracking_url_pattern", { length: 255 }).notNull().default(""),
+  deletedAt: timestamp("deleted_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [uniqueIndex("shipping_methods_code_unique").on(t.code), index("shipping_methods_active_mode_idx").on(t.isActive, t.mode)]);
 
@@ -784,6 +802,13 @@ export const shippingZones = pgTable("shipping_zones", {
   countryCodes: jsonb("country_codes").$type<string[]>().notNull().default([]),
   isActive: boolean("is_active").notNull().default(true),
   sortOrder: integer("sort_order").notNull().default(0),
+  /** Régions/région administratives pour affiner une zone nationale. */
+  regionCodes: jsonb("region_codes").$type<string[]>().notNull().default([]),
+  /** Restriction éventuelle à une liste de villes. */
+  cityNames: jsonb("city_names").$type<string[]>().notNull().default([]),
+  isDefault: boolean("is_default").notNull().default(false),
+  notes: text("notes").notNull().default(""),
+  deletedAt: timestamp("deleted_at", { withTimezone: true }),
 }, (t) => [uniqueIndex("shipping_zones_code_unique").on(t.code), index("shipping_zones_active_order_idx").on(t.isActive, t.sortOrder)]);
 
 export const shippingRates = pgTable("shipping_rates", {
@@ -796,6 +821,19 @@ export const shippingRates = pgTable("shipping_rates", {
   minimumChargeXof: integer("minimum_charge_xof").notNull().default(0),
   sortOrder: integer("sort_order").notNull().default(0),
   sampleOnly: boolean("sample_only").notNull().default(true),
+  /** Libellé commercial de la tranche (« 0–5 kg », « jusqu'à 1 m³ »). */
+  label: varchar("label", { length: 120 }).notNull().default(""),
+  /** Coût d'approche fixe ajouté au tarif au poids/volume de la tranche. */
+  handlingFeeXof: integer("handling_fee_xof").notNull().default(0),
+  /** Frais de douane forfaitaires propres à la tranche. */
+  customsFeeXof: integer("customs_fee_xof").notNull().default(0),
+  /** Délai indicatif de la tranche (prime sur celui du transporteur). */
+  transitDaysMin: integer("transit_days_min"),
+  transitDaysMax: integer("transit_days_max"),
+  validFrom: timestamp("valid_from", { withTimezone: true }),
+  validTo: timestamp("valid_to", { withTimezone: true }),
+  isActive: boolean("is_active").notNull().default(true),
+  deletedAt: timestamp("deleted_at", { withTimezone: true }),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [index("shipping_rates_lookup_idx").on(t.shippingMethodId, t.shippingZoneId, t.sortOrder)]);
 
@@ -809,6 +847,42 @@ export const shippingRules = pgTable("shipping_rules", {
   isEnabled: boolean("is_enabled").notNull().default(true),
   priority: integer("priority").notNull().default(0),
 }, (t) => [uniqueIndex("shipping_rules_global_method_code_unique").on(t.shippingMethodId, t.code).where(sql`${t.shippingZoneId} IS NULL`), uniqueIndex("shipping_rules_zoned_method_code_unique").on(t.shippingMethodId, t.shippingZoneId, t.code).where(sql`${t.shippingZoneId} IS NOT NULL`), index("shipping_rules_method_priority_idx").on(t.shippingMethodId, t.isEnabled, t.priority)]);
+
+/**
+ * Devis de transport : trace chaque estimation servie au storefront.
+ * Permet de prouver au client le prix annoncé et de détecter les dérives
+ * entre le devis et la facturation réelle.
+ */
+export const shippingQuotes = pgTable("shipping_quotes", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  /** Empreinte stable du panier (produit + quantité), pour comparer deux devis. */
+  cartFingerprint: varchar("cart_fingerprint", { length: 64 }).notNull(),
+  countryCode: varchar("country_code", { length: 2 }).notNull(),
+  regionCode: varchar("region_code", { length: 40 }),
+  subtotalXof: integer("subtotal_xof").notNull().default(0),
+  totalWeightGrams: integer("total_weight_grams").notNull().default(0),
+  totalVolumeCm3: bigint("total_volume_cm3", { mode: "number" }).notNull().default(0),
+  requestPayload: jsonb("request_payload").$type<Record<string, unknown>>().notNull().default({}),
+  responsePayload: jsonb("response_payload").$type<Record<string, unknown>>().notNull().default({}),
+  optionCount: integer("option_count").notNull().default(0),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [index("shipping_quotes_fingerprint_idx").on(t.cartFingerprint, t.createdAt), index("shipping_quotes_expires_idx").on(t.expiresAt)]);
+
+/**
+ * Paliers de remise sur le port (dégressifs), par méthode et par zone.
+ * Un palier s'applique au fret de base, jamais aux frais de douane.
+ */
+export const shippingDiscountTiers = pgTable("shipping_discount_tiers", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  shippingMethodId: uuid("shipping_method_id").notNull().references(() => shippingMethods.id, { onDelete: "cascade" }),
+  shippingZoneId: uuid("shipping_zone_id").references(() => shippingZones.id, { onDelete: "cascade" }),
+  minimumBillableUnits: decimal("minimum_billable_units", { precision: 12, scale: 4 }).notNull().default("0"),
+  discountPercent: decimal("discount_percent", { precision: 5, scale: 2 }).notNull(),
+  label: varchar("label", { length: 120 }).notNull().default(""),
+  isActive: boolean("is_active").notNull().default(true),
+  sortOrder: integer("sort_order").notNull().default(0),
+}, (t) => [index("shipping_discount_tiers_lookup_idx").on(t.shippingMethodId, t.shippingZoneId, t.sortOrder)]);
 
 export const shipmentOrders = pgTable("shipment_orders", {
   id: uuid("id").defaultRandom().primaryKey(),
