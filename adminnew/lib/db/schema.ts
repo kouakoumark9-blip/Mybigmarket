@@ -178,7 +178,9 @@ export const adminOrders = pgTable("orders", {
   subtotalXof: integer("subtotal_xof").notNull().default(0),
   discountXof: integer("discount_xof").notNull().default(0),
   taxXof: integer("tax_xof").notNull().default(0),
-  shippingXof: integer("shipping_xof").notNull().default(0),
+  // Attention : la colonne réelle est `shipping_cost_xof` (voir lib/db/schema.ts).
+  // Un `shipping_xof` ici ferait échouer toute lecture de commande en 42703.
+  shippingCostXof: integer("shipping_cost_xof").notNull().default(0),
   shippingMode: varchar("shipping_mode", { length: 8 }),
   trackingNumber: varchar("tracking_number", { length: 120 }),
   internalNote: text("internal_note").notNull().default(""),

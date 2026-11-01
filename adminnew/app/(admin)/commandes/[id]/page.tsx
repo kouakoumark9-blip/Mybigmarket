@@ -49,7 +49,7 @@ export default async function OrderDetailPage({ params, searchParams }: { params
     subtotalXof: adminOrders.subtotalXof,
     discountXof: adminOrders.discountXof,
     taxXof: adminOrders.taxXof,
-    shippingXof: adminOrders.shippingXof,
+    shippingCostXof: adminOrders.shippingCostXof,
     totalXof: adminOrders.totalXof,
     shippingMode: adminOrders.shippingMode,
     trackingNumber: adminOrders.trackingNumber,
@@ -130,7 +130,7 @@ export default async function OrderDetailPage({ params, searchParams }: { params
         <div className="grid gap-1 border-t border-slate-100 p-4 text-sm sm:max-w-sm sm:ml-auto">
           <div className="flex justify-between"><span className="text-slate-500">Sous-total</span><span>{money(order.subtotalXof)}</span></div>
           {order.discountXof > 0 && <div className="flex justify-between text-emerald-700"><span>Remise</span><span>−{money(order.discountXof)}</span></div>}
-          <div className="flex justify-between"><span className="text-slate-500">Port</span><span>{money(order.shippingXof)}</span></div>
+          <div className="flex justify-between"><span className="text-slate-500">Port</span><span>{money(order.shippingCostXof)}</span></div>
           <div className="flex justify-between"><span className="text-slate-500">TVA</span><span>{money(order.taxXof)}</span></div>
           <div className="mt-1 flex justify-between border-t border-slate-100 pt-2 text-base font-bold"><span>Total</span><span>{money(order.totalXof)}</span></div>
         </div>

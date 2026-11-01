@@ -150,6 +150,8 @@ ALTER TABLE "api_keys" ADD CONSTRAINT "api_keys_created_by_employee_id_employees
 ALTER TABLE "attribute_values" ADD CONSTRAINT "attribute_values_group_id_attribute_groups_id_fk" FOREIGN KEY ("group_id") REFERENCES "public"."attribute_groups"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "feature_values" ADD CONSTRAINT "feature_values_feature_id_features_id_fk" FOREIGN KEY ("feature_id") REFERENCES "public"."features"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "module_hooks" ADD CONSTRAINT "module_hooks_module_id_modules_id_fk" FOREIGN KEY ("module_id") REFERENCES "public"."modules"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+-- PostgreSQL exige l'index unique AVANT la clé étrangère qui le vise.
+CREATE UNIQUE INDEX "hooks_code_unique" ON "hooks" USING btree ("code");--> statement-breakpoint
 ALTER TABLE "module_hooks" ADD CONSTRAINT "module_hooks_hook_code_hooks_code_fk" FOREIGN KEY ("hook_code") REFERENCES "public"."hooks"("code") ON DELETE cascade ON UPDATE cascade;--> statement-breakpoint
 ALTER TABLE "product_combination_attributes" ADD CONSTRAINT "product_combination_attributes_variant_id_product_variants_id_fk" FOREIGN KEY ("variant_id") REFERENCES "public"."product_variants"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "product_combination_attributes" ADD CONSTRAINT "product_combination_attributes_attribute_value_id_attribute_values_id_fk" FOREIGN KEY ("attribute_value_id") REFERENCES "public"."attribute_values"("id") ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
@@ -167,7 +169,6 @@ CREATE UNIQUE INDEX "feature_values_feature_value_unique" ON "feature_values" US
 CREATE INDEX "feature_values_feature_position_idx" ON "feature_values" USING btree ("feature_id","position");--> statement-breakpoint
 CREATE UNIQUE INDEX "features_code_unique" ON "features" USING btree ("code");--> statement-breakpoint
 CREATE INDEX "features_active_position_idx" ON "features" USING btree ("is_active","position");--> statement-breakpoint
-CREATE UNIQUE INDEX "hooks_code_unique" ON "hooks" USING btree ("code");--> statement-breakpoint
 CREATE INDEX "module_events_log_hook_idx" ON "module_events_log" USING btree ("hook_code","executed_at");--> statement-breakpoint
 CREATE INDEX "module_events_log_module_idx" ON "module_events_log" USING btree ("module_code","executed_at");--> statement-breakpoint
 CREATE UNIQUE INDEX "module_hooks_unique" ON "module_hooks" USING btree ("module_id","hook_code");--> statement-breakpoint
