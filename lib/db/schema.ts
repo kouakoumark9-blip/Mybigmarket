@@ -256,6 +256,7 @@ export const products = pgTable("products", {
   deletedAt: timestamp("deleted_at", { withTimezone: true }),
   version: integer("version").notNull().default(0),
   position: integer("position").notNull().default(0),
+  taxRuleGroupId: uuid("tax_rule_group_id").references(() => taxRuleGroups.id, { onDelete: "set null" }),
 }, (t) => [uniqueIndex("products_slug_unique").on(t.slug), uniqueIndex("products_sku_unique").on(t.sku), index("products_seller_idx").on(t.sellerId), index("products_supplier_idx").on(t.supplierId), index("products_brand_idx").on(t.brandId), index("products_category_idx").on(t.categoryId), index("products_listing_idx").on(t.status, t.categoryId)]);
 
 export const productImages = pgTable("product_images", {
@@ -1017,3 +1018,120 @@ export const translations = pgTable("translations", {
   value: text("value").notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [uniqueIndex("translations_unique").on(t.entity, t.entityId, t.locale, t.field), index("translations_lookup_idx").on(t.entity, t.entityId, t.locale)]);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Étape 2 — localisation, taxes et e-mails.
+// `settings`, `exchange_rates` et `tax_rules` existent déjà : on les complète
+// au lieu de créer des doublons.
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const addressFormatHintEnum = pgEnum("address_format_hint", ["standard", "postal_then_city", "city_then_postal", "no_postal"]);
+
+export const countries = pgTable("countries", {
+  id: serial("id").primaryKey(),
+  iso2: varchar("iso2", { length: 2 }).notNull(),
+  iso3: varchar("iso3", { length: 3 }).notNull(),
+  name: varchar("name", { length: 120 }).notNull(),
+  currency: varchar("currency", { length: 3 }).notNull(),
+  callingCode: varchar("calling_code", { length: 8 }),
+  shippingZoneId: uuid("shipping_zone_id").references(() => shippingZones.id, { onDelete: "set null" }),
+  needZipCode: boolean("need_zip_code").notNull().default(true),
+  zipCodeFormat: varchar("zip_code_format", { length: 40 }),
+  addressFormat: addressFormatHintEnum("address_format").notNull().default("standard"),
+  isActive: boolean("is_active").notNull().default(true),
+  position: integer("position").notNull().default(0),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [uniqueIndex("countries_iso2_unique").on(t.iso2), index("countries_active_position_idx").on(t.isActive, t.position), index("countries_zone_idx").on(t.shippingZoneId)]);
+
+export const states = pgTable("states", {
+  id: serial("id").primaryKey(),
+  countryId: integer("country_id").notNull().references(() => countries.id, { onDelete: "cascade" }),
+  name: varchar("name", { length: 120 }).notNull(),
+  isoCode: varchar("iso_code", { length: 8 }),
+  shippingZoneId: uuid("shipping_zone_id").references(() => shippingZones.id, { onDelete: "set null" }),
+  isActive: boolean("is_active").notNull().default(true),
+}, (t) => [uniqueIndex("states_country_name_unique").on(t.countryId, t.name), index("states_country_active_idx").on(t.countryId, t.isActive)]);
+
+export const currencies = pgTable("currencies", {
+  id: serial("id").primaryKey(),
+  code: varchar("code", { length: 3 }).notNull(),
+  name: varchar("name", { length: 80 }).notNull(),
+  symbol: varchar("symbol", { length: 8 }).notNull(),
+  decimals: integer("decimals").notNull().default(0),
+  symbolPosition: varchar("symbol_position", { length: 10 }).notNull().default("after"),
+  conversionRate: decimal("conversion_rate", { precision: 18, scale: 8 }).notNull().default("1"),
+  isDefault: boolean("is_default").notNull().default(false),
+  isActive: boolean("is_active").notNull().default(true),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [uniqueIndex("currencies_code_unique").on(t.code), index("currencies_default_idx").on(t.isDefault)]);
+
+export const languages = pgTable("languages", {
+  id: serial("id").primaryKey(),
+  code: varchar("code", { length: 5 }).notNull(),
+  name: varchar("name", { length: 60 }).notNull(),
+  locale: varchar("locale", { length: 10 }).notNull(),
+  isDefault: boolean("is_default").notNull().default(false),
+  isActive: boolean("is_active").notNull().default(true),
+}, (t) => [uniqueIndex("languages_code_unique").on(t.code)]);
+
+export const taxRuleGroups = pgTable("tax_rule_groups", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  name: varchar("name", { length: 120 }).notNull(),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  deletedAt: timestamp("deleted_at", { withTimezone: true }),
+}, (t) => [uniqueIndex("tax_rule_groups_name_unique").on(t.name), index("tax_rule_groups_active_idx").on(t.isActive)]);
+
+export const taxRuleGroupRules = pgTable("tax_rule_group_rules", {
+  id: serial("id").primaryKey(),
+  taxRuleGroupId: uuid("tax_rule_group_id").notNull().references(() => taxRuleGroups.id, { onDelete: "cascade" }),
+  taxRuleId: uuid("tax_rule_id").notNull().references(() => taxRules.id, { onDelete: "cascade" }),
+  countryCode: varchar("country_code", { length: 2 }),
+  priority: integer("priority").notNull().default(0),
+}, (t) => [index("tax_rule_group_rules_group_idx").on(t.taxRuleGroupId, t.countryCode), index("tax_rule_group_rules_rule_idx").on(t.taxRuleId)]);
+
+export const emailTemplateStatusEnum = pgEnum("email_template_status", ["draft", "active", "archived"]);
+export const emailQueueStatusEnum = pgEnum("email_queue_status", ["pending", "sending", "sent", "failed"]);
+
+export const emailTemplates = pgTable("email_templates", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  code: varchar("code", { length: 60 }).notNull(),
+  locale: varchar("locale", { length: 5 }).notNull().default("fr"),
+  name: varchar("name", { length: 160 }).notNull(),
+  subject: varchar("subject", { length: 240 }).notNull(),
+  bodyHtml: text("body_html").notNull(),
+  bodyText: text("body_text"),
+  /** Variables autorisées, pour l'aide à l'édition. */
+  variables: jsonb("variables").$type<string[]>().notNull().default([]),
+  status: emailTemplateStatusEnum("status").notNull().default("draft"),
+  isActive: boolean("is_active").notNull().default(true),
+  updatedByEmployeeId: uuid("updated_by_employee_id").references(() => employees.id, { onDelete: "set null" }),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [uniqueIndex("email_templates_code_locale_unique").on(t.code, t.locale), index("email_templates_active_idx").on(t.isActive, t.code)]);
+
+export const emailQueue = pgTable("email_queue", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  toAddress: varchar("to_address", { length: 190 }).notNull(),
+  templateCode: varchar("template_code", { length: 60 }),
+  subject: varchar("subject", { length: 240 }).notNull(),
+  bodyHtml: text("body_html").notNull(),
+  payload: jsonb("payload").$type<Record<string, unknown>>().notNull().default({}),
+  status: emailQueueStatusEnum("status").notNull().default("pending"),
+  attempts: integer("attempts").notNull().default(0),
+  lastError: text("last_error"),
+  scheduledAt: timestamp("scheduled_at", { withTimezone: true }).notNull().defaultNow(),
+  sentAt: timestamp("sent_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [index("email_queue_status_schedule_idx").on(t.status, t.scheduledAt), index("email_queue_created_idx").on(t.createdAt)]);
+
+export const emailLog = pgTable("email_log", {
+  id: serial("id").primaryKey(),
+  queueId: uuid("queue_id").references(() => emailQueue.id, { onDelete: "set null" }),
+  toAddress: varchar("to_address", { length: 190 }).notNull(),
+  subject: varchar("subject", { length: 240 }).notNull(),
+  provider: varchar("provider", { length: 40 }).notNull().default("smtp"),
+  status: varchar("status", { length: 24 }).notNull(),
+  error: text("error"),
+  employeeId: uuid("employee_id").references(() => employees.id, { onDelete: "set null" }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [index("email_log_created_idx").on(t.createdAt), index("email_log_status_idx").on(t.status)]);

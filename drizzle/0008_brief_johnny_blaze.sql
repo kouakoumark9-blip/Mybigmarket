@@ -184,8 +184,6 @@ CREATE INDEX "products_trash_idx" ON "products" USING btree ("deleted_at","statu
 --> statement-breakpoint
 CREATE INDEX "products_position_idx" ON "products" USING btree ("position");
 --> statement-breakpoint
-CREATE INDEX "products_ean13_idx" ON "products" USING btree ("ean13");
---> statement-breakpoint
 CREATE INDEX "categories_trash_idx" ON "categories" USING btree ("deleted_at","is_active");
 --> statement-breakpoint
 CREATE INDEX "brands_trash_idx" ON "brands" USING btree ("deleted_at");
@@ -197,7 +195,5 @@ CREATE INDEX "users_trash_idx" ON "users" USING btree ("deleted_at","status");
 CREATE INDEX "orders_reference_idx" ON "orders" USING btree ("status","created_at");
 --> statement-breakpoint
 CREATE INDEX "orders_trash_idx" ON "orders" USING btree ("deleted_at");
---> statement-breakpoint
-CREATE UNIQUE INDEX "products_reference_unique" ON "products" USING btree ("reference") WHERE "deleted_at" IS NULL;
 --> statement-breakpoint
 CREATE UNIQUE INDEX "product_variants_combination_key_idx" ON "product_variants" USING btree ("product_id","combination_key") WHERE "combination_key" IS NOT NULL;

@@ -36,7 +36,11 @@ import {
   shippingZones,
   suppliers,
   users,
-} from "@/lib/db/schema";
+  countries,
+  currencies,
+  languages,
+  emailTemplates} from "@/lib/db/schema";
+import { DEFAULT_EMAIL_TEMPLATES } from "@/lib/email-render";
 
 const permissionSeeds = [
   ["dashboard.read", "Consulter le tableau de bord", "dashboard", "read"],
@@ -366,6 +370,62 @@ async function seedShippingAndPayment(db: ReturnType<typeof getDb>) {
   }
 }
 
+
+/**
+ * Localisation (étape 2) : devises, langues, pays d'Afrique de l'Ouest.
+ * Idempotent : rejouable sans doublon grâce aux index uniques.
+ */
+async function seedLocalization(db: ReturnType<typeof getDb>) {
+  await db.insert(currencies).values([
+    { code: "XOF", name: "Franc CFA (BCEAO)", symbol: "FCFA", decimals: 0, symbolPosition: "after", conversionRate: "1", isDefault: true, isActive: true },
+    { code: "EUR", name: "Euro", symbol: "€", decimals: 2, symbolPosition: "after", conversionRate: "0.001524", isDefault: false, isActive: true },
+    { code: "USD", name: "Dollar américain", symbol: "$", decimals: 2, symbolPosition: "before", conversionRate: "0.001667", isDefault: false, isActive: true },
+  ]).onConflictDoNothing();
+
+  await db.insert(languages).values([
+    { code: "fr", name: "Français", locale: "fr-FR", isDefault: true, isActive: true },
+    { code: "en", name: "English", locale: "en-GB", isDefault: false, isActive: true },
+  ]).onConflictDoNothing();
+
+  const zones = await db.select({ id: shippingZones.id, code: shippingZones.code }).from(shippingZones);
+  const zoneByCode = new Map(zones.map((zone) => [zone.code, zone.id]));
+
+  const countrySeeds = [
+    ["CI", "CIV", "Côte d'Ivoire", "+225"], ["SN", "SEN", "Sénégal", "+221"], ["BJ", "BEN", "Bénin", "+229"],
+    ["BF", "BFA", "Burkina Faso", "+226"], ["ML", "MLI", "Mali", "+223"], ["TG", "TGO", "Togo", "+228"],
+    ["NE", "NER", "Niger", "+227"], ["GN", "GIN", "Guinée", "+224"], ["GH", "GHA", "Ghana", "+233"],
+    ["NG", "NGA", "Nigéria", "+234"], ["CM", "CMR", "Cameroun", "+237"], ["GA", "GAB", "Gabon", "+241"],
+    ["FR", "FRA", "France", "+33"], ["CN", "CHN", "Chine", "+86"],
+  ] as const;
+
+  await db.insert(countries).values(countrySeeds.map(([iso2, iso3, name, callingCode], index) => ({
+    iso2, iso3, name, callingCode,
+    currency: "XOF",
+    shippingZoneId: zoneByCode.get(iso2 === "CI" ? "CI_ABIDJAN" : "WEST_AFRICA") ?? null,
+    isActive: true,
+    position: index,
+  }))).onConflictDoNothing();
+}
+
+/**
+ * Modèles d'e-mail (étape 2) : squelette neutre, statut brouillon.
+ * Un modèle n'est jamais envoyé tant qu'un employé ne l'a pas passé en « actif ».
+ */
+async function seedEmailTemplates(db: ReturnType<typeof getDb>) {
+  const rows = DEFAULT_EMAIL_TEMPLATES.map((template) => ({
+    code: template.code,
+    locale: "fr",
+    name: template.name,
+    subject: `mybigmarket — ${template.name}`,
+    bodyHtml: `<p>Bonjour ${template.variables.includes("customerName") ? "{{customerName}}" : "{{employeeName}}"},</p><p>[Modèle à compléter depuis l’administration]</p>`,
+    variables: template.variables,
+    status: "draft" as const,
+    isActive: false,
+  }));
+  await db.insert(emailTemplates).values(rows).onConflictDoNothing();
+  console.log(`${rows.length} modèles d’e-mail créés en brouillon (aucun envoi tant qu’ils ne sont pas activés).`);
+}
+
 async function main() {
   if (process.env.NODE_ENV === "production" && process.env.ALLOW_PRODUCTION_ADMIN_SEED !== "true") {
     throw new Error("Seed de production bloqué. N’autorisez-le que pendant une opération de mise en service contrôlée avec ALLOW_PRODUCTION_ADMIN_SEED=true.");
@@ -396,6 +456,9 @@ async function main() {
     ["catalog.default_status", "draft"],
   ];
   for (const [key, value] of defaults) await db.insert(settings).values({ key, value, updatedByEmployeeId: superAdminId }).onConflictDoNothing();
+
+  await seedLocalization(db);
+  await seedEmailTemplates(db);
 
   console.log("Seed d’administration terminé.");
   console.log("Rôles et permissions initiaux : SuperAdmin, Gestionnaire catalogue, Gestionnaire commandes, Logisticien, Service client.");
