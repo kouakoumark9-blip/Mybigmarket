@@ -128,6 +128,18 @@ export const employeeSecurityEvents = pgTable("employee_security_events", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [index("employee_security_events_employee_time_idx").on(t.employeeId, t.createdAt)]);
 
+export const employeeAuditLogs = pgTable("employee_audit_logs", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  actorEmployeeId: uuid("actor_employee_id").references(() => employees.id, { onDelete: "set null" }),
+  action: varchar("action", { length: 80 }).notNull(),
+  entityType: varchar("entity_type", { length: 80 }).notNull(),
+  entityId: varchar("entity_id", { length: 100 }),
+  details: jsonb("details").$type<Record<string, unknown>>(),
+  ipAddress: varchar("ip_address", { length: 45 }),
+  userAgent: varchar("user_agent", { length: 500 }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [index("employee_audit_actor_time_idx").on(t.actorEmployeeId, t.createdAt), index("employee_audit_entity_idx").on(t.entityType, t.entityId)]);
+
 export const sellerProfiles = pgTable("seller_profiles", {
   id: uuid("id").defaultRandom().primaryKey(),
   userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),

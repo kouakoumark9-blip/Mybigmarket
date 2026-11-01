@@ -50,6 +50,13 @@
       "when": 1793491320377,
       "tag": "0006_gorgeous_namora",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1793495353897,
+      "tag": "0007_sticky_gamora",
+      "breakpoints": true
     }
   ]
 }

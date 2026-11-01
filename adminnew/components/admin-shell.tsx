@@ -14,32 +14,32 @@ type NavGroup = { label: string; items: NavItem[] };
 const navGroups: NavGroup[] = [
   { label: "Pilotage", items: [{ label: "Tableau de bord", href: "/", permission: "dashboard.read", icon: LayoutDashboard, implemented: true }] },
   { label: "Ventes", items: [
-    { label: "Commandes", href: "/commandes", permission: "orders.read", icon: ClipboardList },
-    { label: "Factures et avoirs", href: "/factures", permission: "orders.documents.manage", icon: FileText },
+    { label: "Commandes", href: "/commandes", permission: "orders.read", icon: ClipboardList, implemented: true },
+    { label: "Factures et avoirs", href: "/factures", permission: "orders.documents.manage", icon: FileText, implemented: true },
   ] },
   { label: "Catalogue", items: [
-    { label: "Produits", href: "/catalogue/produits", permission: "catalog.products.read", icon: PackageSearch },
-    { label: "Catégories et marques", href: "/catalogue/categories", permission: "catalog.categories.manage", icon: Boxes },
-    { label: "Fournisseurs", href: "/catalogue/fournisseurs", permission: "catalog.suppliers.manage", icon: Users },
-    { label: "Stock", href: "/catalogue/stock", permission: "catalog.stock.read", icon: Boxes },
-    { label: "Avis", href: "/catalogue/avis", permission: "catalog.reviews.moderate", icon: CircleHelp },
+    { label: "Produits", href: "/catalogue/produits", permission: "catalog.products.read", icon: PackageSearch, implemented: true },
+    { label: "Catégories et marques", href: "/catalogue/categories", permission: "catalog.categories.manage", icon: Boxes, implemented: true },
+    { label: "Fournisseurs", href: "/catalogue/fournisseurs", permission: "catalog.suppliers.manage", icon: Users, implemented: true },
+    { label: "Stock", href: "/catalogue/stock", permission: "catalog.stock.read", icon: Boxes, implemented: true },
+    { label: "Avis", href: "/catalogue/avis", permission: "catalog.reviews.moderate", icon: CircleHelp, implemented: true },
   ] },
   { label: "Relations clients", items: [
-    { label: "Clients et adresses", href: "/clients", permission: "customers.read", icon: Users },
-    { label: "Service client", href: "/service-client", permission: "support.messages.read", icon: Headset },
+    { label: "Clients et adresses", href: "/clients", permission: "customers.read", icon: Users, implemented: true },
+    { label: "Service client", href: "/service-client", permission: "support.messages.read", icon: Headset, implemented: true },
   ] },
   { label: "Opérations", items: [
-    { label: "Transport", href: "/transport", permission: "shipping.read", icon: Truck },
-    { label: "Paiement", href: "/paiement", permission: "payments.read", icon: CreditCard },
+    { label: "Transport", href: "/transport", permission: "shipping.read", icon: Truck, implemented: true },
+    { label: "Paiement", href: "/paiement", permission: "payments.read", icon: CreditCard, implemented: true },
   ] },
   { label: "Boutique", items: [
-    { label: "Apparence et pages", href: "/apparence", permission: "appearance.manage", icon: Image },
-    { label: "Marketing", href: "/marketing", permission: "marketing.manage", icon: BadgePercent },
-    { label: "Statistiques", href: "/statistiques", permission: "analytics.read", icon: Activity },
+    { label: "Apparence et pages", href: "/apparence", permission: "appearance.manage", icon: Image, implemented: true },
+    { label: "Marketing", href: "/marketing", permission: "marketing.manage", icon: BadgePercent, implemented: true },
+    { label: "Statistiques", href: "/statistiques", permission: "analytics.read", icon: Activity, implemented: true },
   ] },
   { label: "Configuration", items: [
-    { label: "Paramètres", href: "/parametres", permission: "settings.read", icon: Settings2 },
-    { label: "Employés et rôles", href: "/employes", permission: "employees.manage", icon: Shield },
+    { label: "Paramètres", href: "/parametres", permission: "settings.read", icon: Settings2, implemented: true },
+    { label: "Employés et rôles", href: "/employes", permission: "employees.manage", icon: Shield, implemented: true },
   ] },
   { label: "Mon compte", items: [
     { label: "Sécurité du compte", href: "/securite", permission: "dashboard.read", icon: Shield, implemented: true },

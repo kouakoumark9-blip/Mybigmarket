@@ -1,4 +1,4 @@
-import { boolean, index, integer, pgTable, text, timestamp, uniqueIndex, uuid, varchar } from "drizzle-orm/pg-core";
+import { boolean, index, integer, jsonb, pgTable, serial, text, timestamp, uniqueIndex, uuid, varchar } from "drizzle-orm/pg-core";
 
 export const roles = pgTable("roles", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -48,6 +48,18 @@ export const employeeSecurityEvents = pgTable("employee_security_events", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [index("employee_security_events_employee_time_idx").on(t.employeeId, t.createdAt)]);
 
+export const employeeAuditLogs = pgTable("employee_audit_logs", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  actorEmployeeId: uuid("actor_employee_id").references(() => employees.id, { onDelete: "set null" }),
+  action: varchar("action", { length: 80 }).notNull(),
+  entityType: varchar("entity_type", { length: 80 }).notNull(),
+  entityId: varchar("entity_id", { length: 100 }),
+  details: jsonb("details").$type<Record<string, unknown>>(),
+  ipAddress: varchar("ip_address", { length: 45 }),
+  userAgent: varchar("user_agent", { length: 500 }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [index("employee_audit_actor_time_idx").on(t.actorEmployeeId, t.createdAt), index("employee_audit_entity_idx").on(t.entityType, t.entityId)]);
+
 export const employeeLoginEvents = pgTable("employee_login_events", {
   id: uuid("id").primaryKey().defaultRandom(),
   employeeId: uuid("employee_id").references(() => employees.id, { onDelete: "set null" }),
@@ -61,8 +73,69 @@ export const employeeLoginEvents = pgTable("employee_login_events", {
 
 export const adminProducts = pgTable("products", {
   id: uuid("id").primaryKey(),
+  sellerId: uuid("seller_id").notNull(),
+  categoryId: integer("category_id").notNull(),
+  sku: varchar("sku", { length: 80 }),
+  title: varchar("title", { length: 190 }).notNull(),
+  slug: varchar("slug", { length: 210 }).notNull(),
+  priceXof: integer("price_xof").notNull(),
   status: varchar("status", { length: 32 }).notNull(),
   quantity: integer("quantity").notNull(),
+  lowStockThreshold: integer("low_stock_threshold").notNull(),
+  minimumQuantity: integer("minimum_quantity").notNull(),
+  leadTimeDays: integer("lead_time_days").notNull(),
+  isFeatured: boolean("is_featured").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull(),
+});
+
+export const adminInventoryMovements = pgTable("inventory_movements", {
+  id: uuid("id").primaryKey(),
+  productId: uuid("product_id").notNull(),
+  quantityDelta: integer("quantity_delta").notNull(),
+  movementType: varchar("movement_type", { length: 32 }).notNull(),
+  reason: text("reason").notNull(),
+  employeeId: uuid("employee_id"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
+});
+
+export const adminReviews = pgTable("reviews", {
+  id: uuid("id").primaryKey(),
+  productId: uuid("product_id").notNull(),
+  buyerId: uuid("buyer_id").notNull(),
+  rating: integer("rating").notNull(),
+  comment: text("comment"),
+  verifiedPurchase: boolean("verified_purchase").notNull(),
+  isPublished: boolean("is_published").notNull(),
+  moderatedByEmployeeId: uuid("moderated_by_employee_id"),
+  moderatedAt: timestamp("moderated_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
+});
+
+export const adminCategories = pgTable("categories", {
+  id: serial("id").primaryKey(),
+  name: varchar("name", { length: 100 }).notNull(),
+  slug: varchar("slug", { length: 120 }).notNull(),
+  description: text("description"),
+  isActive: boolean("is_active").notNull(),
+  sortOrder: integer("sort_order").notNull(),
+});
+
+export const adminBrands = pgTable("brands", {
+  id: serial("id").primaryKey(),
+  name: varchar("name", { length: 100 }).notNull(),
+  slug: varchar("slug", { length: 120 }).notNull(),
+  isActive: boolean("is_active").notNull(),
+});
+
+export const adminSuppliers = pgTable("suppliers", {
+  id: uuid("id").primaryKey(),
+  companyName: varchar("company_name", { length: 190 }).notNull(),
+  slug: varchar("slug", { length: 180 }).notNull(),
+  countryCode: varchar("country_code", { length: 2 }).notNull(),
+  city: varchar("city", { length: 120 }),
+  profileStatus: varchar("profile_status", { length: 24 }).notNull(),
+  isActive: boolean("is_active").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
 });
 
@@ -72,11 +145,191 @@ export const adminOrders = pgTable("orders", {
   status: varchar("status", { length: 48 }).notNull(),
   totalXof: integer("total_xof").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull(),
+});
+
+export const adminEscrowEntries = pgTable("escrow_entries", {
+  id: uuid("id").primaryKey(),
+  orderId: uuid("order_id").notNull(),
+  status: varchar("status", { length: 24 }).notNull(),
+});
+
+export const adminOrderStatusHistory = pgTable("order_status_history", {
+  id: uuid("id").primaryKey(),
+  orderId: uuid("order_id").notNull(),
+  fromStatus: varchar("from_status", { length: 48 }),
+  toStatus: varchar("to_status", { length: 48 }).notNull(),
+  employeeId: uuid("employee_id"),
+  note: text("note"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
+});
+
+export const adminInvoices = pgTable("invoices", {
+  id: uuid("id").primaryKey(),
+  orderId: uuid("order_id").notNull(),
+  invoiceNumber: varchar("invoice_number", { length: 60 }).notNull(),
+  status: varchar("status", { length: 24 }).notNull(),
+  subtotalXof: integer("subtotal_xof").notNull(),
+  shippingXof: integer("shipping_xof").notNull(),
+  taxXof: integer("tax_xof").notNull(),
+  totalXof: integer("total_xof").notNull(),
+  pdfUrl: text("pdf_url"),
+  issuedAt: timestamp("issued_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
+});
+
+export const adminCreditNotes = pgTable("credit_notes", {
+  id: uuid("id").primaryKey(),
+  orderId: uuid("order_id").notNull(),
+  invoiceId: uuid("invoice_id"),
+  creditNoteNumber: varchar("credit_note_number", { length: 60 }).notNull(),
+  amountXof: integer("amount_xof").notNull(),
+  reason: text("reason").notNull(),
+  pdfUrl: text("pdf_url"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
+});
+
+export const adminShippingMethods = pgTable("shipping_methods", {
+  id: uuid("id").primaryKey(),
+  code: varchar("code", { length: 30 }).notNull(),
+  mode: varchar("mode", { length: 24 }).notNull(),
+  name: varchar("name", { length: 120 }).notNull(),
+  isActive: boolean("is_active").notNull(),
+  sampleRatesOnly: boolean("sample_rates_only").notNull(),
+  transitDaysMin: integer("transit_days_min").notNull(),
+  transitDaysMax: integer("transit_days_max").notNull(),
+});
+
+export const adminShippingZones = pgTable("shipping_zones", {
+  id: uuid("id").primaryKey(),
+  code: varchar("code", { length: 40 }).notNull(),
+  name: varchar("name", { length: 120 }).notNull(),
+  countryCodes: jsonb("country_codes").$type<string[]>().notNull(),
+  isActive: boolean("is_active").notNull(),
+});
+
+export const adminShippingRates = pgTable("shipping_rates", {
+  id: uuid("id").primaryKey(),
+  shippingMethodId: uuid("shipping_method_id").notNull(),
+  shippingZoneId: uuid("shipping_zone_id").notNull(),
+  minimumBillableUnits: varchar("minimum_billable_units", { length: 30 }).notNull(),
+  maximumBillableUnits: varchar("maximum_billable_units", { length: 30 }),
+  rateXofPerUnit: integer("rate_xof_per_unit").notNull(),
+  sampleOnly: boolean("sample_only").notNull(),
+  sortOrder: integer("sort_order").notNull(),
+});
+
+export const adminPaymentMethods = pgTable("payment_methods", {
+  id: uuid("id").primaryKey(),
+  code: varchar("code", { length: 40 }).notNull(),
+  name: varchar("name", { length: 100 }).notNull(),
+  provider: varchar("provider", { length: 80 }).notNull(),
+  isActive: boolean("is_active").notNull(),
+  mode: varchar("mode", { length: 16 }).notNull(),
+});
+
+export const adminCmsPages = pgTable("cms_pages", {
+  id: uuid("id").primaryKey(),
+  slug: varchar("slug", { length: 160 }).notNull(),
+  title: varchar("title", { length: 190 }).notNull(),
+  status: varchar("status", { length: 20 }).notNull(),
+  publishedAt: timestamp("published_at", { withTimezone: true }),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull(),
+});
+
+export const adminBanners = pgTable("banners", {
+  id: uuid("id").primaryKey(),
+  name: varchar("name", { length: 120 }).notNull(),
+  imageUrl: text("image_url").notNull(),
+  alt: varchar("alt", { length: 190 }).notNull(),
+  targetUrl: text("target_url"),
+  startsAt: timestamp("starts_at", { withTimezone: true }),
+  endsAt: timestamp("ends_at", { withTimezone: true }),
+  isActive: boolean("is_active").notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull(),
+});
+
+export const adminPromoCodes = pgTable("promo_codes", {
+  id: uuid("id").primaryKey(),
+  code: varchar("code", { length: 64 }).notNull(),
+  discountType: varchar("discount_type", { length: 16 }).notNull(),
+  discountValue: integer("discount_value").notNull(),
+  usageCount: integer("usage_count").notNull(),
+  usageLimit: integer("usage_limit"),
+  startsAt: timestamp("starts_at", { withTimezone: true }),
+  endsAt: timestamp("ends_at", { withTimezone: true }),
+  isActive: boolean("is_active").notNull(),
+});
+
+export const adminSettings = pgTable("settings", {
+  id: uuid("id").primaryKey(),
+  key: varchar("key", { length: 120 }).notNull(),
+  value: jsonb("value").$type<unknown>().notNull(),
+  isSecret: boolean("is_secret").notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull(),
+});
+
+export const adminPaymentCountryRules = pgTable("payment_country_rules", {
+  id: uuid("id").primaryKey(),
+  paymentMethodId: uuid("payment_method_id").notNull(),
+  countryCode: varchar("country_code", { length: 2 }).notNull(),
+  isAllowed: boolean("is_allowed").notNull(),
+  minimumAmountXof: integer("minimum_amount_xof").notNull(),
+  maximumAmountXof: integer("maximum_amount_xof"),
 });
 
 export const adminUsers = pgTable("users", {
   id: uuid("id").primaryKey(),
   name: varchar("name", { length: 160 }).notNull(),
+  email: varchar("email", { length: 190 }).notNull(),
+  phone: varchar("phone", { length: 32 }),
   role: varchar("role", { length: 24 }).notNull(),
+  status: varchar("status", { length: 24 }).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
+});
+
+export const adminCustomers = pgTable("customers", {
+  id: uuid("id").primaryKey(),
+  userId: uuid("user_id").notNull(),
+  companyName: varchar("company_name", { length: 190 }),
+  customerGroup: varchar("customer_group", { length: 80 }).notNull(),
+  preferredLocale: varchar("preferred_locale", { length: 16 }).notNull(),
+  marketingConsentAt: timestamp("marketing_consent_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
+});
+
+export const adminEmployees = pgTable("employees", {
+  id: uuid("id").primaryKey(),
+  roleId: uuid("role_id").notNull(),
+  firstName: varchar("first_name", { length: 100 }).notNull(),
+  lastName: varchar("last_name", { length: 100 }).notNull(),
+  email: varchar("email", { length: 190 }).notNull(),
+  status: varchar("status", { length: 24 }).notNull(),
+  totpEnabled: boolean("totp_enabled").notNull(),
+  failedLoginCount: integer("failed_login_count").notNull(),
+  lockedUntil: timestamp("locked_until", { withTimezone: true }),
+  lastLoginAt: timestamp("last_login_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
+});
+
+export const adminConversations = pgTable("conversations", {
+  id: uuid("id").primaryKey(),
+  buyerId: uuid("buyer_id").notNull(),
+  sellerId: uuid("seller_id").notNull(),
+  productId: uuid("product_id").notNull(),
+  kind: varchar("kind", { length: 24 }).notNull(),
+  assignedEmployeeId: uuid("assigned_employee_id"),
+  lastMessageAt: timestamp("last_message_at", { withTimezone: true }).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
+});
+
+export const adminMessages = pgTable("messages", {
+  id: uuid("id").primaryKey(),
+  conversationId: uuid("conversation_id").notNull(),
+  senderId: uuid("sender_id"),
+  senderEmployeeId: uuid("sender_employee_id"),
+  authorType: varchar("author_type", { length: 24 }).notNull(),
+  body: text("body").notNull(),
+  readAt: timestamp("read_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
 });
