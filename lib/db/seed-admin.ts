@@ -63,6 +63,7 @@ const permissionSeeds = [
   ["catalog.reviews.moderate", "Modérer les avis", "catalog.reviews", "moderate"],
   ["customers.read", "Consulter les clients", "customers", "read"],
   ["customers.update", "Modifier les clients", "customers", "update"],
+  ["customers.manage", "Gérer groupes, corbeille et anonymisation", "customers", "manage"],
   ["support.messages.read", "Consulter les conversations", "support.messages", "read"],
   ["support.messages.reply", "Répondre aux conversations", "support.messages", "reply"],
   ["support.disputes.manage", "Gérer les litiges et retours", "support.disputes", "manage"],
@@ -100,9 +101,9 @@ const roleSeeds = [
 const rolePermissionCodes: Record<string, string[]> = {
   super_admin: permissionSeeds.map(([code]) => code),
   catalog_manager: ["dashboard.read", "catalog.products.read", "catalog.products.create", "catalog.products.update", "catalog.products.publish", "catalog.categories.manage", "catalog.brands.manage", "catalog.suppliers.manage", "catalog.attributes.manage", "catalog.features.manage", "catalog.import", "catalog.export", "catalog.trash.manage", "catalog.stock.read", "catalog.stock.update", "catalog.reviews.moderate", "analytics.read"],
-  orders_manager: ["dashboard.read", "orders.read", "orders.update", "orders.status.update", "orders.documents.manage", "orders.export", "customers.read", "customers.update", "payments.read", "analytics.read"],
+  orders_manager: ["dashboard.read", "orders.read", "orders.update", "orders.status.update", "orders.documents.manage", "orders.export", "customers.read", "customers.update", "customers.manage", "payments.read", "analytics.read"],
   logistician: ["dashboard.read", "orders.read", "orders.status.update", "catalog.stock.read", "catalog.stock.update", "shipping.read", "shipping.manage", "analytics.read"],
-  customer_service: ["dashboard.read", "orders.read", "customers.read", "customers.update", "support.messages.read", "support.messages.reply", "support.disputes.manage"],
+  customer_service: ["dashboard.read", "orders.read", "customers.read", "customers.update", "customers.manage", "support.messages.read", "support.messages.reply", "support.disputes.manage"],
 };
 
 const orderStatusSeeds = [

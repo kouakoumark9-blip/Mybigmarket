@@ -358,6 +358,9 @@ export const adminUsers = pgTable("users", {
   role: varchar("role", { length: 24 }).notNull(),
   status: varchar("status", { length: 24 }).notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
+  passwordHash: text("password_hash"),
+  anonymizedAt: timestamp("anonymized_at", { withTimezone: true }),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
 export const adminCustomers = pgTable("customers", {
@@ -367,6 +370,76 @@ export const adminCustomers = pgTable("customers", {
   customerGroup: varchar("customer_group", { length: 80 }).notNull(),
   preferredLocale: varchar("preferred_locale", { length: 16 }).notNull(),
   marketingConsentAt: timestamp("marketing_consent_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
+  taxNumber: varchar("tax_number", { length: 80 }),
+  preferredCurrency: varchar("preferred_currency", { length: 3 }).notNull().default("XOF"),
+  customerGroupId: integer("customer_group_id"),
+  segment: varchar("segment", { length: 24 }).notNull().default("individual"),
+  preferredLanguage: varchar("preferred_language", { length: 5 }).notNull().default("fr"),
+  newsletterConsentAt: timestamp("newsletter_consent_at", { withTimezone: true }),
+  newsletterOptOutAt: timestamp("newsletter_opt_out_at", { withTimezone: true }),
+  lastActivityAt: timestamp("last_activity_at", { withTimezone: true }),
+  internalNote: text("internal_note").notNull().default(""),
+  deletedAt: timestamp("deleted_at", { withTimezone: true }),
+  anonymizedAt: timestamp("anonymized_at", { withTimezone: true }),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  version: integer("version").notNull().default(0),
+});
+
+export const adminCustomerGroups = pgTable("customer_groups", {
+  id: serial("id").primaryKey(),
+  code: varchar("code", { length: 60 }).notNull(),
+  name: varchar("name", { length: 100 }).notNull(),
+  discountBasisPoints: integer("discount_basis_points").notNull(),
+  isActive: boolean("is_active").notNull(),
+  description: text("description").notNull().default(""),
+  priceDisplayMethod: varchar("price_display_method", { length: 16 }).notNull().default("tax_excluded"),
+  showPrices: boolean("show_prices").notNull().default(true),
+  sortOrder: integer("sort_order").notNull().default(0),
+  isDefault: boolean("is_default").notNull().default(false),
+  deletedAt: timestamp("deleted_at", { withTimezone: true }),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const adminAddresses = pgTable("addresses", {
+  id: uuid("id").primaryKey(),
+  customerId: uuid("customer_id").notNull(),
+  label: varchar("label", { length: 80 }).notNull(),
+  firstName: varchar("first_name", { length: 100 }).notNull(),
+  lastName: varchar("last_name", { length: 100 }).notNull(),
+  companyName: varchar("company_name", { length: 190 }),
+  phone: varchar("phone", { length: 32 }).notNull(),
+  line1: varchar("line_1", { length: 190 }).notNull(),
+  line2: varchar("line_2", { length: 190 }),
+  city: varchar("city", { length: 120 }).notNull(),
+  region: varchar("region", { length: 120 }),
+  postalCode: varchar("postal_code", { length: 24 }),
+  countryCode: varchar("country_code", { length: 2 }).notNull(),
+  isDefaultShipping: boolean("is_default_shipping").notNull(),
+  isDefaultBilling: boolean("is_default_billing").notNull(),
+  deliveryInstructions: varchar("delivery_instructions", { length: 240 }),
+  isActive: boolean("is_active").notNull().default(true),
+  deletedAt: timestamp("deleted_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const adminCarts = pgTable("carts", {
+  id: uuid("id").primaryKey(),
+  customerId: uuid("customer_id"),
+  status: varchar("status", { length: 24 }).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull(),
+  abandonedAt: timestamp("abandoned_at", { withTimezone: true }),
+  convertedOrderId: uuid("converted_order_id"),
+});
+
+export const adminCustomerConsents = pgTable("customer_consents", {
+  id: serial("id").primaryKey(),
+  customerId: uuid("customer_id").notNull(),
+  purpose: varchar("purpose", { length: 40 }).notNull(),
+  granted: boolean("granted").notNull(),
+  source: varchar("source", { length: 40 }).notNull().default("admin"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
 });
 

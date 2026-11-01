@@ -539,10 +539,22 @@ export const customerGroups = pgTable("customer_groups", {
   id: serial("id").primaryKey(),
   code: varchar("code", { length: 60 }).notNull(),
   name: varchar("name", { length: 100 }).notNull(),
+  /** Remise en points de base (500 = 5 %). */
   discountBasisPoints: integer("discount_basis_points").notNull().default(0),
   isActive: boolean("is_active").notNull().default(true),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-}, (t) => [uniqueIndex("customer_groups_code_unique").on(t.code), index("customer_groups_active_idx").on(t.isActive)]);
+  description: text("description").notNull().default(""),
+  /** Méthode de calcul : sur le prix catalogue ou sur le prix déjà remisé. */
+  priceDisplayMethod: varchar("price_display_method", { length: 16 }).notNull().default("tax_excluded"),
+  /** Le groupe voit les prix HT ou TTC par défaut. */
+  showPrices: boolean("show_prices").notNull().default(true),
+  /** Ordre d'affichage dans les formulaires. */
+  sortOrder: integer("sort_order").notNull().default(0),
+  /** Catégorie tarifaire par défaut pour les nouveaux clients du groupe. */
+  isDefault: boolean("is_default").notNull().default(false),
+  deletedAt: timestamp("deleted_at", { withTimezone: true }),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [uniqueIndex("customer_groups_code_unique").on(t.code), index("customer_groups_active_idx").on(t.isActive), uniqueIndex("customer_groups_one_default").on(t.isDefault).where(sql`${t.isDefault} = true AND ${t.deletedAt} IS NULL`)]);
 
 export const customers = pgTable("customers", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -556,7 +568,22 @@ export const customers = pgTable("customers", {
   marketingConsentAt: timestamp("marketing_consent_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
-}, (t) => [uniqueIndex("customers_user_unique").on(t.userId), index("customers_group_idx").on(t.customerGroup)]);
+  /** Segmentation commerciale (particulier / professionnel / revendeur). */
+  segment: varchar("segment", { length: 24 }).notNull().default("individual"),
+  /** Langue d'affichage, distincte de la locale technique. */
+  preferredLanguage: varchar("preferred_language", { length: 5 }).notNull().default("fr"),
+  /** Opt-in newsletter horodaté, révocable. */
+  newsletterConsentAt: timestamp("newsletter_consent_at", { withTimezone: true }),
+  newsletterOptOutAt: timestamp("newsletter_opt_out_at", { withTimezone: true }),
+  /** Dernière activité connue (commande, connexion, message). */
+  lastActivityAt: timestamp("last_activity_at", { withTimezone: true }),
+  /** Gestion commerciale interne. */
+  internalNote: text("internal_note").notNull().default(""),
+  /** Un client ne se supprime pas : il part à la corbeille puis s'anonymise. */
+  deletedAt: timestamp("deleted_at", { withTimezone: true }),
+  anonymizedAt: timestamp("anonymized_at", { withTimezone: true }),
+  version: integer("version").notNull().default(0),
+}, (t) => [uniqueIndex("customers_user_unique").on(t.userId), index("customers_group_idx").on(t.customerGroup), index("customers_group_fk_idx").on(t.customerGroupId), index("customers_segment_idx").on(t.segment), index("customers_activity_idx").on(t.lastActivityAt)]);
 
 export const customerAddresses = pgTable("addresses", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -576,7 +603,16 @@ export const customerAddresses = pgTable("addresses", {
   isDefaultBilling: boolean("is_default_billing").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
-}, (t) => [index("addresses_customer_idx").on(t.customerId), index("addresses_country_city_idx").on(t.countryCode, t.city)]);
+  /** Téléphone normalisé (chiffres seuls) pour détecter les doublons. */
+  phoneNormalized: varchar("phone_normalized", { length: 24 }).notNull().default(""),
+  /** Repère de livraison utile sur le terrain (portail, étage, quartier). */
+  deliveryInstructions: varchar("delivery_instructions", { length: 240 }),
+  /** Adresse d'expédition (retours, échantillons). */
+  isDefaultReturn: boolean("is_default_return").notNull().default(false),
+  /** Une adresse inutilisable est conservée mais exclue des propositions. */
+  isActive: boolean("is_active").notNull().default(true),
+  deletedAt: timestamp("deleted_at", { withTimezone: true }),
+}, (t) => [index("addresses_customer_idx").on(t.customerId), index("addresses_country_city_idx").on(t.countryCode, t.city), index("addresses_active_idx").on(t.customerId, t.isActive), uniqueIndex("addresses_one_default_shipping").on(t.customerId).where(sql`${t.isDefaultShipping} = true AND ${t.deletedAt} IS NULL`), uniqueIndex("addresses_one_default_billing").on(t.customerId).where(sql`${t.isDefaultBilling} = true AND ${t.deletedAt} IS NULL`)]);
 
 export const carts = pgTable("carts", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -599,6 +635,43 @@ export const cartItems = pgTable("cart_items", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [uniqueIndex("cart_items_product_without_variant_unique").on(t.cartId, t.productId).where(sql`${t.variantId} IS NULL`), uniqueIndex("cart_items_product_variant_unique").on(t.cartId, t.productId, t.variantId).where(sql`${t.variantId} IS NOT NULL`), index("cart_items_product_idx").on(t.productId)]);
+
+/**
+ * Rattachement d'un client à plusieurs groupes (segmentation multi-critères).
+ * `customers.customerGroupId` reste le groupe principal, appliqué en priorité.
+ */
+export const customerGroupMembers = pgTable("customer_group_members", {
+  id: serial("id").primaryKey(),
+  customerId: uuid("customer_id").notNull().references(() => customers.id, { onDelete: "cascade" }),
+  customerGroupId: integer("customer_group_id").notNull().references(() => customerGroups.id, { onDelete: "cascade" }),
+  isPrimary: boolean("is_primary").notNull().default(false),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [uniqueIndex("customer_group_members_unique").on(t.customerId, t.customerGroupId), index("customer_group_members_group_idx").on(t.customerGroupId), uniqueIndex("customer_group_members_one_primary").on(t.customerId).where(sql`${t.isPrimary} = true`)]);
+
+/**
+ * Règle de paiement autorisée par groupe (PrestaShop : restrictions par groupe).
+ * Sans ligne, tous les moyens actifs du pays s'appliquent.
+ */
+export const customerGroupPaymentRules = pgTable("customer_group_payment_rules", {
+  id: serial("id").primaryKey(),
+  customerGroupId: integer("customer_group_id").notNull().references(() => customerGroups.id, { onDelete: "cascade" }),
+  paymentMethodCode: varchar("payment_method_code", { length: 40 }).notNull(),
+  isAllowed: boolean("is_allowed").notNull().default(true),
+}, (t) => [uniqueIndex("customer_group_payment_rules_unique").on(t.customerGroupId, t.paymentMethodCode)]);
+
+/**
+ * Consentements RGPD/loi ivoirienne : historique horodaté, jamais écrasé.
+ * L'état courant est le dernier événement par finalité.
+ */
+export const customerConsents = pgTable("customer_consents", {
+  id: serial("id").primaryKey(),
+  customerId: uuid("customer_id").notNull().references(() => customers.id, { onDelete: "cascade" }),
+  purpose: varchar("purpose", { length: 40 }).notNull(),
+  granted: boolean("granted").notNull(),
+  source: varchar("source", { length: 40 }).notNull().default("admin"),
+  ipAddress: varchar("ip_address", { length: 45 }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [index("customer_consents_customer_purpose_idx").on(t.customerId, t.purpose, t.createdAt)]);
 
 export const productPriceTiers = pgTable("price_tiers", {
   id: uuid("id").defaultRandom().primaryKey(),
