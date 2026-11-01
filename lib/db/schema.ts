@@ -225,6 +225,15 @@ export const suppliers = pgTable("suppliers", {
   deletedAt: timestamp("deleted_at", { withTimezone: true }),
 }, (t) => [uniqueIndex("suppliers_slug_unique").on(t.slug), index("suppliers_country_active_idx").on(t.countryCode, t.isActive), index("suppliers_user_idx").on(t.sellerUserId)]);
 
+export const productTypeEnum = pgEnum("product_type", ["standard", "pack", "virtual"]);
+export const productConditionEnum = pgEnum("product_condition", ["new", "used", "refurbished"]);
+export const productVisibilityEnum = pgEnum("product_visibility", ["everywhere", "catalog", "search", "nowhere"]);
+export const outOfStockBehaviorEnum = pgEnum("out_of_stock_behavior", ["refuse", "backorder", "use_default"]);
+export const redirectTypeEnum = pgEnum("redirect_type", ["301", "302"]);
+export const redirectTargetTypeEnum = pgEnum("redirect_target_type", ["category", "product", "url"]);
+export const customizationTypeEnum = pgEnum("customization_type", ["text", "file"]);
+export const stockMovementReasonEnum = pgEnum("stock_movement_reason", ["purchase", "sale", "return", "adjustment", "loss", "restock", "pack", "cancellation"]);
+
 export const products = pgTable("products", {
   id: uuid("id").defaultRandom().primaryKey(),
   sellerId: uuid("seller_id").notNull().references(() => users.id, { onDelete: "restrict" }),
@@ -232,6 +241,7 @@ export const products = pgTable("products", {
   brandId: integer("brand_id").references(() => brands.id, { onDelete: "set null" }),
   categoryId: integer("category_id").notNull().references(() => categories.id, { onDelete: "restrict" }),
   sku: varchar("sku", { length: 80 }),
+  reference: varchar("reference", { length: 64 }),
   title: varchar("title", { length: 190 }).notNull(),
   slug: varchar("slug", { length: 210 }).notNull(),
   shortDescription: varchar("short_description", { length: 320 }),
@@ -257,7 +267,31 @@ export const products = pgTable("products", {
   version: integer("version").notNull().default(0),
   position: integer("position").notNull().default(0),
   taxRuleGroupId: uuid("tax_rule_group_id").references(() => taxRuleGroups.id, { onDelete: "set null" }),
-}, (t) => [uniqueIndex("products_slug_unique").on(t.slug), uniqueIndex("products_sku_unique").on(t.sku), index("products_seller_idx").on(t.sellerId), index("products_supplier_idx").on(t.supplierId), index("products_brand_idx").on(t.brandId), index("products_category_idx").on(t.categoryId), index("products_listing_idx").on(t.status, t.categoryId)]);
+productType: productTypeEnum("product_type").notNull().default("standard"),
+  ean13: varchar("ean13", { length: 13 }),
+  upc: varchar("upc", { length: 12 }),
+  isbn: varchar("isbn", { length: 17 }),
+  mpn: varchar("mpn", { length: 40 }),
+  condition: productConditionEnum("condition").notNull().default("new"),
+  visibility: productVisibilityEnum("visibility").notNull().default("everywhere"),
+  availableForOrder: boolean("available_for_order").notNull().default(true),
+  showPrice: boolean("show_price").notNull().default(true),
+  outOfStockBehavior: outOfStockBehaviorEnum("out_of_stock_behavior").notNull().default("use_default"),
+  restockDate: timestamp("restock_date", { withTimezone: true }),
+  inStockMessage: varchar("in_stock_message", { length: 120 }),
+  outOfStockMessage: varchar("out_of_stock_message", { length: 120 }),
+  ecotaxXof: integer("ecotax_xof").notNull().default(0),
+  unitPriceXof: integer("unit_price_xof"),
+  unitLabel: varchar("unit_label", { length: 20 }),
+  weightGrams: integer("weight_grams").notNull().default(0),
+  lengthMm: integer("length_mm").notNull().default(0),
+  widthMm: integer("width_mm").notNull().default(0),
+  heightMm: integer("height_mm").notNull().default(0),
+  additionalShippingXof: integer("additional_shipping_xof").notNull().default(0),
+  deliveryTimeDays: integer("delivery_time_days"),
+  redirectType: redirectTypeEnum("redirect_type"),
+  redirectTargetType: redirectTargetTypeEnum("redirect_target_type"),
+}, (t) => [uniqueIndex("products_slug_unique").on(t.slug), uniqueIndex("products_sku_unique").on(t.sku), index("products_seller_idx").on(t.sellerId), index("products_supplier_idx").on(t.supplierId), index("products_brand_idx").on(t.brandId), index("products_category_idx").on(t.categoryId), index("products_listing_idx").on(t.status, t.categoryId), uniqueIndex("products_reference_unique").on(t.reference).where(sql`${t.deletedAt} IS NULL AND ${t.reference} IS NOT NULL`), index("products_ean13_idx").on(t.ean13), index("products_type_idx").on(t.productType, t.deletedAt)]);
 
 export const productImages = pgTable("product_images", {
   id: serial("id").primaryKey(),
@@ -288,6 +322,7 @@ export const productVariants = pgTable("product_variants", {
   isDefault: boolean("is_default").notNull().default(false),
   combinationKey: varchar("combination_key", { length: 64 }),
   deletedAt: timestamp("deleted_at", { withTimezone: true }),
+  position: integer("position").notNull().default(0),
 }, (t) => [uniqueIndex("product_variants_product_name_value_unique").on(t.productId, t.name, t.value), uniqueIndex("product_variants_sku_unique").on(t.sku), index("product_variants_product_idx").on(t.productId, t.isActive)]);
 
 export const pickupPoints = pgTable("pickup_points", {
@@ -1135,3 +1170,72 @@ export const emailLog = pgTable("email_log", {
   employeeId: uuid("employee_id").references(() => employees.id, { onDelete: "set null" }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [index("email_log_created_idx").on(t.createdAt), index("email_log_status_idx").on(t.status)]);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Étape 3 — catalogue produits : champs produit complets, catégories multiples,
+// fournisseurs, packs, personnalisation, combinaisons.
+// Les index sur `reference` et `ean13` retirés à l'étape 1 sont réintroduits ici,
+// maintenant que les colonnes existent.
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const productCategories = pgTable("product_categories", {
+  id: serial("id").primaryKey(),
+  productId: uuid("product_id").notNull().references(() => products.id, { onDelete: "cascade" }),
+  categoryId: integer("category_id").notNull().references(() => categories.id, { onDelete: "cascade" }),
+  isDefault: boolean("is_default").notNull().default(false),
+}, (t) => [uniqueIndex("product_categories_unique").on(t.productId, t.categoryId), index("product_categories_category_idx").on(t.categoryId), uniqueIndex("product_categories_one_default").on(t.productId).where(sql`${t.isDefault} = true`)]);
+
+export const productSuppliers = pgTable("product_suppliers", {
+  id: serial("id").primaryKey(),
+  productId: uuid("product_id").notNull().references(() => products.id, { onDelete: "cascade" }),
+  supplierId: uuid("supplier_id").notNull().references(() => suppliers.id, { onDelete: "cascade" }),
+  supplierReference: varchar("supplier_reference", { length: 80 }),
+  purchasePriceXof: integer("purchase_price_xof"),
+  currency: varchar("currency", { length: 3 }).notNull().default("XOF"),
+  isDefault: boolean("is_default").notNull().default(false),
+}, (t) => [uniqueIndex("product_suppliers_unique").on(t.productId, t.supplierId), index("product_suppliers_supplier_idx").on(t.supplierId)]);
+
+export const productCarriers = pgTable("product_carriers", {
+  id: serial("id").primaryKey(),
+  productId: uuid("product_id").notNull().references(() => products.id, { onDelete: "cascade" }),
+  shippingMethodId: uuid("shipping_method_id").notNull().references(() => shippingMethods.id, { onDelete: "cascade" }),
+}, (t) => [uniqueIndex("product_carriers_unique").on(t.productId, t.shippingMethodId)]);
+
+export const packItems = pgTable("pack_items", {
+  id: serial("id").primaryKey(),
+  packProductId: uuid("pack_product_id").notNull().references(() => products.id, { onDelete: "cascade" }),
+  componentProductId: uuid("component_product_id").notNull().references(() => products.id, { onDelete: "restrict" }),
+  componentVariantId: integer("component_variant_id").references(() => productVariants.id, { onDelete: "set null" }),
+  quantity: integer("quantity").notNull().default(1),
+}, (t) => [uniqueIndex("pack_items_unique").on(t.packProductId, t.componentProductId, t.componentVariantId), index("pack_items_pack_idx").on(t.packProductId)]);
+
+export const productCustomizations = pgTable("product_customizations", {
+  id: serial("id").primaryKey(),
+  productId: uuid("product_id").notNull().references(() => products.id, { onDelete: "cascade" }),
+  label: varchar("label", { length: 120 }).notNull(),
+  type: customizationTypeEnum("type").notNull().default("text"),
+  isRequired: boolean("is_required").notNull().default(false),
+  maxChars: integer("max_chars"),
+  maxBytes: integer("max_bytes"),
+  position: integer("position").notNull().default(0),
+}, (t) => [index("product_customizations_product_idx").on(t.productId, t.position)]);
+
+export const productTags = pgTable("product_tags", {
+  id: serial("id").primaryKey(),
+  productId: uuid("product_id").notNull().references(() => products.id, { onDelete: "cascade" }),
+  tag: varchar("tag", { length: 60 }).notNull(),
+}, (t) => [uniqueIndex("product_tags_unique").on(t.productId, t.tag), index("product_tags_tag_idx").on(t.tag)]);
+
+export const stockMovements = pgTable("stock_movements", {
+  id: serial("id").primaryKey(),
+  productId: uuid("product_id").notNull().references(() => products.id, { onDelete: "restrict" }),
+  variantId: integer("variant_id").references(() => productVariants.id, { onDelete: "set null" }),
+  reason: stockMovementReasonEnum("reason").notNull(),
+  quantityDelta: integer("quantity_delta").notNull(),
+  quantityBefore: integer("quantity_before").notNull(),
+  quantityAfter: integer("quantity_after").notNull(),
+  orderId: uuid("order_id").references(() => orders.id, { onDelete: "set null" }),
+  employeeId: uuid("employee_id").references(() => employees.id, { onDelete: "set null" }),
+  note: varchar("note", { length: 240 }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [index("stock_movements_product_time_idx").on(t.productId, t.createdAt), index("stock_movements_variant_idx").on(t.variantId), index("stock_movements_reason_idx").on(t.reason, t.createdAt)]);

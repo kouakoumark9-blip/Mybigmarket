@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
-import { Activity, BadgePercent, Bell, Boxes, ChevronRight, CircleHelp, ClipboardList, CreditCard, FileText, Globe2, Headset, Image, LayoutDashboard, Menu, PackageSearch, Search, Settings2, Shield, Truck, Users, X } from "lucide-react";
+import { Activity, BadgePercent, Bell, Boxes, ChevronRight, CircleHelp, ClipboardList, CreditCard, FileText, Globe2, Headset, Image, LayoutDashboard, Menu, PackageSearch, Search, Settings2, Shield, Trash2, Truck, Users, X } from "lucide-react";
 import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 
@@ -23,6 +23,7 @@ const navGroups: NavGroup[] = [
     { label: "Fournisseurs", href: "/catalogue/fournisseurs", permission: "catalog.suppliers.manage", icon: Users, implemented: true },
     { label: "Stock", href: "/catalogue/stock", permission: "catalog.stock.read", icon: Boxes, implemented: true },
     { label: "Avis", href: "/catalogue/avis", permission: "catalog.reviews.moderate", icon: CircleHelp, implemented: true },
+    { label: "Corbeille", href: "/catalogue/corbeille", permission: "catalog.trash.manage", icon: Trash2, implemented: true },
   ] },
   { label: "Relations clients", items: [
     { label: "Clients et adresses", href: "/clients", permission: "customers.read", icon: Users, implemented: true },

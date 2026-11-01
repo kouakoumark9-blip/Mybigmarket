@@ -71,6 +71,13 @@
       "when": 1793536189694,
       "tag": "0009_exotic_runaways",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1793536843140,
+      "tag": "0010_clear_madame_hydra",
+      "breakpoints": true
     }
   ]
 }
