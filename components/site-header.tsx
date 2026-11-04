@@ -3,11 +3,15 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
-import { Search, ShoppingBag, ShoppingCart, UserRound, Menu, X, MessageCircle, MapPin, UserRoundPlus, Home, Grid2X2, ClipboardList, Heart, Globe, Check } from "lucide-react";
+import { Search, ShoppingBag, ShoppingCart, UserRound, Menu, X, MessageCircle, MapPin, UserRoundPlus, Home, Grid2X2, ClipboardList, Heart, Globe, Check, Camera, BadgeCheck, Truck } from "lucide-react";
 import { useCart } from "@/components/cart-provider";
 import { useFavorites } from "@/components/favorites-provider";
 import { useCountryPreferences } from "@/components/country-preferences";
 import { countryName, destinationCountries } from "@/lib/west-africa";
+import { headerNav, pdpConfig } from "@/lib/pdp/config";
+import { ImageSearchDialog } from "@/components/image-search-dialog";
+
+const navIcons = { menu: Menu, badge: BadgeCheck, truck: Truck } as const;
 
 export function SiteHeader() {
   const { count } = useCart();
@@ -18,6 +22,7 @@ export function SiteHeader() {
   const [showScrollSearch, setShowScrollSearch] = useState(false);
   const [countryPickerOpen, setCountryPickerOpen] = useState(false);
   const [countrySearch, setCountrySearch] = useState("");
+  const [imageSearchOpen, setImageSearchOpen] = useState(false);
 
   useEffect(() => {
     const updateSearchVisibility = () => setShowScrollSearch(window.scrollY > 140);
@@ -52,7 +57,7 @@ export function SiteHeader() {
         <button className="mobile-menu-button" aria-label={mobileOpen ? text("closeMenu") : text("openMenu")} onClick={() => setMobileOpen(!mobileOpen)}>{mobileOpen ? <X/> : <Menu/>}</button>
         <Link className="brand" href="/" aria-label="Mybigmarket"><span className="brand-wordmark"><span className="brand-initial">M</span>ybigmarket<small>CHINE → AFRIQUE DE L’OUEST</small></span></Link>
         <form action="/produits" className="search-form header-scroll-search" role="search" aria-label={text("searchCatalog")}>
-          <Search size={18}/><input name="q" placeholder={text("searchCatalog")} aria-label={text("searchCatalog")}/><button type="submit" aria-label={text("search")}><span>{text("search")}</span><Search className="mobile-search-submit-icon" size={17}/></button>
+          <Search size={18}/><input name="q" placeholder={text("searchCatalog")} aria-label={text("searchCatalog")}/><button type="button" className="search-image-button" onClick={() => setImageSearchOpen(true)} aria-label={pdpConfig.imageSearch} title={pdpConfig.imageSearch}><Camera size={19} strokeWidth={1.5}/></button><button type="submit" aria-label={text("search")}><span>{text("search")}</span><Search className="mobile-search-submit-icon" size={17}/></button>
         </form>
         <div className="header-actions">
           <button className="header-locale" type="button" aria-haspopup="dialog" aria-expanded={countryPickerOpen} onClick={() => setCountryPickerOpen(true)}>
@@ -67,9 +72,10 @@ export function SiteHeader() {
       <nav className={`main-nav ${mobileOpen ? "is-open" : ""}`} aria-label={text("catalog")}>
         <div className="shell main-nav-inner">
           <div className="main-nav-primary">
-            <Link className={`nav-categories ${pathname.startsWith("/produits") ? "active" : ""}`} href="/produits" onClick={() => setMobileOpen(false)}><Menu size={16}/> {text("allCategories")}</Link>
+            {headerNav.primary.map((item, index) => { const Icon = navIcons[item.icon]; return <Link key={item.href + item.label} className={index === 0 ? `nav-categories ${pathname.startsWith("/produits") ? "active" : ""}` : ""} href={item.href} onClick={() => setMobileOpen(false)}><Icon size={16} strokeWidth={1.5}/> {index === 0 ? text("allCategories") : item.label}</Link>; })}
           </div>
           <div className="main-nav-secondary">
+            {headerNav.secondary.map((item) => <Link key={item.href + item.label} href={item.href} onClick={() => setMobileOpen(false)}>{item.label}</Link>)}
             <Link href="/messages" onClick={() => setMobileOpen(false)}><MessageCircle size={15}/> {text("messages")}</Link>
             <Link href="/favoris" className={pathname.startsWith("/favoris") ? "active" : ""} onClick={() => setMobileOpen(false)}><Heart size={15}/> {text("favorites")}{favoritesCount > 0 && <span className="favorite-nav-count">{favoritesCount}</span>}</Link>
             <Link className="nav-seller-mobile" href="/inscription" onClick={() => setMobileOpen(false)}><UserRoundPlus size={15}/> {text("createAccount")}</Link>
@@ -85,6 +91,7 @@ export function SiteHeader() {
       <Link href="/panier" className={pathname === "/panier" || pathname === "/checkout" ? "active" : ""} aria-current={pathname === "/panier" ? "page" : undefined}><span className="mobile-tabbar-icon"><ShoppingBag size={20}/>{count > 0 && <b>{count}</b>}</span><span>{text("cart")}</span></Link>
       <Link href="/compte/commandes" className={pathname.startsWith("/compte/commandes") ? "active" : ""} aria-current={pathname.startsWith("/compte/commandes") ? "page" : undefined}><ClipboardList size={20}/><span>{text("orders")}</span></Link>
     </nav>
+    <ImageSearchDialog open={imageSearchOpen} onClose={() => setImageSearchOpen(false)}/>
     {countryPickerOpen && <div className="country-picker-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setCountryPickerOpen(false); }}>
       <section className="country-picker-modal" role="dialog" aria-modal="true" aria-labelledby="country-picker-title" dir={language === "ar" ? "rtl" : "ltr"}>
         <div className="country-picker-heading"><div><span className="country-picker-eyebrow"><Globe size={14}/> {text("deliveryAddress")}</span><h2 id="country-picker-title">{text("chooseDestination")}</h2><p>{text("destinationInstructions")}</p></div><button type="button" className="country-picker-close" onClick={() => setCountryPickerOpen(false)} aria-label={text("close")}><X size={20}/></button></div>

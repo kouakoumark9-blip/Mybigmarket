@@ -9,8 +9,9 @@
 :root{
   color-scheme:light;
 
-  /* Orange de marque */
-  --color-primary:#ff8000;
+  /* Orange de marque : une seule valeur, les composants lisent --color-primary */
+  --brand-color:#ff8000;
+  --color-primary:var(--brand-color);
   --color-primary-hover:#e66f00;
   --color-primary-strong:#a64d00;       /* orange foncé (texte, liens) */
   --color-primary-soft:#fff3e5;         /* fond orange très clair */
@@ -38,6 +39,17 @@
   --color-success-soft:#eef7f1;
   --color-danger:#c9362e;
   --color-danger-soft:#fff0ef;
+
+  /* Fiche produit */
+  --color-ink:#222222;                  /* texte principal de la fiche */
+  --color-rating:#f5b400;               /* étoiles */
+  --color-deal:#d0021b;                 /* badge « prix les plus bas » (blanc 5,9:1) */
+  --color-verified:#16a34a;             /* vérification */
+  --radius-media:12px;
+  --radius-pill:999px;
+  --shadow-md:0 2px 6px color-mix(in srgb,var(--color-shadow) 6%,transparent),0 12px 32px color-mix(in srgb,var(--color-shadow) 10%,transparent);
+  --shadow-card:0 1px 2px color-mix(in srgb,var(--color-shadow) 4%,transparent),0 4px 16px color-mix(in srgb,var(--color-shadow) 5%,transparent);
+  --font-pdp:"Alibaba Sans","Inter",Arial,sans-serif;
 
   /* Drapeaux */
   --flag-ci-orange:#f77f00;
@@ -67,4 +79,9 @@
   --color-success-soft:var(--color-success-soft);
   --color-danger:var(--color-danger);
   --color-danger-soft:var(--color-danger-soft);
+  --color-ink:var(--color-ink);
+  --color-rating:var(--color-rating);
+  --color-deal:var(--color-deal);
+  --color-verified:var(--color-verified);
+  --radius-pill:var(--radius-pill);
 }
