@@ -8,7 +8,8 @@
  *   - livrée         → séquestre éligible au paiement du vendeur ;
  *   - annulée        → réservation libérée (ou stock restitué pour une commande ancienne),
  *                      paiement en attente annulé, séquestre à rembourser ;
- *   - remboursée     → séquestre à rembourser (le stock suit le retour, pas le remboursement).
+ *   - remboursée     → séquestre à rembourser ; le stock n'est libéré que si rien n'a été expédié
+ *                      (après expédition, il suit le retour de marchandise, pas le remboursement).
  * Les transitions autorisées sont celles de lib/order-rules (parcours strict).
  */
 import { and, asc, count, desc, eq, ilike, isNull, or, sql } from "drizzle-orm";
