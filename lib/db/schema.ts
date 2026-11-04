@@ -97,7 +97,9 @@ export const employees = pgTable("employees", {
   passwordChangedAt: timestamp("password_changed_at", { withTimezone: true }).notNull().defaultNow(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
-}, (t) => [uniqueIndex("employees_email_unique").on(t.email), index("employees_status_idx").on(t.status), index("employees_role_idx").on(t.roleId)]);
+  /** Suppression logique : l'employé disparaît des listes mais reste lié à l'historique d'audit. */
+  deletedAt: timestamp("deleted_at", { withTimezone: true }),
+}, (t) => [uniqueIndex("employees_email_unique").on(t.email), index("employees_status_idx").on(t.status), index("employees_role_idx").on(t.roleId), index("employees_deleted_idx").on(t.deletedAt)]);
 
 export const employeeSessions = pgTable("employee_sessions", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -109,7 +111,11 @@ export const employeeSessions = pgTable("employee_sessions", {
   ipAddress: varchar("ip_address", { length: 45 }),
   userAgent: varchar("user_agent", { length: 500 }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-}, (t) => [uniqueIndex("employee_sessions_token_hash_unique").on(t.tokenHash), index("employee_sessions_employee_active_idx").on(t.employeeId, t.expiresAt)]);
+  /** Tous les jetons issus d'une même connexion partagent la famille : une réutilisation révoque la famille entière. */
+  familyId: uuid("family_id"),
+  replacedBySessionId: uuid("replaced_by_session_id"),
+  revokedReason: varchar("revoked_reason", { length: 40 }),
+}, (t) => [uniqueIndex("employee_sessions_token_hash_unique").on(t.tokenHash), index("employee_sessions_employee_active_idx").on(t.employeeId, t.expiresAt), index("employee_sessions_family_idx").on(t.familyId)]);
 
 export const employeeLoginEvents = pgTable("employee_login_events", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -141,7 +147,15 @@ export const employeeAuditLogs = pgTable("employee_audit_logs", {
   ipAddress: varchar("ip_address", { length: 45 }),
   userAgent: varchar("user_agent", { length: 500 }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-}, (t) => [index("employee_audit_actor_time_idx").on(t.actorEmployeeId, t.createdAt), index("employee_audit_entity_idx").on(t.entityType, t.entityId)]);
+  /** Journal d'audit de référence : qui (acteur), quoi (action + entité), quand, avant/après. */
+  actorType: varchar("actor_type", { length: 20 }).notNull().default("employee"),
+  apiKeyId: uuid("api_key_id").references(() => apiKeys.id, { onDelete: "set null" }),
+  shopId: uuid("shop_id").references((): AnyPgColumn => shops.id, { onDelete: "set null" }),
+  beforeState: jsonb("before_state").$type<Record<string, unknown>>(),
+  afterState: jsonb("after_state").$type<Record<string, unknown>>(),
+  changedFields: jsonb("changed_fields").$type<string[]>(),
+  requestId: varchar("request_id", { length: 64 }),
+}, (t) => [index("employee_audit_actor_time_idx").on(t.actorEmployeeId, t.createdAt), index("employee_audit_entity_idx").on(t.entityType, t.entityId), index("employee_audit_action_time_idx").on(t.action, t.createdAt), index("employee_audit_time_idx").on(t.createdAt)]);
 
 export const sellerProfiles = pgTable("seller_profiles", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -1173,7 +1187,9 @@ export const settings = pgTable("settings", {
   isSecret: boolean("is_secret").notNull().default(false),
   updatedByEmployeeId: uuid("updated_by_employee_id").references(() => employees.id, { onDelete: "set null" }),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
-}, (t) => [uniqueIndex("settings_key_unique").on(t.key)]);
+  /** Paramètres par boutique (multi-boutique). Les valeurs existantes appartiennent à la boutique par défaut. */
+  shopId: uuid("shop_id").notNull().default(sql`'00000000-0000-4000-8000-000000000001'::uuid`).references((): AnyPgColumn => shops.id, { onDelete: "cascade" }),
+}, (t) => [uniqueIndex("settings_shop_key_unique").on(t.shopId, t.key)]);
 
 export const slugRedirects = pgTable("slug_redirects", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -1307,6 +1323,11 @@ export const apiKeys = pgTable("api_keys", {
   lastUsedAt: timestamp("last_used_at", { withTimezone: true }),
   createdByEmployeeId: uuid("created_by_employee_id").references(() => employees.id, { onDelete: "set null" }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  /** Codes de permission accordés à la clé (sous-ensemble de la matrice). */
+  scopes: jsonb("scopes").$type<string[]>().notNull().default([]),
+  expiresAt: timestamp("expires_at", { withTimezone: true }),
+  revokedAt: timestamp("revoked_at", { withTimezone: true }),
+  shopId: uuid("shop_id").references((): AnyPgColumn => shops.id, { onDelete: "cascade" }),
 }, (t) => [uniqueIndex("api_keys_hash_unique").on(t.keyHash), index("api_keys_prefix_idx").on(t.keyPrefix), index("api_keys_active_idx").on(t.isActive)]);
 
 export const translations = pgTable("translations", {
@@ -1504,3 +1525,64 @@ export const stockMovements = pgTable("stock_movements", {
   note: varchar("note", { length: 240 }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [index("stock_movements_product_time_idx").on(t.productId, t.createdAt), index("stock_movements_variant_idx").on(t.variantId), index("stock_movements_reason_idx").on(t.reason, t.createdAt)]);
+
+// ---------------------------------------------------------------------------
+// Fondations backend (étape 2) : boutiques, événements, limites, idempotence
+// ---------------------------------------------------------------------------
+
+/** Identifiant fixe de la boutique par défaut, créée par la migration 0014. */
+export const DEFAULT_SHOP_ID = "00000000-0000-4000-8000-000000000001";
+
+export const shops = pgTable("shops", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  code: varchar("code", { length: 60 }).notNull(),
+  name: varchar("name", { length: 160 }).notNull(),
+  domain: varchar("domain", { length: 190 }),
+  isDefault: boolean("is_default").notNull().default(false),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  deletedAt: timestamp("deleted_at", { withTimezone: true }),
+}, (t) => [uniqueIndex("shops_code_unique").on(t.code), uniqueIndex("shops_domain_unique").on(t.domain), index("shops_active_idx").on(t.isActive)]);
+
+export const domainEventStatusEnum = pgEnum("domain_event_status", ["pending", "dispatched", "failed"]);
+
+/**
+ * Boîte d'envoi des événements métier (outbox) : l'événement est écrit dans la même
+ * transaction que la donnée, puis distribué aux modules après le commit.
+ */
+export const domainEvents = pgTable("domain_events", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  shopId: uuid("shop_id").references(() => shops.id, { onDelete: "set null" }),
+  name: varchar("name", { length: 80 }).notNull(),
+  aggregateType: varchar("aggregate_type", { length: 60 }),
+  aggregateId: varchar("aggregate_id", { length: 100 }),
+  payload: jsonb("payload").$type<Record<string, unknown>>().notNull().default({}),
+  status: domainEventStatusEnum("status").notNull().default("pending"),
+  attempts: integer("attempts").notNull().default(0),
+  lastError: text("last_error"),
+  occurredAt: timestamp("occurred_at", { withTimezone: true }).notNull().defaultNow(),
+  availableAt: timestamp("available_at", { withTimezone: true }).notNull().defaultNow(),
+  dispatchedAt: timestamp("dispatched_at", { withTimezone: true }),
+}, (t) => [index("domain_events_queue_idx").on(t.status, t.availableAt), index("domain_events_name_time_idx").on(t.name, t.occurredAt), index("domain_events_aggregate_idx").on(t.aggregateType, t.aggregateId)]);
+
+/** Compteurs de limitation de débit (fenêtre fixe) quand Redis n'est pas configuré. */
+export const rateLimitBuckets = pgTable("rate_limit_buckets", {
+  key: varchar("key", { length: 200 }).primaryKey(),
+  windowStart: timestamp("window_start", { withTimezone: true }).notNull(),
+  count: integer("count").notNull().default(0),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+}, (t) => [index("rate_limit_buckets_expires_idx").on(t.expiresAt)]);
+
+/** Clés d'idempotence des créations (commande, paiement, ressources admin). */
+export const idempotencyKeys = pgTable("idempotency_keys", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  scope: varchar("scope", { length: 120 }).notNull(),
+  key: varchar("key", { length: 128 }).notNull(),
+  requestHash: varchar("request_hash", { length: 64 }).notNull(),
+  status: varchar("status", { length: 16 }).notNull().default("processing"),
+  responseStatus: integer("response_status"),
+  responseBody: jsonb("response_body").$type<unknown>(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+}, (t) => [uniqueIndex("idempotency_keys_scope_key_unique").on(t.scope, t.key), index("idempotency_keys_expires_idx").on(t.expiresAt)]);

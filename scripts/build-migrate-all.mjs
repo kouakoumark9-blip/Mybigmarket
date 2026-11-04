@@ -72,8 +72,9 @@ const parts = [
 -- Appliquer avec : psql "$DATABASE_URL" -f migrate-all.sql
 --
 -- Idempotent : une migration déjà appliquée est ignorée, via la même table de
--- suivi que drizzle-kit (drizzle.__drizzle_migrations). Ne jamais modifier une
--- migration déjà passée : créer une nouvelle migration.
+-- suivi que drizzle-kit (drizzle.__drizzle_migrations), qu'elle ait été passée
+-- par ce fichier ou par \`npm run db:migrate\`. Ne jamais modifier une migration
+-- déjà passée : créer une nouvelle migration.
 `,
   `CREATE SCHEMA IF NOT EXISTS drizzle;
 CREATE TABLE IF NOT EXISTS drizzle.__drizzle_migrations (
@@ -85,7 +86,11 @@ CREATE TABLE IF NOT EXISTS drizzle.__drizzle_migrations (
 ];
 
 for (const file of files) {
-  const body = readFileSync(resolve(migrationsDir, file), "utf8").trim();
+  const raw = readFileSync(resolve(migrationsDir, file), "utf8");
+  const body = raw.trim();
+  // Empreinte enregistrée par `drizzle-kit migrate` (SHA-256 du fichier brut) :
+  // une base migrée avec l'outil officiel est reconnue et rien n'est rejoué.
+  const drizzleHash = createHash("sha256").update(raw).digest("hex");
   if (body.includes("$$")) throw new Error(`${file} : dollar-quoting imbriqué, bloc DO cassé.`);
 
   parts.push(`\n-- ============ ${file} ============`);
@@ -98,7 +103,7 @@ for (const file of files) {
           "    -- dans sa transaction (contrainte PostgreSQL).\n";
     parts.push(`DO $migration$
 BEGIN
-  IF NOT EXISTS (SELECT 1 FROM drizzle.__drizzle_migrations WHERE hash = '${tag}') THEN
+  IF NOT EXISTS (SELECT 1 FROM drizzle.__drizzle_migrations WHERE hash IN ('${tag}', '${drizzleHash}')) THEN
 ${note}    EXECUTE $sql$
 ${sql}
 $sql$;
