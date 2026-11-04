@@ -1,0 +1,70 @@
+/*
+ * mybigmarket — couleurs du site (orange et noir)
+ * ---------------------------------------------------------------------------
+ * C'est le SEUL fichier qui contient des valeurs de couleur. globals.css et
+ * les composants n'utilisent que var(--color-*) ou les utilitaires Tailwind
+ * correspondants (bg-primary, text-text-muted, border-border…).
+ * Pour ajuster une couleur du site, modifiez-la ici uniquement.
+ */
+:root{
+  color-scheme:light;
+
+  /* Orange de marque */
+  --color-primary:#ff8000;
+  --color-primary-hover:#e66f00;
+  --color-primary-strong:#a64d00;       /* orange foncé (texte, liens) */
+  --color-primary-soft:#fff3e5;         /* fond orange très clair */
+  --color-primary-muted:#f0d4b2;        /* bordures orangées */
+  --color-on-primary:#ffffff;           /* texte sur les boutons orange */
+  --color-focus-ring:#ff8000;
+
+  /* Noir et neutres */
+  --color-text:#111111;
+  --color-text-muted:#5f666d;
+  --color-text-subtle:#999fa5;
+  --color-border:#e5e6e8;
+  --color-border-strong:#c8cbd0;
+  --color-bg:#f5f6f8;
+  --color-surface:#ffffff;
+  --color-surface-2:#f0f1f3;
+  --color-surface-inverse:#252a30;
+  --color-on-inverse:#ffffff;
+  --color-shadow:#000000;
+  --color-static-white:#ffffff;
+  --color-static-black:#000000;
+
+  /* Couleurs d'état déjà présentes sur le site */
+  --color-success:#197247;
+  --color-success-soft:#eef7f1;
+  --color-danger:#c9362e;
+  --color-danger-soft:#fff0ef;
+
+  /* Drapeaux */
+  --flag-ci-orange:#f77f00;
+  --flag-ci-green:#009e60;
+  --flag-cn-red:#c9362e;
+}
+
+/* Mapping Tailwind v4 : bg-primary, text-on-primary, border-border, … */
+@theme inline{
+  --color-primary:var(--color-primary);
+  --color-primary-hover:var(--color-primary-hover);
+  --color-primary-strong:var(--color-primary-strong);
+  --color-primary-soft:var(--color-primary-soft);
+  --color-primary-muted:var(--color-primary-muted);
+  --color-on-primary:var(--color-on-primary);
+  --color-text:var(--color-text);
+  --color-text-muted:var(--color-text-muted);
+  --color-text-subtle:var(--color-text-subtle);
+  --color-border:var(--color-border);
+  --color-border-strong:var(--color-border-strong);
+  --color-bg:var(--color-bg);
+  --color-surface:var(--color-surface);
+  --color-surface-2:var(--color-surface-2);
+  --color-surface-inverse:var(--color-surface-inverse);
+  --color-on-inverse:var(--color-on-inverse);
+  --color-success:var(--color-success);
+  --color-success-soft:var(--color-success-soft);
+  --color-danger:var(--color-danger);
+  --color-danger-soft:var(--color-danger-soft);
+}

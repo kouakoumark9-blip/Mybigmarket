@@ -14,6 +14,10 @@
 - Vercel Blob : images produit publiques, justificatifs vendeurs en stockage privé
 - Interface française, FCFA/XOF, responsive/mobile-first; association typographique Inter (texte) + Manrope (titres), auto-hébergées sous licence SIL OFL; aucune favicon
 
+## Couleurs du site
+
+Toutes les couleurs sont regroupées dans `app/theme.css` (orange `#ff8000` et noir). `globals.css` et les composants n'utilisent que des variables `var(--color-*)` ou les utilitaires Tailwind correspondants (`bg-primary`, `text-text-muted`, `border-border`…). Pour ajuster une couleur, il suffit de la modifier dans `theme.css`.
+
 ## Pages et fonctionnalités
 
 - `/` : accueil de découverte inspiré des marketplaces B2B, catégories et deux parcours : précommande groupée et achat en gros
