@@ -9,6 +9,9 @@ import { orderEvents, orderItems, orders, payments, pickupPoints, products, sell
 import { getPaymentProvider, type PayMethod } from "@/lib/payments/provider";
 import { countryName, destinationCountries, destinationByCode } from "@/lib/west-africa";
 import { reserveOrderStock, StockLedgerError } from "@/lib/stock-ledger";
+import { AppError } from "@/server/core/errors";
+import type { Db } from "@/server/core/db";
+import { checkoutSchemaReady, placeOrder } from "@/server/modules/checkout/checkout";
 
 const checkoutSchema = z.object({
   cart: z.string().min(2), method: z.enum(["orange_money", "mtn_momo", "wave", "card"]),
@@ -33,6 +36,11 @@ export async function createCheckoutAction(formData: FormData): Promise<{ error?
   if (!Array.isArray(cart) || !cart.length || cart.length > 50 || cart.some((line) => !line.slug || !Number.isInteger(line.qty) || line.qty < 1)) return { error: "Le panier est vide ou invalide." };
 
   const db = getDb();
+  // Base migrée (0016) : calcul unique du backend — prix client, promotions, taxes, une commande
+  // par vendeur, stock réservé. Sinon, parcours historique ci-dessous, inchangé.
+  if (await checkoutSchemaReady(db as unknown as Db).catch(() => false)) {
+    return placeFromStorefrontCart(db as unknown as Db, session.user.id, cart, parsed.data);
+  }
   const slugs = [...new Set(cart.map((line) => line.slug))];
   const rows = await db.select({ product: products, seller: sellerProfiles, sellerStatus: users.status }).from(products).innerJoin(sellerProfiles, eq(products.sellerId, sellerProfiles.userId)).innerJoin(users, eq(users.id, products.sellerId)).where(inArray(products.slug, slugs));
   if (rows.length !== slugs.length) return { error: "Un ou plusieurs produits ne sont plus disponibles." };
@@ -107,6 +115,38 @@ export async function createCheckoutAction(formData: FormData): Promise<{ error?
   } catch (error) {
     console.error("checkout_failed", error);
     if (error instanceof Error && error.message.startsWith("STOCK_CHANGED:")) return { error: `Le stock de « ${error.message.slice(14)} » vient de changer. Actualisez votre panier.` };
+    return { error: error instanceof Error && error.message.includes("mock") ? error.message : "Le paiement n’a pas pu être initialisé. Réessayez plus tard." };
+  }
+}
+
+type CheckoutForm = z.infer<typeof checkoutSchema>;
+
+/** Panier du navigateur (slugs) → commande via le calcul unique du backend. */
+async function placeFromStorefrontCart(db: Db, userId: string, cart: CartInput[], form: CheckoutForm): Promise<{ error?: string; orderIds?: string[] }> {
+  const slugs = [...new Set(cart.map((line) => line.slug))];
+  const rows = await db.select({ id: products.id, slug: products.slug }).from(products).where(inArray(products.slug, slugs));
+  if (rows.length !== slugs.length) return { error: "Un ou plusieurs produits ne sont plus disponibles." };
+  const idOf = new Map(rows.map((row) => [row.slug, row.id]));
+  try {
+    const result = await placeOrder(db, {
+      userId,
+      requireVariant: false,
+      paymentMethod: form.method as PayMethod,
+      lines: cart.map((line) => ({ productId: idOf.get(line.slug)!, quantity: line.qty })),
+      delivery: {
+        method: form.deliveryMethod, countryCode: form.countryCode, language: form.language, pickupPointId: form.pickupPointId ?? null,
+        address: form.deliveryMethod === "delivery" ? { name: form.name ?? "", phone: form.phone ?? "", address: form.address ?? "", city: form.city ?? "" } : null,
+      },
+    });
+    return { orderIds: result.orders.map((order) => order.id) };
+  } catch (error) {
+    if (error instanceof AppError) {
+      const issue = (error.details as { issues?: Array<{ title: string; message: string }> } | undefined)?.issues?.[0];
+      if (issue) return { error: `« ${issue.title} » : ${issue.message}` };
+      const field = Array.isArray(error.details) ? (error.details[0] as { message?: string } | undefined)?.message : undefined;
+      return { error: field ?? error.message };
+    }
+    console.error("checkout_failed", error);
     return { error: error instanceof Error && error.message.includes("mock") ? error.message : "Le paiement n’a pas pu être initialisé. Réessayez plus tard." };
   }
 }

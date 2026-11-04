@@ -33,7 +33,18 @@ export type DeliveryInput = {
   pickupPointId?: number | null;
 };
 
-export type PlaceOrderInput = { userId: string; lines: QuoteLineInput[]; voucherCodes?: string[]; delivery: DeliveryInput; paymentMethod: PayMethod; cartId?: string | null };
+export type PlaceOrderInput = { userId: string; lines: QuoteLineInput[]; voucherCodes?: string[]; delivery: DeliveryInput; paymentMethod: PayMethod; cartId?: string | null; requireVariant?: boolean };
+
+let schemaReady = false;
+
+/** Le schéma de l'étape 4 (migration 0016) est-il en place ? Mémorisé une fois vrai. */
+export async function checkoutSchemaReady(executor: Executor): Promise<boolean> {
+  if (schemaReady) return true;
+  const result = await executor.execute(sql`select exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'orders' and column_name = 'checkout_group_id') as ready`);
+  const rows = (Array.isArray(result) ? result : (result as { rows: unknown[] }).rows) as Array<{ ready: boolean }>;
+  schemaReady = Boolean(rows[0]?.ready);
+  return schemaReady;
+}
 
 async function deliverySnapshot(executor: Executor, customer: CustomerContext, delivery: DeliveryInput): Promise<{ address: Record<string, string>; pickupPointId: number | null }> {
   if (!destinationCountries.some((country) => country.code === delivery.countryCode)) throw errors.validation([{ path: "delivery.countryCode", message: "Pays de livraison non desservi." }]);
@@ -86,7 +97,7 @@ export async function placeOrder(database: Db, input: PlaceOrderInput) {
   const provider = getPaymentProvider();
 
   const result = await database.transaction(async (tx) => {
-    const quote = await quoteCart(tx, { lines: input.lines, customer, countryCode: input.delivery.countryCode, voucherCodes: input.voucherCodes });
+    const quote = await quoteCart(tx, { lines: input.lines, customer, countryCode: input.delivery.countryCode, voucherCodes: input.voucherCodes, requireVariant: input.requireVariant });
     if (!quote.lines.length) throw errors.rule("Le panier est vide.");
     const issues = quote.lines.filter((line) => line.issue).map((line) => ({ productId: line.productId, variantId: line.variantId, title: line.title, ...line.issue! }));
     if (issues.length) throw errors.rule("Certains articles ne peuvent pas être commandés en l'état : mettez le panier à jour.", { issues });

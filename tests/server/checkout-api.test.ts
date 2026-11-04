@@ -11,6 +11,10 @@ import { ADMIN_EMAIL, ADMIN_PASSWORD, api, createEmployeeRow, createTestDatabase
 
 const session = vi.hoisted(() => ({ current: null as null | { user: { id: string; role: string; email: string } } }));
 vi.mock("@/auth", () => ({ auth: async () => session.current }));
+// L'action historique de la boutique lit la base via getDb() : elle utilise ici la même base PGlite.
+const runtime = vi.hoisted(() => ({ db: null as unknown }));
+vi.mock("@/lib/db", () => ({ getDb: () => runtime.db }));
+vi.mock("@/lib/session-account", () => ({ assertActiveAccount: async () => undefined }));
 
 const SELLER_A = "10000000-0000-4000-8000-0000000000f1";
 const SELLER_B = "10000000-0000-4000-8000-0000000000f2";
@@ -30,6 +34,7 @@ const cookieFrom = (headers: Headers) => headers.get("set-cookie")?.split(";")[0
 beforeAll(async () => {
   resetLedgerReadiness();
   ({ db } = await createTestDatabase());
+  runtime.db = db;
   await createEmployeeRow(db, { email: ADMIN_EMAIL, password: ADMIN_PASSWORD, roleCode: "super_admin" });
   token = (await loginAs(ADMIN_EMAIL, ADMIN_PASSWORD)).accessToken;
   await db.execute(sql`insert into users (id, name, email, password_hash, role) values
@@ -152,5 +157,38 @@ describe("tunnel de commande", () => {
 
     session.current = null;
     expect((await shop("GET", "/shop/orders")).status).toBe(401);
+  });
+});
+
+describe("tunnel historique de la boutique (panier du navigateur)", () => {
+  it("passe par le calcul unique : taxe du pays, une commande par vendeur, stock réservé", async () => {
+    const categoryId = (await admin("POST", "/admin/categories", { name: "Électroménager" })).json.data.id;
+    const [taxGroup] = await rows<{ id: string }>(sql`select id from tax_rule_groups limit 1`);
+    const kettle = (await admin("POST", "/admin/products", { title: "Bouilloire inox", sellerId: SELLER_A, categoryId, priceXof: 10000, taxRuleGroupId: taxGroup.id, status: "approved", initialQuantity: 8 })).json.data;
+    session.current = { user: { id: BUYER, role: "buyer", email: "awa@exemple.ci" } };
+    const { createCheckoutAction } = await import("@/actions/checkout");
+    const form = new FormData();
+    form.set("cart", JSON.stringify([{ slug: kettle.slug, qty: 2 }]));
+    form.set("method", "orange_money");
+    form.set("deliveryMethod", "delivery");
+    form.set("countryCode", "CI");
+    form.set("language", "fr");
+    form.set("name", "Awa Koné");
+    form.set("phone", "0700000001");
+    form.set("address", "Rue des Jardins, Cocody");
+    form.set("city", "Abidjan");
+    const result = await createCheckoutAction(form);
+    expect(result.error).toBeUndefined();
+    expect(result.orderIds).toHaveLength(1);
+    const [order] = await rows<{ total_xof: number; tax_xof: number; reference: string }>(sql`select total_xof, tax_xof, reference from orders where id = ${result.orderIds![0]}`);
+    expect(order).toMatchObject({ total_xof: 23600, tax_xof: 3600 });
+    expect(order.reference).toMatch(/^CMD-/);
+    const [stock] = await rows<{ quantity: number }>(sql`select quantity from products where id = ${kettle.id}`);
+    expect(stock.quantity).toBe(6);
+
+    form.set("cart", JSON.stringify([{ slug: kettle.slug, qty: 50 }]));
+    const refused = await createCheckoutAction(form);
+    expect(refused.error).toContain("Bouilloire inox");
+    session.current = null;
   });
 });

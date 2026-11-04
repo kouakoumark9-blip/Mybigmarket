@@ -68,7 +68,11 @@ export type CartQuote = {
   orderable: boolean;
 };
 
-export async function quoteCart(executor: Executor, input: { lines: QuoteLineInput[]; customer?: CustomerContext | null; countryCode?: string; voucherCodes?: string[]; now?: Date }): Promise<CartQuote> {
+export async function quoteCart(executor: Executor, input: {
+  lines: QuoteLineInput[]; customer?: CustomerContext | null; countryCode?: string; voucherCodes?: string[]; now?: Date;
+  /** false : une ligne sans déclinaison reste au niveau du produit (panier historique de la boutique). */
+  requireVariant?: boolean;
+}): Promise<CartQuote> {
   const countryCode = (input.countryCode ?? "CI").toUpperCase();
   const merged = new Map<string, QuoteLineInput>();
   for (const line of input.lines) {
@@ -118,7 +122,7 @@ export async function quoteCart(executor: Executor, input: { lines: QuoteLineInp
     let issue: LineIssue | null = null;
     if (!product) issue = { code: "not_found", message: "Ce produit n'est plus disponible." };
     else if (line.variantId != null && !variant) issue = { code: "unavailable", message: "Cette déclinaison n'est plus disponible." };
-    else if (line.variantId == null && product.productType === "standard" && variantCounts.some((entry) => entry.productId === product.id)) issue = { code: "variant_required", message: "Choisissez une déclinaison." };
+    else if (input.requireVariant !== false && line.variantId == null && product.productType === "standard" && variantCounts.some((entry) => entry.productId === product.id)) issue = { code: "variant_required", message: "Choisissez une déclinaison." };
     else {
       const decision = canSell({
         available: product.productType === "virtual" ? Number.MAX_SAFE_INTEGER : base.available, requested: line.quantity, minimumQuantity: base.minimumQuantity,
