@@ -58,6 +58,28 @@ describe("migrations sur PostgreSQL réel", () => {
     expect(docs.rows).toHaveLength(1);
   });
 
+  it("la migration 0015 reprend le stock existant dans l'entrepôt par défaut sans modifier les compteurs", async () => {
+    const client = new PGlite();
+    await migrate(drizzle(client), { migrationsFolder: migrationsUpTo(14) });
+    await client.exec(`
+      insert into users (id, name, email, password_hash, role) values ('10000000-0000-4000-8000-000000000001', 'Vendeur', 'vendeur@exemple.ci', 'x', 'seller');
+      insert into categories (id, name, slug) values (1, 'Outillage', 'outillage');
+      insert into products (id, seller_id, category_id, title, slug, description, price_xof, quantity)
+        values ('20000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000001', 1, 'Perceuse', 'perceuse', 'Perceuse', 25000, 42);
+      insert into product_variants (product_id, name, value, stock) values ('20000000-0000-4000-8000-000000000001', 'Tension', '220 V', 7);
+    `);
+    await client.exec(migrateAll);
+    await client.exec(migrateAll);
+    const levels = await client.query<{ variant: boolean; physical: number; reserved: number }>(
+      "select variant_id is not null as variant, physical_quantity as physical, reserved_quantity as reserved from stock_levels order by variant_id nulls first",
+    );
+    expect(levels.rows).toEqual([{ variant: false, physical: 42, reserved: 0 }, { variant: true, physical: 7, reserved: 0 }]);
+    const product = await client.query<{ quantity: number }>("select quantity from products");
+    expect(product.rows[0].quantity).toBe(42);
+    const warehouse = await client.query<{ code: string; is_default: boolean }>("select code, is_default from warehouses");
+    expect(warehouse.rows).toEqual([{ code: "principal", is_default: true }]);
+  });
+
   it("l'outil Drizzle ne rejoue rien après migrate-all.sql", async () => {
     const client = new PGlite();
     await client.exec(migrateAll);

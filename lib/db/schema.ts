@@ -201,6 +201,8 @@ export const categories = pgTable("categories", {
   metaTitle: varchar("meta_title", { length: 190 }),
   metaDescription: varchar("meta_description", { length: 320 }),
   deletedAt: timestamp("deleted_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [uniqueIndex("categories_slug_unique").on(t.slug), index("categories_parent_idx").on(t.parentId)]);
 
 export const brands = pgTable("brands", {
@@ -247,7 +249,7 @@ export const outOfStockBehaviorEnum = pgEnum("out_of_stock_behavior", ["refuse",
 export const redirectTypeEnum = pgEnum("redirect_type", ["301", "302"]);
 export const redirectTargetTypeEnum = pgEnum("redirect_target_type", ["category", "product", "url"]);
 export const customizationTypeEnum = pgEnum("customization_type", ["text", "file"]);
-export const stockMovementReasonEnum = pgEnum("stock_movement_reason", ["purchase", "sale", "return", "adjustment", "loss", "restock", "pack", "cancellation"]);
+export const stockMovementReasonEnum = pgEnum("stock_movement_reason", ["purchase", "sale", "return", "adjustment", "loss", "restock", "pack", "cancellation", "transfer", "inventory", "import"]);
 
 export const products = pgTable("products", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -306,6 +308,8 @@ productType: productTypeEnum("product_type").notNull().default("standard"),
   deliveryTimeDays: integer("delivery_time_days"),
   redirectType: redirectTypeEnum("redirect_type"),
   redirectTargetType: redirectTargetTypeEnum("redirect_target_type"),
+  /** Cible de la redirection d'un produit désactivé : slug, identifiant ou URL selon `redirectTargetType`. */
+  redirectTarget: varchar("redirect_target", { length: 300 }),
 }, (t) => [uniqueIndex("products_slug_unique").on(t.slug), uniqueIndex("products_sku_unique").on(t.sku), index("products_seller_idx").on(t.sellerId), index("products_supplier_idx").on(t.supplierId), index("products_brand_idx").on(t.brandId), index("products_category_idx").on(t.categoryId), index("products_listing_idx").on(t.status, t.categoryId), uniqueIndex("products_reference_unique").on(t.reference).where(sql`${t.deletedAt} IS NULL AND ${t.reference} IS NOT NULL`), index("products_ean13_idx").on(t.ean13), index("products_type_idx").on(t.productType, t.deletedAt)]);
 
 export const productImages = pgTable("product_images", {
@@ -1115,6 +1119,28 @@ export const promoCodes = pgTable("promo_codes", {
   endsAt: timestamp("ends_at", { withTimezone: true }),
   isActive: boolean("is_active").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  // Bons de réduction complets (étape 3) : toutes les colonnes sont facultatives ou ont une valeur
+  // par défaut, les codes existants gardent exactement le même comportement.
+  shopId: uuid("shop_id").notNull().default(sql`'00000000-0000-4000-8000-000000000001'::uuid`).references((): AnyPgColumn => shops.id, { onDelete: "cascade" }),
+  name: varchar("name", { length: 120 }),
+  description: text("description"),
+  /** Bon réservé à un client précis. */
+  customerId: uuid("customer_id").references(() => customers.id, { onDelete: "cascade" }),
+  /** Bon réservé à un groupe de clients. */
+  customerGroupId: integer("customer_group_id").references(() => customerGroups.id, { onDelete: "set null" }),
+  /** Utilisations maximales par client (null = illimité). */
+  perCustomerLimit: integer("per_customer_limit"),
+  freeShipping: boolean("free_shipping").notNull().default(false),
+  /** Cumulable avec d'autres bons. */
+  combinable: boolean("combinable").notNull().default(false),
+  /** La remise ne porte pas sur les produits déjà remisés (prix spécifique ou règle catalogue). */
+  excludeDiscountedProducts: boolean("exclude_discounted_products").notNull().default(false),
+  /** Restriction aux produits ou catégories listés (vide = tout le panier). */
+  productIds: jsonb("product_ids").$type<string[]>().notNull().default([]),
+  categoryIds: jsonb("category_ids").$type<number[]>().notNull().default([]),
+  priority: integer("priority").notNull().default(0),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  deletedAt: timestamp("deleted_at", { withTimezone: true }),
 }, (t) => [uniqueIndex("promo_codes_code_unique").on(t.code), index("promo_codes_active_period_idx").on(t.isActive, t.startsAt, t.endsAt)]);
 
 export const cmsPages = pgTable("cms_pages", {
@@ -1524,7 +1550,12 @@ export const stockMovements = pgTable("stock_movements", {
   employeeId: uuid("employee_id").references(() => employees.id, { onDelete: "set null" }),
   note: varchar("note", { length: 240 }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-}, (t) => [index("stock_movements_product_time_idx").on(t.productId, t.createdAt), index("stock_movements_variant_idx").on(t.variantId), index("stock_movements_reason_idx").on(t.reason, t.createdAt)]);
+  /** Entrepôt concerné (étape 3). Les mouvements antérieurs restent sans entrepôt. */
+  warehouseId: uuid("warehouse_id").references((): AnyPgColumn => warehouses.id, { onDelete: "set null" }),
+  reservationId: uuid("reservation_id").references((): AnyPgColumn => stockReservations.id, { onDelete: "set null" }),
+  /** Référence libre : bon de réception, inventaire, fichier d'import… */
+  reference: varchar("reference", { length: 120 }),
+}, (t) => [index("stock_movements_product_time_idx").on(t.productId, t.createdAt), index("stock_movements_variant_idx").on(t.variantId), index("stock_movements_reason_idx").on(t.reason, t.createdAt), index("stock_movements_warehouse_time_idx").on(t.warehouseId, t.createdAt), index("stock_movements_order_idx").on(t.orderId)]);
 
 // ---------------------------------------------------------------------------
 // Fondations backend (étape 2) : boutiques, événements, limites, idempotence
@@ -1586,3 +1617,151 @@ export const idempotencyKeys = pgTable("idempotency_keys", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
 }, (t) => [uniqueIndex("idempotency_keys_scope_key_unique").on(t.scope, t.key), index("idempotency_keys_expires_idx").on(t.expiresAt)]);
+
+// ---------------------------------------------------------------------------
+// Catalogue, prix et stocks (étape 3) : entrepôts, niveaux de stock, réservations,
+// prix spécifiques, règles de prix catalogue, bons, images de déclinaison, produits virtuels
+// ---------------------------------------------------------------------------
+
+/** Identifiant fixe de l'entrepôt par défaut, créé par la migration 0015. */
+export const DEFAULT_WAREHOUSE_ID = "00000000-0000-4000-8000-000000000002";
+
+export const stockReservationStatusEnum = pgEnum("stock_reservation_status", ["active", "consumed", "released", "expired"]);
+export const priceReductionTypeEnum = pgEnum("price_reduction_type", ["percent", "amount", "fixed_price"]);
+
+export const warehouses = pgTable("warehouses", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  shopId: uuid("shop_id").notNull().default(sql`'00000000-0000-4000-8000-000000000001'::uuid`).references(() => shops.id, { onDelete: "cascade" }),
+  code: varchar("code", { length: 40 }).notNull(),
+  name: varchar("name", { length: 120 }).notNull(),
+  countryCode: varchar("country_code", { length: 2 }).notNull().default("CI"),
+  city: varchar("city", { length: 120 }),
+  address: text("address"),
+  managerEmployeeId: uuid("manager_employee_id").references(() => employees.id, { onDelete: "set null" }),
+  isActive: boolean("is_active").notNull().default(true),
+  isDefault: boolean("is_default").notNull().default(false),
+  /** Le stock de cet entrepôt est-il vendable en boutique ? (un entrepôt de transit peut ne pas l'être) */
+  isSellable: boolean("is_sellable").notNull().default(true),
+  position: integer("position").notNull().default(0),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  deletedAt: timestamp("deleted_at", { withTimezone: true }),
+}, (t) => [uniqueIndex("warehouses_shop_code_unique").on(t.shopId, t.code), uniqueIndex("warehouses_one_default").on(t.shopId).where(sql`${t.isDefault} = true AND ${t.deletedAt} IS NULL`), index("warehouses_active_idx").on(t.shopId, t.isActive, t.position)]);
+
+/**
+ * Stock par entrepôt. Disponible = physique − réservé.
+ * `products.quantity` et `product_variants.stock` restent les compteurs disponibles lus par la
+ * boutique : ils sont tenus à jour dans la même transaction par le grand livre de stock.
+ */
+export const stockLevels = pgTable("stock_levels", {
+  id: serial("id").primaryKey(),
+  warehouseId: uuid("warehouse_id").notNull().references(() => warehouses.id, { onDelete: "restrict" }),
+  productId: uuid("product_id").notNull().references(() => products.id, { onDelete: "cascade" }),
+  variantId: integer("variant_id").references(() => productVariants.id, { onDelete: "cascade" }),
+  physicalQuantity: integer("physical_quantity").notNull().default(0),
+  reservedQuantity: integer("reserved_quantity").notNull().default(0),
+  /** Seuil d'alerte propre à l'entrepôt (sinon celui du produit ou de la déclinaison). */
+  lowStockThreshold: integer("low_stock_threshold"),
+  /** Emplacement physique (allée, rayon, case). */
+  location: varchar("location", { length: 60 }),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [uniqueIndex("stock_levels_product_unique").on(t.warehouseId, t.productId).where(sql`${t.variantId} IS NULL`), uniqueIndex("stock_levels_variant_unique").on(t.warehouseId, t.productId, t.variantId).where(sql`${t.variantId} IS NOT NULL`), index("stock_levels_product_idx").on(t.productId, t.variantId)]);
+
+/** Réservation de stock : une commande (ou un panier) bloque des unités sans les sortir physiquement. */
+export const stockReservations = pgTable("stock_reservations", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  warehouseId: uuid("warehouse_id").notNull().references(() => warehouses.id, { onDelete: "restrict" }),
+  productId: uuid("product_id").notNull().references(() => products.id, { onDelete: "cascade" }),
+  variantId: integer("variant_id").references(() => productVariants.id, { onDelete: "cascade" }),
+  quantity: integer("quantity").notNull(),
+  status: stockReservationStatusEnum("status").notNull().default("active"),
+  orderId: uuid("order_id").references(() => orders.id, { onDelete: "set null" }),
+  cartId: uuid("cart_id").references(() => carts.id, { onDelete: "set null" }),
+  reference: varchar("reference", { length: 120 }),
+  expiresAt: timestamp("expires_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  closedAt: timestamp("closed_at", { withTimezone: true }),
+}, (t) => [index("stock_reservations_order_idx").on(t.orderId, t.status), index("stock_reservations_product_idx").on(t.productId, t.status), index("stock_reservations_expiry_idx").on(t.status, t.expiresAt)]);
+
+/**
+ * Prix spécifique d'un produit : prix fixe ou remise, ciblé par client, groupe, pays, devise,
+ * quantité minimale et période. La règle la plus favorable au client s'applique (`lib/pricing.ts`).
+ */
+export const specificPrices = pgTable("specific_prices", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  shopId: uuid("shop_id").notNull().default(sql`'00000000-0000-4000-8000-000000000001'::uuid`).references(() => shops.id, { onDelete: "cascade" }),
+  productId: uuid("product_id").notNull().references(() => products.id, { onDelete: "cascade" }),
+  variantId: integer("variant_id").references(() => productVariants.id, { onDelete: "cascade" }),
+  customerId: uuid("customer_id").references(() => customers.id, { onDelete: "cascade" }),
+  customerGroupId: integer("customer_group_id").references(() => customerGroups.id, { onDelete: "cascade" }),
+  countryCode: varchar("country_code", { length: 2 }),
+  currency: varchar("currency", { length: 3 }),
+  fromQuantity: integer("from_quantity").notNull().default(1),
+  reductionType: priceReductionTypeEnum("reduction_type").notNull(),
+  /** Pourcentage (12.5 = 12,5 %), montant en XOF ou prix fixe HT en XOF. */
+  reductionValue: decimal("reduction_value", { precision: 12, scale: 2 }).notNull(),
+  dateFrom: timestamp("date_from", { withTimezone: true }),
+  dateTo: timestamp("date_to", { withTimezone: true }),
+  priority: integer("priority").notNull().default(0),
+  createdByEmployeeId: uuid("created_by_employee_id").references(() => employees.id, { onDelete: "set null" }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [index("specific_prices_product_idx").on(t.productId, t.variantId), index("specific_prices_period_idx").on(t.dateFrom, t.dateTo), index("specific_prices_customer_idx").on(t.customerId), index("specific_prices_group_idx").on(t.customerGroupId)]);
+
+export type CatalogPriceRuleConditions = { categoryIds?: number[]; brandIds?: number[]; supplierIds?: string[]; productIds?: string[]; excludeProductIds?: string[] };
+
+/** Règle de prix catalogue (promotion) : s'applique à tous les produits qui remplissent ses conditions. */
+export const catalogPriceRules = pgTable("catalog_price_rules", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  shopId: uuid("shop_id").notNull().default(sql`'00000000-0000-4000-8000-000000000001'::uuid`).references(() => shops.id, { onDelete: "cascade" }),
+  name: varchar("name", { length: 120 }).notNull(),
+  isActive: boolean("is_active").notNull().default(true),
+  customerGroupId: integer("customer_group_id").references(() => customerGroups.id, { onDelete: "cascade" }),
+  countryCode: varchar("country_code", { length: 2 }),
+  currency: varchar("currency", { length: 3 }),
+  fromQuantity: integer("from_quantity").notNull().default(1),
+  reductionType: priceReductionTypeEnum("reduction_type").notNull(),
+  reductionValue: decimal("reduction_value", { precision: 12, scale: 2 }).notNull(),
+  conditions: jsonb("conditions").$type<CatalogPriceRuleConditions>().notNull().default({}),
+  dateFrom: timestamp("date_from", { withTimezone: true }),
+  dateTo: timestamp("date_to", { withTimezone: true }),
+  priority: integer("priority").notNull().default(0),
+  createdByEmployeeId: uuid("created_by_employee_id").references(() => employees.id, { onDelete: "set null" }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  deletedAt: timestamp("deleted_at", { withTimezone: true }),
+}, (t) => [index("catalog_price_rules_active_idx").on(t.shopId, t.isActive, t.dateFrom, t.dateTo)]);
+
+/** Utilisations d'un bon de réduction (limite globale et par client). */
+export const promoCodeRedemptions = pgTable("promo_code_redemptions", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  promoCodeId: uuid("promo_code_id").notNull().references(() => promoCodes.id, { onDelete: "cascade" }),
+  customerId: uuid("customer_id").references(() => customers.id, { onDelete: "set null" }),
+  orderId: uuid("order_id").references(() => orders.id, { onDelete: "set null" }),
+  amountXof: integer("amount_xof").notNull().default(0),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [index("promo_code_redemptions_code_customer_idx").on(t.promoCodeId, t.customerId), uniqueIndex("promo_code_redemptions_code_order_unique").on(t.promoCodeId, t.orderId)]);
+
+/** Images associées à une déclinaison (choisies parmi celles du produit). */
+export const productVariantImages = pgTable("product_variant_images", {
+  id: serial("id").primaryKey(),
+  variantId: integer("variant_id").notNull().references(() => productVariants.id, { onDelete: "cascade" }),
+  imageId: integer("image_id").notNull().references(() => productImages.id, { onDelete: "cascade" }),
+  position: integer("position").notNull().default(0),
+}, (t) => [uniqueIndex("product_variant_images_unique").on(t.variantId, t.imageId), index("product_variant_images_image_idx").on(t.imageId)]);
+
+/** Fichier livré par un produit virtuel (téléchargement après paiement). */
+export const productDownloads = pgTable("product_downloads", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  productId: uuid("product_id").notNull().references(() => products.id, { onDelete: "cascade" }),
+  fileName: varchar("file_name", { length: 190 }).notNull(),
+  /** Clé de stockage privée (jamais une URL publique). */
+  storageKey: text("storage_key").notNull(),
+  contentType: varchar("content_type", { length: 120 }).notNull().default("application/octet-stream"),
+  sizeBytes: integer("size_bytes").notNull().default(0),
+  maxDownloads: integer("max_downloads"),
+  expiresAfterDays: integer("expires_after_days"),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [uniqueIndex("product_downloads_product_unique").on(t.productId)]);
