@@ -24,6 +24,9 @@ export type PriceTierRule = {
 };
 
 export type SpecificPriceRule = {
+  /** Traçabilité : identifiant et origine de la règle (prix spécifique produit, règle catalogue). */
+  id?: string;
+  source?: "specific_price" | "catalog_rule";
   /** Cible : produit, ou combinaison précise. */
   variantId?: number | null;
   customerId?: string | null;
@@ -33,7 +36,8 @@ export type SpecificPriceRule = {
   dateFrom?: Date | null;
   dateTo?: Date | null;
   minimumQuantity?: number | null;
-  discountType: "percent" | "amount";
+  /** `fixed_price` : le prix HT devient `discountValue` (jamais plus cher que le prix courant). */
+  discountType: "percent" | "amount" | "fixed_price";
   discountValue: number;
   /** Plus la valeur est haute, plus la règle est prioritaire à cible équivalente. */
   priority?: number;
@@ -67,6 +71,8 @@ export type PriceBreakdown = {
   groupDiscountXof: number;
   specificDiscountXof: number;
   specificRuleApplied: boolean;
+  /** Règle retenue (la plus favorable au client), pour l'affichage et l'audit. */
+  appliedRule: SpecificPriceRule | null;
   floorApplied: boolean;
   ecotaxXof: number;
   totalPriceXof: number;
@@ -106,8 +112,9 @@ function specificityScore(rule: SpecificPriceRule): number {
 }
 
 function applyDiscount(amountXof: number, rule: SpecificPriceRule): number {
-  if (rule.discountType === "percent") return Math.round((amountXof * rule.discountValue) / 100);
-  return Math.min(amountXof, Math.round(rule.discountValue));
+  if (rule.discountType === "percent") return Math.round((amountXof * Math.min(100, Math.max(0, rule.discountValue))) / 100);
+  if (rule.discountType === "fixed_price") return Math.max(0, amountXof - Math.round(rule.discountValue));
+  return Math.min(amountXof, Math.max(0, Math.round(rule.discountValue)));
 }
 
 /**
@@ -121,6 +128,8 @@ export function bestSpecificPrice(priceXof: number, rules: SpecificPriceRule[], 
     // la remise la plus forte gagne. À remise égale, la règle la plus spécifique
     // est retenue (traçabilité et cohérence avec les règles PrestaShop).
     .map((rule) => ({ rule, discountXof: applyDiscount(priceXof, rule), score: specificityScore(rule) }))
+    // Une règle qui n'apporte aucune remise (prix fixe supérieur au prix courant) n'est pas retenue.
+    .filter((entry) => entry.discountXof > 0)
     .sort((a, b) => b.discountXof - a.discountXof || b.score - a.score);
 
   const winner = applicable[0];
@@ -175,6 +184,7 @@ export function computeUnitPrice(context: PriceContext, variantId?: number | nul
     groupDiscountXof,
     specificDiscountXof,
     specificRuleApplied: specific !== null,
+    appliedRule: specific?.rule ?? null,
     floorApplied,
     ecotaxXof,
     totalPriceXof: unitPriceXof * context.quantity,

@@ -1,6 +1,7 @@
-import { and, eq, lt, sql } from "drizzle-orm";
+import { and, eq, lt } from "drizzle-orm";
 import { getDb } from "@/lib/db";
-import { orderEvents, orderItems, orders, payments, products } from "@/lib/db/schema";
+import { orderEvents, orderItems, orders, payments } from "@/lib/db/schema";
+import { releaseOrderStock } from "@/lib/stock-ledger";
 
 export const runtime="nodejs";
 export const dynamic="force-dynamic";
@@ -15,7 +16,7 @@ export async function GET(request:Request){
    if(!cancelled)return false;
    await tx.update(payments).set({status:"cancelled"}).where(and(eq(payments.orderId,row.id),eq(payments.status,"pending")));
    const lines=await tx.select().from(orderItems).where(eq(orderItems.orderId,row.id));
-   for(const line of lines)await tx.update(products).set({quantity:sql`${products.quantity} + ${line.quantity}`,updatedAt:new Date()}).where(eq(products.id,line.productId));
+   await releaseOrderStock(tx,{orderId:row.id,status:"expired",lines:lines.map((line)=>({productId:line.productId,variantId:null,quantity:line.quantity})),note:"Délai de paiement expiré."});
    await tx.insert(orderEvents).values({orderId:row.id,status:"cancelled",note:"Délai de paiement expiré; stock remis en vente."});
    return true;
   });

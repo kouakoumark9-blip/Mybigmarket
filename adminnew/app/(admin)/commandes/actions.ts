@@ -14,19 +14,18 @@ import {
   adminOrderStatusHistory,
   adminOrders,
   adminPayments,
-  adminProducts,
   adminReturnRequestItems,
   adminReturnRequests,
   adminRefunds,
   employeeAuditLogs,
 } from "@/lib/db/schema";
 import { requireEmployee } from "@/lib/permissions";
+import { adjustStock, confirmOrderReservations, consumeOrderReservations, releaseOrderStock } from "@/lib/stock-ledger";
 import {
   canPaySeller,
   canRefund,
   canTransition,
   emailTriggerForTransition,
-  shouldDecrementStock,
   shouldRestoreStock,
   ORDER_STATUS_LABELS,
 } from "@/lib/order-rules";
@@ -125,23 +124,20 @@ export async function changeOrderStatusAction(formData: FormData) {
       employeeId, note: parsed.data.note, createdAt: now,
     });
 
-    // Stock : décrément au paiement, restitution à l'annulation avant expédition.
+    // Stock (grand livre partagé, lib/stock-ledger.ts) :
+    //  - le stock est réservé dès la création de la commande par la boutique : le paiement ne le
+    //    décompte plus une seconde fois (corrige le double décompte de l'ancien code) ;
+    //  - l'expédition sort les unités réservées du stock physique ;
+    //  - une annulation avant expédition libère la réservation.
     const lines = await tx.select({ productId: adminOrderItems.productId, quantity: adminOrderItems.quantity })
       .from(adminOrderItems).where(eq(adminOrderItems.orderId, order.id));
 
-    if (shouldDecrementStock(parsed.data.status)) {
-      for (const line of lines) {
-        await tx.update(adminProducts)
-          .set({ quantity: sql`greatest(0, ${adminProducts.quantity} - ${line.quantity})`, updatedAt: now })
-          .where(eq(adminProducts.id, line.productId));
-      }
+    if (parsed.data.status === "paid_escrow") await confirmOrderReservations(tx, order.id);
+    if (parsed.data.status === "shipped" || parsed.data.status === "delivered") {
+      await consumeOrderReservations(tx, { orderId: order.id, employeeId });
     }
     if (shouldRestoreStock(order.status, parsed.data.status)) {
-      for (const line of lines) {
-        await tx.update(adminProducts)
-          .set({ quantity: sql`${adminProducts.quantity} + ${line.quantity}`, updatedAt: now })
-          .where(eq(adminProducts.id, line.productId));
-      }
+      await releaseOrderStock(tx, { orderId: order.id, employeeId, note: "Commande annulée depuis le back-office.", lines: lines.map((line) => ({ productId: line.productId, variantId: null, quantity: line.quantity })) });
     }
 
     // Escrow : le vendeur devient éligible à la livraison.
@@ -488,10 +484,8 @@ export async function receiveReturnAction(formData: FormData) {
       await tx.update(adminOrderItems)
         .set({ returnedQuantity: sql`${adminOrderItems.returnedQuantity} + ${item.quantity}` })
         .where(eq(adminOrderItems.id, item.orderItemId));
-      if (item.restock) {
-        await tx.update(adminProducts)
-          .set({ quantity: sql`${adminProducts.quantity} + ${item.quantity}`, updatedAt: now })
-          .where(eq(adminProducts.id, orderItem.productId));
+      if (item.restock && item.quantity > 0) {
+        await adjustStock(tx, { productId: orderItem.productId, delta: item.quantity, reason: "return", orderId: request.orderId, employeeId, note: "Retour client remis en stock." });
       }
     }
 

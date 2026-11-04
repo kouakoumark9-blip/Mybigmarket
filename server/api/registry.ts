@@ -13,6 +13,11 @@ import { authRoutes } from "@/server/modules/auth/routes";
 import { teamRoutes } from "@/server/modules/team/routes";
 import { systemRoutes } from "@/server/modules/system/routes";
 import { webhooksModule } from "@/server/modules/webhooks/module";
+import { taxonomyRoutes } from "@/server/modules/catalog/taxonomy/routes";
+import { productRoutes } from "@/server/modules/catalog/products/routes";
+import { pricingRoutes } from "@/server/modules/pricing/routes";
+import { stockRoutes } from "@/server/modules/stock/routes";
+import { storefrontRoutes } from "@/server/modules/storefront/routes";
 
 export const MODULES: ModuleDefinition[] = [webhooksModule];
 registerModules(MODULES);
@@ -27,6 +32,11 @@ export const ALL_ROUTES: AnyRoute[] = [
   ...authRoutes,
   ...teamRoutes,
   ...systemRoutes,
+  ...taxonomyRoutes,
+  ...productRoutes,
+  ...pricingRoutes,
+  ...stockRoutes,
+  ...storefrontRoutes,
   ...MODULES.flatMap((module) => module.routes ?? []),
   openApiRoute,
 ];

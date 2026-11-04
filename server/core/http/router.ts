@@ -36,7 +36,9 @@ export class Router {
         throw new Error(`La route admin ${route.id} doit déclarer une permission.`);
       }
     }
-    this.compiled = routes.map((route) => ({ route, ...compilePath(route.path) }));
+    // Un segment fixe l'emporte sur un paramètre (`/categories/tree` avant `/categories/:id`),
+    // quel que soit l'ordre de déclaration ; à égalité, l'ordre de déclaration est conservé.
+    this.compiled = routes.map((route) => ({ route, ...compilePath(route.path) })).sort((a, b) => a.keys.length - b.keys.length);
   }
 
   match(method: string, path: string): { route: AnyRoute; params: Record<string, string> } | { allowed: string[] } | null {

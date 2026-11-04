@@ -34,7 +34,7 @@ export type DomainEventMap = {
   "product.updated": { productId: string; changedFields: string[] };
   "product.deleted": { productId: string };
   "stock.low": { productId: string; variantId?: number | null; quantity: number; threshold: number };
-  "stock.movement": { productId: string; variantId?: number | null; delta: number; reason: string };
+  "stock.movement": { productId: string; variantId?: number | null; warehouseId?: string; delta: number; reason: string };
   "cart.updated": { cartId: string };
   "customer.created": { customerId: string };
   "order.created": { orderId: string; reference: string; totalXof: number };
