@@ -63,7 +63,7 @@ export default async function StockOperationsPage({ searchParams }: { searchPara
           <div><button className="ui-button ui-button-primary">Enregistrer le comptage</button></div>
         </form>
       </Card>
-      <Card id="import" className="scroll-mt-20 p-5">
+      <Card id="import" className="min-w-0 scroll-mt-20 p-5">
         <h2 className="mb-1 font-bold text-slate-950">Import CSV</h2>
         <p className="mb-4 text-xs text-slate-500">Simulation exacte d’abord ; à l’application, la moindre ligne en erreur annule tout l’import.</p>
         <ImportForm/>

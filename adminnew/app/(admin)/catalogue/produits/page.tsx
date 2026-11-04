@@ -73,7 +73,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
       <div className="flex items-center gap-2">
         <span className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700">{Number(totalResult[0]?.value || 0)} résultat(s)</span>
         <Link href="/catalogue/corbeille" className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-600 hover:bg-slate-50"><Trash2 size={14}/>Corbeille ({trashCount})</Link>
-        <Link href="/catalogue/produits/nouveau" className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-slate-950 px-3 text-xs font-semibold text-white hover:bg-slate-800">Nouveau produit</Link>
+        <Link href="/catalogue/produits/nouveau" className="ui-button ui-button-primary">Nouveau produit</Link>
       </div>
     </div>
 

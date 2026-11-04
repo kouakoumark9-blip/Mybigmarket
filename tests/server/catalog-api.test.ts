@@ -366,6 +366,8 @@ describe("stocks", () => {
 
     const alerts = await call("GET", "/admin/stock/alerts");
     expect(alerts.json.data.products.map((entry: { productId: string }) => entry.productId)).toContain(productId);
+    // Une déclinaison jamais approvisionnée séparément n'est pas signalée : le stock est suivi au niveau du produit.
+    expect(alerts.json.data.variants.some((entry: { productId: string }) => entry.productId === productId)).toBe(false);
     const low = await call("GET", "/admin/stock?lowStock=true&limit=50");
     expect(low.json.data.some((entry: { productId: string; lowStock: boolean }) => entry.productId === productId && entry.lowStock)).toBe(true);
     const events = await db.execute(sql`select count(*)::int as n from domain_events where name = 'stock.low' and aggregate_id = ${productId}`);
@@ -413,6 +415,18 @@ describe("stocks", () => {
     const applied = await call("POST", "/admin/stock/import", { csv: "sku,quantite\nCAD50,5\n", mode: "add", dryRun: false });
     expect(applied.json.data.summary).toMatchObject({ ok: 1, errors: 0 });
     expect((await call("GET", `/admin/products/${productId}/stock`)).json.data.available).toBe(13);
+  });
+
+  it("alerte par déclinaison seulement quand le stock est suivi par déclinaison", async () => {
+    const group = await call("POST", "/admin/attribute-groups", { code: "anse", name: "Anse", values: [{ code: "courte", name: "Courte" }, { code: "longue", name: "Longue" }] });
+    await call("POST", `/admin/products/${productId}/combinations/generate`, { attributeValueIds: group.json.data.values.map((value: { id: string }) => value.id) });
+    const before = await call("GET", "/admin/stock/alerts");
+    expect(before.json.data.variants.some((entry: { productId: string }) => entry.productId === productId)).toBe(false);
+    const variantId = (await call("GET", `/admin/products/${productId}/combinations`)).json.data[0].id;
+    await call("POST", "/admin/stock/adjustments", { productId, variantId, delta: 2, reason: "purchase" });
+    const after = await call("GET", "/admin/stock/alerts");
+    expect(after.json.data.variants.filter((entry: { productId: string }) => entry.productId === productId).map((entry: { variantId: number; available: number }) => [entry.variantId === variantId, entry.available]).sort()).toEqual([[false, 0], [true, 2]]);
+    expect(after.json.data.products.some((entry: { productId: string }) => entry.productId === productId)).toBe(false);
   });
 
   it("suggère un réapprovisionnement regroupé par fournisseur", async () => {

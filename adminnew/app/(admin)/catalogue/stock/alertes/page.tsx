@@ -43,7 +43,7 @@ export default async function StockAlertsPage({ searchParams }: { searchParams: 
     </Card>
     <Card>
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-4 py-3"><span className="font-bold text-slate-950">Réapprovisionnement suggéré</span>
-        <span className="flex gap-1.5 text-xs">{[7, 30, 60, 90].map((value) => <Link key={value} href={`?days=${value}`} className={`rounded-full border px-2.5 py-1 font-semibold ${value === days ? "border-slate-950 bg-slate-950 text-white" : "border-slate-200 text-slate-600"}`}>{value} jours</Link>)}</span></div>
+        <span className="flex gap-1.5 text-xs">{[7, 30, 60, 90].map((value) => <Link key={value} href={`?days=${value}`} className={`rounded-full border px-2.5 py-1 font-semibold ${value === days ? "border-slate-950 bg-slate-950 !text-white" : "border-slate-200 text-slate-600"}`}>{value} jours</Link>)}</span></div>
       {replenishment.suppliers.length ? replenishment.suppliers.map((supplier) => <div key={supplier.supplierId ?? "none"} className="border-b border-slate-100 last:border-0">
         <div className="flex items-center justify-between bg-slate-50 px-4 py-2 text-sm"><strong>{supplier.supplierName ?? "Sans fournisseur par défaut"}</strong><span className="text-xs text-slate-600">Coût estimé : {formatXof(supplier.estimatedCostXof)}</span></div>
         <div className="admin-table-wrap"><table className="admin-table min-w-[820px]"><thead><tr><th>Produit</th><th>Disponible</th><th>Ventes ({replenishment.periodDays} j)</th><th>Délai</th><th>Stock cible</th><th>À commander</th></tr></thead><tbody>{supplier.lines.map((line) => <tr key={line.productId}>

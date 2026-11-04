@@ -215,14 +215,40 @@ Toutes les routes ci-dessous sont sous `/api/v1/shop`.
 
 | Fichier | Couverture |
 |---|---|
-| `tests/server/catalog-api.test.ts` | 28 tests d'intégration (PGlite) à travers le pipeline HTTP : taxonomie, produits, déclinaisons, packs, prix, bons, stocks, CSV, boutique, OpenAPI |
+| `tests/server/catalog-api.test.ts` | 29 tests d'intégration (PGlite) à travers le pipeline HTTP : taxonomie, produits, déclinaisons, packs, prix, bons, stocks, CSV, boutique, OpenAPI |
 | `tests/stock-ledger.test.ts` | 7 tests du grand livre sur PostgreSQL réel, dont le mode historique avant migration |
 | `tests/vouchers.test.ts` | 6 tests des règles de bons |
 | `tests/pricing.test.ts` | Prix fixe spécifique ajouté (22 tests au total) |
 | `tests/migrations-apply.test.ts` | Reprise du stock par `0015` sans modifier les compteurs |
 | `tests/stock-ledger-sync.test.ts` | La copie du back-office reste identique |
 
-## 7. Ce qui reste pour les étapes suivantes
+## 7. Écrans du back-office
+
+Ces écrans passent par l'API v1. Les règles métier ne sont donc écrites qu'une fois : prix, stock, permissions et audit.
+
+**Fonctionnement.** Pour l'employé connecté, le back-office signe un jeton d'accès de 2 minutes avec le secret partagé `ADMIN_API_JWT_SECRET`. À chaque appel, l'API revérifie le compte, le mot de passe et les permissions.
+
+| Écran | Contenu |
+|---|---|
+| Catalogue › Produits › Nouveau produit | Création (vendeur, catégorie, marque, type, prix HT, prix d'achat, taxe, stock initial) |
+| Catalogue › Produits › fiche | Informations, prix (aperçu du prix client TTC, prix barré, marge), prix spécifiques, paliers, images, déclinaisons, stock par entrepôt, SEO et redirection ; mise en ligne, duplication, corbeille |
+| Catalogue › Attributs, Caractéristiques | Groupes, valeurs, couleurs |
+| Catalogue › Opérations de stock | Réception fournisseur, transfert, inventaire, import CSV (simulation et rapport), export CSV |
+| Catalogue › Mouvements de stock, Alertes et réappro, Entrepôts | Journal filtrable, ruptures et commandes suggérées, entrepôts de transit |
+| Boutique › Bons de réduction, Règles de prix | Création, activation, suppression |
+
+**Configuration Vercel du projet `mybigmarket-adminnew`.**
+
+| Variable | Valeur |
+|---|---|
+| `ADMIN_API_JWT_SECRET` | La **même** valeur que sur le projet `mybigmarket` |
+| `ADMIN_API_BASE_URL` | Facultatif ; par défaut `https://mybigmarket.vercel.app` |
+
+Sans cette configuration, chaque écran explique ce qui manque au lieu d'échouer.
+
+**Vérification.** Le parcours complet a été vérifié de bout en bout sur PostgreSQL 16, avec les deux applications démarrées et reliées par l'API : `migrate-all.sql` appliqué deux fois, puis chaque écran utilisé par un employé connecté.
+
+## 8. Ce qui reste pour les étapes suivantes
 
 - **Étape 4.** Brancher le panier et le tunnel sur le calcul de prix unique (prix spécifiques, bons, taxes), réserver par déclinaison, décompter les composants d'un pack et enregistrer l'utilisation des bons à la commande.
 - **Étape 6.** Recherche plein texte tolérante aux accents (`tsvector`, `unaccent`) et facettes.
