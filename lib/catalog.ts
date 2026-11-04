@@ -66,7 +66,12 @@ export async function countCatalogProductsForSeller(sellerSlug:string):Promise<n
 export async function getCatalogProducts(options:{featured?:boolean;forceDemo?:boolean}={}) : Promise<DemoProduct[]> {
   if (options.forceDemo || !process.env.DATABASE_URL) return demoCatalog(options);
   try {
-    return await queryCatalog(options);
+    const rows = await queryCatalog(options);
+    if (rows.length) return rows;
+    // Base joignable mais aucun produit publié (boutique pas encore alimentée) : la vitrine
+    // garde le catalogue de démonstration, cohérent avec l'accueil, au lieu de pages vides
+    // et de fiches introuvables. Il disparaît dès qu'un produit réel est publié.
+    return demoCatalog(options);
   } catch (error) {
     console.error("[catalog] Base injoignable, repli sur le catalogue de démonstration :", error instanceof Error ? error.message : error);
     return demoCatalog(options);
@@ -106,7 +111,9 @@ export async function getCatalogProduct(slug:string):Promise<DemoProduct|undefin
 export async function getStoreSellers():Promise<StoreSeller[]>{
   if(!process.env.DATABASE_URL)return demoSellers;
   try{
-    return await queryStoreSellers();
+    const rows=await queryStoreSellers();
+    // Aucun vendeur validé et actif en base : même règle que le catalogue.
+    return rows.length?rows:demoSellers;
   }catch(error){
     console.error("[catalog] Base injoignable, repli sur les vendeurs de démonstration :", error instanceof Error ? error.message : error);
     return demoSellers;

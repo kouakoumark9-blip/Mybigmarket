@@ -34,7 +34,7 @@ describe("accueil résilient aux pannes de base", () => {
 
   it("quand la base est configurée, la lecture en base reste le chemin normal", () => {
     expect(catalog).toMatch(
-      /if \(options\.forceDemo \|\| !process\.env\.DATABASE_URL\) return demoCatalog\(options\);\s*\n\s*try \{\s*\n\s*return await queryCatalog\(options\);/,
+      /if \(options\.forceDemo \|\| !process\.env\.DATABASE_URL\) return demoCatalog\(options\);\s*\n\s*try \{\s*\n\s*const rows = await queryCatalog\(options\);\s*\n\s*if \(rows\.length\) return rows;/,
     );
   });
 });
