@@ -1,10 +1,11 @@
--- Mybigmarket — application de toutes les migrations (14 fichiers)
+-- Mybigmarket — application de toutes les migrations (15 fichiers)
 -- Régénérer avec : npm run db:sql:all
 -- Appliquer avec : psql "$DATABASE_URL" -f migrate-all.sql
 --
 -- Idempotent : une migration déjà appliquée est ignorée, via la même table de
--- suivi que drizzle-kit (drizzle.__drizzle_migrations). Ne jamais modifier une
--- migration déjà passée : créer une nouvelle migration.
+-- suivi que drizzle-kit (drizzle.__drizzle_migrations), qu'elle ait été passée
+-- par ce fichier ou par `npm run db:migrate`. Ne jamais modifier une migration
+-- déjà passée : créer une nouvelle migration.
 
 CREATE SCHEMA IF NOT EXISTS drizzle;
 CREATE TABLE IF NOT EXISTS drizzle.__drizzle_migrations (
@@ -17,7 +18,7 @@ CREATE TABLE IF NOT EXISTS drizzle.__drizzle_migrations (
 -- ============ 0000_careful_cassandra_nova.sql ============
 DO $migration$
 BEGIN
-  IF NOT EXISTS (SELECT 1 FROM drizzle.__drizzle_migrations WHERE hash = '0000_careful_cassandra_nova.sql:plain:60b5ca4178') THEN
+  IF NOT EXISTS (SELECT 1 FROM drizzle.__drizzle_migrations WHERE hash IN ('0000_careful_cassandra_nova.sql:plain:60b5ca4178', '0e0f8be2cce87aaa25f27ab83f34c5d504cd47eb64ecbbe6097afa4bcd8cf362')) THEN
     EXECUTE $sql$
 CREATE TYPE "public"."dispute_status" AS ENUM('open', 'investigating', 'resolved_buyer', 'resolved_seller', 'closed');
 CREATE TYPE "public"."escrow_status" AS ENUM('blocked', 'eligible', 'release_pending', 'released', 'refund_pending', 'refunded', 'cancelled');
@@ -283,7 +284,7 @@ $migration$;
 -- ============ 0001_giant_rattler.sql ============
 DO $migration$
 BEGIN
-  IF NOT EXISTS (SELECT 1 FROM drizzle.__drizzle_migrations WHERE hash = '0001_giant_rattler.sql:plain:edbeaa20ce') THEN
+  IF NOT EXISTS (SELECT 1 FROM drizzle.__drizzle_migrations WHERE hash IN ('0001_giant_rattler.sql:plain:edbeaa20ce', '73e2eeb63b4dd93e8efa271e4997a5609ba4b38970b1b531abae6592807d1d67')) THEN
     EXECUTE $sql$
 CREATE TABLE "platform_settings" (
 	"id" serial PRIMARY KEY NOT NULL,
@@ -306,7 +307,7 @@ $migration$;
 -- ============ 0002_daffy_blindfold.sql ============
 DO $migration$
 BEGIN
-  IF NOT EXISTS (SELECT 1 FROM drizzle.__drizzle_migrations WHERE hash = '0002_daffy_blindfold.sql:plain:7f5ea457ba') THEN
+  IF NOT EXISTS (SELECT 1 FROM drizzle.__drizzle_migrations WHERE hash IN ('0002_daffy_blindfold.sql:plain:7f5ea457ba', 'aeffc8ca6feadc8e735c6e34bed7fcb0d81cb7749cf81ffbfc5458c7aa24072e')) THEN
     EXECUTE $sql$
 CREATE TABLE "conversations" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
@@ -345,7 +346,7 @@ $migration$;
 -- ============ 0003_overrated_speedball.sql ============
 DO $migration$
 BEGIN
-  IF NOT EXISTS (SELECT 1 FROM drizzle.__drizzle_migrations WHERE hash = '0003_overrated_speedball.sql:plain:d16529de4d') THEN
+  IF NOT EXISTS (SELECT 1 FROM drizzle.__drizzle_migrations WHERE hash IN ('0003_overrated_speedball.sql:plain:d16529de4d', '242cb6a8d4a1e7dc18fa53292b90f8b5557b4c78fefe5d836f982d5eaba0b29d')) THEN
     EXECUTE $sql$
 CREATE TYPE "public"."quote_request_kind" AS ENUM('product', 'sourcing');
 CREATE TYPE "public"."quote_request_status" AS ENUM('new', 'in_review', 'quoted', 'closed');
@@ -383,7 +384,7 @@ $migration$;
 -- ============ 0004_last_nighthawk.sql ============
 DO $migration$
 BEGIN
-  IF NOT EXISTS (SELECT 1 FROM drizzle.__drizzle_migrations WHERE hash = '0004_last_nighthawk.sql:plain:9b067e8bdf') THEN
+  IF NOT EXISTS (SELECT 1 FROM drizzle.__drizzle_migrations WHERE hash IN ('0004_last_nighthawk.sql:plain:9b067e8bdf', 'dcd1bef938a48d4f76010ae3d9fd666aec38ac97df7be77f988c9b165e885afd')) THEN
     EXECUTE $sql$
 CREATE TABLE "seller_storefronts" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
@@ -412,7 +413,7 @@ $migration$;
 -- ============ 0005_damp_silver_samurai.sql ============
 DO $migration$
 BEGIN
-  IF NOT EXISTS (SELECT 1 FROM drizzle.__drizzle_migrations WHERE hash = '0005_damp_silver_samurai.sql:plain:c38b808401') THEN
+  IF NOT EXISTS (SELECT 1 FROM drizzle.__drizzle_migrations WHERE hash IN ('0005_damp_silver_samurai.sql:plain:c38b808401', '5e3f03f8f46bb9ade84aa8917a34a2658adba08316fd2833fb806fc911a5cc98')) THEN
     EXECUTE $sql$
 CREATE TYPE "public"."conversation_kind" AS ENUM('supplier', 'support', 'dispute');
 CREATE TYPE "public"."employee_status" AS ENUM('active', 'invited', 'disabled', 'locked');
@@ -430,7 +431,7 @@ $migration$;
 
 DO $migration$
 BEGIN
-  IF NOT EXISTS (SELECT 1 FROM drizzle.__drizzle_migrations WHERE hash = '0005_damp_silver_samurai.sql:alter-type-add-value:b5e9182219') THEN
+  IF NOT EXISTS (SELECT 1 FROM drizzle.__drizzle_migrations WHERE hash IN ('0005_damp_silver_samurai.sql:alter-type-add-value:b5e9182219', '5e3f03f8f46bb9ade84aa8917a34a2658adba08316fd2833fb806fc911a5cc98')) THEN
     -- ALTER TYPE … ADD VALUE : commande utilitaire, via EXECUTE et seule
     -- dans sa transaction (contrainte PostgreSQL).
     EXECUTE $sql$
@@ -445,7 +446,7 @@ $migration$;
 
 DO $migration$
 BEGIN
-  IF NOT EXISTS (SELECT 1 FROM drizzle.__drizzle_migrations WHERE hash = '0005_damp_silver_samurai.sql:plain:3c737e2f52') THEN
+  IF NOT EXISTS (SELECT 1 FROM drizzle.__drizzle_migrations WHERE hash IN ('0005_damp_silver_samurai.sql:plain:3c737e2f52', '5e3f03f8f46bb9ade84aa8917a34a2658adba08316fd2833fb806fc911a5cc98')) THEN
     EXECUTE $sql$
 CREATE TABLE "activity_logs" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
@@ -1084,7 +1085,7 @@ $migration$;
 -- ============ 0006_gorgeous_namora.sql ============
 DO $migration$
 BEGIN
-  IF NOT EXISTS (SELECT 1 FROM drizzle.__drizzle_migrations WHERE hash = '0006_gorgeous_namora.sql:plain:d81a1a83eb') THEN
+  IF NOT EXISTS (SELECT 1 FROM drizzle.__drizzle_migrations WHERE hash IN ('0006_gorgeous_namora.sql:plain:d81a1a83eb', '86348833ea062d52f0432e6212dd82c37a2bc6819c5b3e17ed5cef2a62f60a9f')) THEN
     EXECUTE $sql$
 CREATE TABLE "employee_security_events" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
@@ -1107,7 +1108,7 @@ $migration$;
 -- ============ 0007_sticky_gamora.sql ============
 DO $migration$
 BEGIN
-  IF NOT EXISTS (SELECT 1 FROM drizzle.__drizzle_migrations WHERE hash = '0007_sticky_gamora.sql:plain:2d61dd9837') THEN
+  IF NOT EXISTS (SELECT 1 FROM drizzle.__drizzle_migrations WHERE hash IN ('0007_sticky_gamora.sql:plain:2d61dd9837', '74b380043fb42a6803f6a18d74aefdbb673e6a9c8fc6e0b4db0e897a44832016')) THEN
     EXECUTE $sql$
 CREATE TABLE "employee_audit_logs" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
@@ -1134,7 +1135,7 @@ $migration$;
 -- ============ 0008_brief_johnny_blaze.sql ============
 DO $migration$
 BEGIN
-  IF NOT EXISTS (SELECT 1 FROM drizzle.__drizzle_migrations WHERE hash = '0008_brief_johnny_blaze.sql:plain:e538e1748b') THEN
+  IF NOT EXISTS (SELECT 1 FROM drizzle.__drizzle_migrations WHERE hash IN ('0008_brief_johnny_blaze.sql:plain:e538e1748b', '7c4222fe4da9dad23c7b99643897db6611a15d757f9c1a7b11467b79cf53e32e')) THEN
     EXECUTE $sql$
 CREATE TYPE "public"."attribute_display_type" AS ENUM('color', 'texture', 'select', 'radio');
 CREATE TYPE "public"."module_hook_status" AS ENUM('idle', 'ok', 'error');
@@ -1327,7 +1328,7 @@ $migration$;
 -- ============ 0009_exotic_runaways.sql ============
 DO $migration$
 BEGIN
-  IF NOT EXISTS (SELECT 1 FROM drizzle.__drizzle_migrations WHERE hash = '0009_exotic_runaways.sql:plain:57b49779aa') THEN
+  IF NOT EXISTS (SELECT 1 FROM drizzle.__drizzle_migrations WHERE hash IN ('0009_exotic_runaways.sql:plain:57b49779aa', 'a320f61db3cc404a00f139b2a08be72fdc1a0bf64e4d82574f8b4535df267d4c')) THEN
     EXECUTE $sql$
 CREATE TYPE "public"."address_format_hint" AS ENUM('standard', 'postal_then_city', 'city_then_postal', 'no_postal');
 CREATE TYPE "public"."email_queue_status" AS ENUM('pending', 'sending', 'sent', 'failed');
@@ -1467,7 +1468,7 @@ $migration$;
 -- ============ 0010_clear_madame_hydra.sql ============
 DO $migration$
 BEGIN
-  IF NOT EXISTS (SELECT 1 FROM drizzle.__drizzle_migrations WHERE hash = '0010_clear_madame_hydra.sql:plain:377f45d2c3') THEN
+  IF NOT EXISTS (SELECT 1 FROM drizzle.__drizzle_migrations WHERE hash IN ('0010_clear_madame_hydra.sql:plain:377f45d2c3', '612bb4b9babe3fb7b1b9a7010a9964cc52a5fc71734a35705d14790ef5e68121')) THEN
     EXECUTE $sql$
 CREATE TYPE "public"."customization_type" AS ENUM('text', 'file');
 CREATE TYPE "public"."out_of_stock_behavior" AS ENUM('refuse', 'backorder', 'use_default');
@@ -1601,7 +1602,7 @@ $migration$;
 -- ============ 0011_little_warstar.sql ============
 DO $migration$
 BEGIN
-  IF NOT EXISTS (SELECT 1 FROM drizzle.__drizzle_migrations WHERE hash = '0011_little_warstar.sql:plain:ed1d4d9660') THEN
+  IF NOT EXISTS (SELECT 1 FROM drizzle.__drizzle_migrations WHERE hash IN ('0011_little_warstar.sql:plain:ed1d4d9660', 'ce7bfab5cd6b97f459f6b25bd34b619c4fbfd3bb3f1e79df62ab2344a9a51eff')) THEN
     EXECUTE $sql$
 CREATE TYPE "public"."billable_basis" AS ENUM('weight', 'volume', 'both');
 CREATE TYPE "public"."transit_unit" AS ENUM('days', 'weeks');
@@ -1669,7 +1670,7 @@ $migration$;
 -- ============ 0012_new_fantastic_four.sql ============
 DO $migration$
 BEGIN
-  IF NOT EXISTS (SELECT 1 FROM drizzle.__drizzle_migrations WHERE hash = '0012_new_fantastic_four.sql:plain:b447f1e929') THEN
+  IF NOT EXISTS (SELECT 1 FROM drizzle.__drizzle_migrations WHERE hash IN ('0012_new_fantastic_four.sql:plain:b447f1e929', '1600e32ff1d91704329c6931a54c74cf5fb23207f5152802d4df347d7ff80f0c')) THEN
     EXECUTE $sql$
 CREATE TABLE "customer_consents" (
 	"id" serial PRIMARY KEY NOT NULL,
@@ -1741,7 +1742,7 @@ $migration$;
 -- ============ 0013_bitter_namora.sql ============
 DO $migration$
 BEGIN
-  IF NOT EXISTS (SELECT 1 FROM drizzle.__drizzle_migrations WHERE hash = '0013_bitter_namora.sql:plain:d62ec6dbd0') THEN
+  IF NOT EXISTS (SELECT 1 FROM drizzle.__drizzle_migrations WHERE hash IN ('0013_bitter_namora.sql:plain:d62ec6dbd0', '8e3df5a091c0691cdc3d07c3092b9cba008bc13f41fa3154d9de18d8b423d468')) THEN
     EXECUTE $sql$
 CREATE TYPE "public"."refund_status" AS ENUM('pending', 'processing', 'succeeded', 'failed', 'cancelled');
 CREATE TYPE "public"."return_reason" AS ENUM('damaged', 'wrong_item', 'not_as_described', 'late_delivery', 'changed_mind', 'other');
@@ -1860,6 +1861,100 @@ CREATE INDEX "orders_created_status_idx" ON "orders" USING btree ("created_at","
 $sql$;
     INSERT INTO drizzle.__drizzle_migrations (hash, created_at)
       VALUES ('0013_bitter_namora.sql:plain:d62ec6dbd0', (EXTRACT(EPOCH FROM now()) * 1000)::bigint);
+  END IF;
+END
+$migration$;
+
+
+-- ============ 0014_backend_foundations.sql ============
+DO $migration$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM drizzle.__drizzle_migrations WHERE hash IN ('0014_backend_foundations.sql:plain:2bcd980bd9', 'a1f16298cb12c677bc13b9b713391f940abea99eb300c6fde3840735585a4acb')) THEN
+    EXECUTE $sql$
+CREATE TYPE "public"."domain_event_status" AS ENUM('pending', 'dispatched', 'failed');
+CREATE TABLE "domain_events" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"shop_id" uuid,
+	"name" varchar(80) NOT NULL,
+	"aggregate_type" varchar(60),
+	"aggregate_id" varchar(100),
+	"payload" jsonb DEFAULT '{}'::jsonb NOT NULL,
+	"status" "domain_event_status" DEFAULT 'pending' NOT NULL,
+	"attempts" integer DEFAULT 0 NOT NULL,
+	"last_error" text,
+	"occurred_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"available_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"dispatched_at" timestamp with time zone
+);
+CREATE TABLE "idempotency_keys" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"scope" varchar(120) NOT NULL,
+	"key" varchar(128) NOT NULL,
+	"request_hash" varchar(64) NOT NULL,
+	"status" varchar(16) DEFAULT 'processing' NOT NULL,
+	"response_status" integer,
+	"response_body" jsonb,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"expires_at" timestamp with time zone NOT NULL
+);
+CREATE TABLE "rate_limit_buckets" (
+	"key" varchar(200) PRIMARY KEY NOT NULL,
+	"window_start" timestamp with time zone NOT NULL,
+	"count" integer DEFAULT 0 NOT NULL,
+	"expires_at" timestamp with time zone NOT NULL
+);
+CREATE TABLE "shops" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"code" varchar(60) NOT NULL,
+	"name" varchar(160) NOT NULL,
+	"domain" varchar(190),
+	"is_default" boolean DEFAULT false NOT NULL,
+	"is_active" boolean DEFAULT true NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"deleted_at" timestamp with time zone
+);
+INSERT INTO "shops" ("id", "code", "name", "is_default", "is_active") VALUES ('00000000-0000-4000-8000-000000000001', 'default', 'mybigmarket', true, true) ON CONFLICT DO NOTHING;
+ALTER TABLE "api_keys" ADD COLUMN "scopes" jsonb DEFAULT '[]'::jsonb NOT NULL;
+ALTER TABLE "api_keys" ADD COLUMN "expires_at" timestamp with time zone;
+ALTER TABLE "api_keys" ADD COLUMN "revoked_at" timestamp with time zone;
+ALTER TABLE "api_keys" ADD COLUMN "shop_id" uuid;
+ALTER TABLE "employee_audit_logs" ADD COLUMN "actor_type" varchar(20) DEFAULT 'employee' NOT NULL;
+ALTER TABLE "employee_audit_logs" ADD COLUMN "api_key_id" uuid;
+ALTER TABLE "employee_audit_logs" ADD COLUMN "shop_id" uuid;
+ALTER TABLE "employee_audit_logs" ADD COLUMN "before_state" jsonb;
+ALTER TABLE "employee_audit_logs" ADD COLUMN "after_state" jsonb;
+ALTER TABLE "employee_audit_logs" ADD COLUMN "changed_fields" jsonb;
+ALTER TABLE "employee_audit_logs" ADD COLUMN "request_id" varchar(64);
+ALTER TABLE "employee_sessions" ADD COLUMN "family_id" uuid;
+ALTER TABLE "employee_sessions" ADD COLUMN "replaced_by_session_id" uuid;
+ALTER TABLE "employee_sessions" ADD COLUMN "revoked_reason" varchar(40);
+ALTER TABLE "employees" ADD COLUMN "deleted_at" timestamp with time zone;
+ALTER TABLE "settings" ADD COLUMN "shop_id" uuid DEFAULT '00000000-0000-4000-8000-000000000001'::uuid NOT NULL;
+ALTER TABLE "domain_events" ADD CONSTRAINT "domain_events_shop_id_shops_id_fk" FOREIGN KEY ("shop_id") REFERENCES "public"."shops"("id") ON DELETE set null ON UPDATE no action;
+CREATE INDEX "domain_events_queue_idx" ON "domain_events" USING btree ("status","available_at");
+CREATE INDEX "domain_events_name_time_idx" ON "domain_events" USING btree ("name","occurred_at");
+CREATE INDEX "domain_events_aggregate_idx" ON "domain_events" USING btree ("aggregate_type","aggregate_id");
+CREATE UNIQUE INDEX "idempotency_keys_scope_key_unique" ON "idempotency_keys" USING btree ("scope","key");
+CREATE INDEX "idempotency_keys_expires_idx" ON "idempotency_keys" USING btree ("expires_at");
+CREATE INDEX "rate_limit_buckets_expires_idx" ON "rate_limit_buckets" USING btree ("expires_at");
+CREATE UNIQUE INDEX "shops_code_unique" ON "shops" USING btree ("code");
+CREATE UNIQUE INDEX "shops_domain_unique" ON "shops" USING btree ("domain");
+CREATE INDEX "shops_active_idx" ON "shops" USING btree ("is_active");
+ALTER TABLE "api_keys" ADD CONSTRAINT "api_keys_shop_id_shops_id_fk" FOREIGN KEY ("shop_id") REFERENCES "public"."shops"("id") ON DELETE cascade ON UPDATE no action;
+ALTER TABLE "employee_audit_logs" ADD CONSTRAINT "employee_audit_logs_api_key_id_api_keys_id_fk" FOREIGN KEY ("api_key_id") REFERENCES "public"."api_keys"("id") ON DELETE set null ON UPDATE no action;
+ALTER TABLE "employee_audit_logs" ADD CONSTRAINT "employee_audit_logs_shop_id_shops_id_fk" FOREIGN KEY ("shop_id") REFERENCES "public"."shops"("id") ON DELETE set null ON UPDATE no action;
+ALTER TABLE "settings" ADD CONSTRAINT "settings_shop_id_shops_id_fk" FOREIGN KEY ("shop_id") REFERENCES "public"."shops"("id") ON DELETE cascade ON UPDATE no action;
+CREATE INDEX "employee_audit_action_time_idx" ON "employee_audit_logs" USING btree ("action","created_at");
+CREATE INDEX "employee_audit_time_idx" ON "employee_audit_logs" USING btree ("created_at");
+CREATE INDEX "employee_sessions_family_idx" ON "employee_sessions" USING btree ("family_id");
+CREATE INDEX "employees_deleted_idx" ON "employees" USING btree ("deleted_at");
+CREATE UNIQUE INDEX "settings_shop_key_unique" ON "settings" USING btree ("shop_id","key");
+DROP INDEX "settings_key_unique";
+UPDATE "employee_sessions" SET "family_id" = "id" WHERE "family_id" IS NULL;
+$sql$;
+    INSERT INTO drizzle.__drizzle_migrations (hash, created_at)
+      VALUES ('0014_backend_foundations.sql:plain:2bcd980bd9', (EXTRACT(EPOCH FROM now()) * 1000)::bigint);
   END IF;
 END
 $migration$;

@@ -1,6 +1,6 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
-import bcrypt from "bcryptjs";
+import { hashPassword, needsRehash, verifyPassword } from "@/lib/password";
 import { and, count, eq, gte } from "drizzle-orm";
 import { z } from "zod";
 import { authConfig } from "./auth.config";
@@ -59,8 +59,9 @@ async function authorize(credentials: Partial<Record<string, unknown>>, request:
   }
 
   const [employee] = await db.select().from(employees).where(eq(employees.email, email)).limit(1);
-  const hash = employee?.passwordHash || await (dummyPasswordHash ||= bcrypt.hash("invalid-login-timing-pad", 12));
-  const passwordMatches = await bcrypt.compare(parsed.data.password, hash);
+  const hash = employee?.passwordHash || await (dummyPasswordHash ||= hashPassword("invalid-login-timing-pad"));
+  // argon2id, ou ancien hash bcrypt (migré ci-dessous après une connexion réussie).
+  const passwordMatches = await verifyPassword(parsed.data.password, hash);
   const now = new Date();
   const status = employee ? effectiveEmployeeStatus(employee.status, employee.lockedUntil, now) : "disabled";
   if (!employee || status !== "active" || !passwordMatches) {
@@ -99,7 +100,8 @@ async function authorize(credentials: Partial<Record<string, unknown>>, request:
     .from(rolePermissions)
     .innerJoin(permissions, eq(rolePermissions.permissionId, permissions.id))
     .where(eq(rolePermissions.roleId, employee.roleId));
-  await db.update(employees).set({ failedLoginCount: 0, lockedUntil: null, lastLoginAt: now, lastActivityAt: now }).where(eq(employees.id, employee.id));
+  const rehash = needsRehash(employee.passwordHash) ? await hashPassword(parsed.data.password) : null;
+  await db.update(employees).set({ failedLoginCount: 0, lockedUntil: null, lastLoginAt: now, lastActivityAt: now, ...(rehash ? { passwordHash: rehash } : {}) }).where(eq(employees.id, employee.id));
   await db.insert(employeeLoginEvents).values({ emailAttempted: email, employeeId: employee.id, succeeded: true, ipAddress: ip, userAgent: userAgent?.slice(0, 500) || null });
 
   return {

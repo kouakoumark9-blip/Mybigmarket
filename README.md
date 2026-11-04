@@ -18,6 +18,10 @@
 
 Toutes les couleurs sont regroupées dans `app/theme.css` (orange `#ff8000` et noir). `globals.css` et les composants n'utilisent que des variables `var(--color-*)` ou les utilitaires Tailwind correspondants (`bg-primary`, `text-text-muted`, `border-border`…). Pour ajuster une couleur, il suffit de la modifier dans `theme.css`.
 
+## Backend et API REST v1
+
+Le backend est organisé par domaine dans `server/` (route → service → repository) et exposé sous `/api/v1` : `/api/v1/admin` pour le back-office (jetons employé ou clés d'API, permissions par rôle) et `/api/v1/shop` pour la boutique. La spécification OpenAPI est servie sur `/api/v1/openapi.json`. Documentation : `docs/backend/01-audit-et-plan.md` (audit et plan) et `docs/backend/02-fondations.md` (fondations, mise à jour de la base de production, variables d'environnement).
+
 ## Pages et fonctionnalités
 
 - `/` : accueil de découverte inspiré des marketplaces B2B, catégories et deux parcours : précommande groupée et achat en gros
