@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { asc, count, desc, lte } from "drizzle-orm";
 import { Boxes, PackageCheck, TriangleAlert } from "lucide-react";
 import { Card } from "@/components/ui/card";
@@ -24,7 +25,7 @@ export default async function StockPage({ searchParams }: { searchParams: Promis
 
   return <>
     <div className="admin-breadcrumb"><span>Catalogue</span><span>/</span><strong>Stock</strong></div>
-    <div className="admin-page-title-row"><div><h1 className="admin-page-title">Stock</h1><p className="admin-page-subtitle">Suivi des quantités et ajustements manuels avec motif journalisé.</p></div></div>
+    <div className="admin-page-title-row"><div><h1 className="admin-page-title">Stock</h1><p className="admin-page-subtitle">Suivi des quantités et ajustements manuels avec motif journalisé (entrepôt par défaut).</p></div><div className="flex flex-wrap gap-2"><Link href="/catalogue/stock/operations" className="ui-button ui-button-outline">Opérations</Link><Link href="/catalogue/stock/mouvements" className="ui-button ui-button-outline">Mouvements</Link><Link href="/catalogue/stock/alertes" className="ui-button ui-button-outline">Alertes</Link><Link href="/catalogue/entrepots" className="ui-button ui-button-outline">Entrepôts</Link></div></div>
     {notice && <p className={`mb-4 rounded-lg border px-4 py-3 text-sm font-medium ${params.notice === "updated" ? "border-emerald-200 bg-emerald-50 text-emerald-800" : "border-amber-200 bg-amber-50 text-amber-900"}`} role="status">{notice}</p>}
     <div className="mb-5 grid gap-4 sm:grid-cols-2"><Card className="flex items-center gap-3 p-4"><div className="rounded-lg bg-slate-100 p-2.5 text-slate-700"><PackageCheck size={19}/></div><div><div className="text-xs font-semibold text-slate-500">Produits suivis</div><div className="text-xl font-bold text-slate-950">{Number(total[0]?.value || 0)}</div></div></Card><Card className="flex items-center gap-3 p-4"><div className="rounded-lg bg-amber-50 p-2.5 text-amber-700"><TriangleAlert size={19}/></div><div><div className="text-xs font-semibold text-slate-500">Sous le seuil d’alerte</div><div className="text-xl font-bold text-slate-950">{Number(lowStock[0]?.value || 0)}</div></div></Card></div>
     <Card>

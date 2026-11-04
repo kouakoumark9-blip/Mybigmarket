@@ -1,5 +1,5 @@
-import { eq } from "drizzle-orm";
-import { customers } from "@/lib/db/schema";
+import { asc, eq, isNull } from "drizzle-orm";
+import { customers, taxRuleGroupRules, taxRuleGroups, taxRules } from "@/lib/db/schema";
 import { defineRoute, type AnyRoute } from "@/server/core/http/route";
 import type { Executor } from "@/server/core/db";
 import { actorContext, uuidParams } from "@/server/modules/catalog/shared";
@@ -16,6 +16,16 @@ export async function customerIdFor(executor: Executor, userId: string | undefin
 }
 
 export const pricingRoutes: AnyRoute[] = [
+  defineRoute({
+    id: "admin.tax_groups.options", method: "GET", path: "/admin/tax-rule-groups", surface: "admin", tags, permission: "catalog.products.read",
+    summary: "Groupes de taxes (choix sur la fiche produit)",
+    handler: async ({ db }) => {
+      const groups = await db.select({ id: taxRuleGroups.id, name: taxRuleGroups.name, isActive: taxRuleGroups.isActive }).from(taxRuleGroups).where(isNull(taxRuleGroups.deletedAt)).orderBy(asc(taxRuleGroups.name));
+      const rules = await db.select({ groupId: taxRuleGroupRules.taxRuleGroupId, countryCode: taxRules.countryCode, label: taxRules.label, ratePercent: taxRules.ratePercent, isActive: taxRules.isActive })
+        .from(taxRuleGroupRules).innerJoin(taxRules, eq(taxRules.id, taxRuleGroupRules.taxRuleId));
+      return groups.map((group) => ({ ...group, rules: rules.filter((rule) => rule.groupId === group.id).map((rule) => ({ countryCode: rule.countryCode, label: rule.label, ratePercent: Number(rule.ratePercent), isActive: rule.isActive })) }));
+    },
+  }),
   defineRoute({
     id: "admin.products.price", method: "GET", path: "/admin/products/:id/price", surface: "admin", tags, permission: "pricing.read",
     summary: "Simuler le prix d'un produit pour un client", description: "Quantité, déclinaison, client ou groupe, pays et devise : prix HT/TTC, prix barré, règle appliquée, plancher.",

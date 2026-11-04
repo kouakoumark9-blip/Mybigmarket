@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { and, count, desc, eq, ilike, isNull, or, sql } from "drizzle-orm";
 import { PackageSearch, Search, Trash2, TriangleAlert } from "lucide-react";
 import { Card } from "@/components/ui/card";
@@ -71,7 +72,8 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
       <div><h1 className="admin-page-title">Produits</h1><p className="admin-page-subtitle">Catalogue enregistré dans la base Neon. Les articles de démonstration restent en brouillon.</p></div>
       <div className="flex items-center gap-2">
         <span className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700">{Number(totalResult[0]?.value || 0)} résultat(s)</span>
-        <a href="/catalogue/corbeille" className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-600 hover:bg-slate-50"><Trash2 size={14}/>Corbeille ({trashCount})</a>
+        <Link href="/catalogue/corbeille" className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-600 hover:bg-slate-50"><Trash2 size={14}/>Corbeille ({trashCount})</Link>
+        <Link href="/catalogue/produits/nouveau" className="ui-button ui-button-primary">Nouveau produit</Link>
       </div>
     </div>
 
@@ -89,7 +91,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
           </select>
         </label>
         <button type="submit" className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-slate-950 px-4 text-sm font-semibold text-white hover:bg-slate-800"><Search size={15}/>Filtrer</button>
-        {(query || status) && <a href="/catalogue/produits" className="inline-flex h-10 items-center justify-center rounded-lg border border-slate-200 px-4 text-sm font-semibold text-slate-600 hover:bg-slate-50">Effacer</a>}
+        {(query || status) && <Link href="/catalogue/produits" className="inline-flex h-10 items-center justify-center rounded-lg border border-slate-200 px-4 text-sm font-semibold text-slate-600 hover:bg-slate-50">Effacer</Link>}
       </form>
     </Card>
 
@@ -97,7 +99,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
       {products.length ? <div className="admin-table-wrap"><table className="admin-table min-w-[900px]">
         <thead><tr><th>Produit</th><th>Catégorie</th><th>Prix affiché</th><th>Stock / MOQ</th><th>Délai</th><th>Statut</th><th className="text-right">Actions</th></tr></thead>
         <tbody>{products.map((product) => <tr key={product.id}>
-          <td><div className="flex items-center gap-2"><PackageSearch size={16} className="shrink-0 text-slate-400"/><div><div className="font-semibold text-slate-900">{product.title}</div><div className="text-[11px] text-slate-500">SKU : {product.sku || "non défini"}</div></div></div></td>
+          <td><div className="flex items-center gap-2"><PackageSearch size={16} className="shrink-0 text-slate-400"/><div><Link href={`/catalogue/produits/${product.id}`} className="font-semibold text-slate-900 hover:underline">{product.title}</Link><div className="text-[11px] text-slate-500">SKU : {product.sku || "non défini"}</div></div></div></td>
           <td>{product.categoryName || "Sans catégorie"}</td>
           <td className="whitespace-nowrap font-semibold">{formatMoney(product.priceXof)}</td>
           <td className="whitespace-nowrap">{product.quantity.toLocaleString("fr-FR")} / MOQ {product.minimumQuantity.toLocaleString("fr-FR")}</td>

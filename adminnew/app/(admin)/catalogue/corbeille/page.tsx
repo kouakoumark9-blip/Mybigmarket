@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { and, count, desc, eq, ilike, isNotNull, or } from "drizzle-orm";
 import { Archive, RotateCcw, Search, Trash2, TriangleAlert } from "lucide-react";
 import { Card } from "@/components/ui/card";
@@ -60,7 +61,7 @@ export default async function TrashPage({ searchParams }: { searchParams: Promis
       </div>
       <div className="flex items-center gap-2">
         <span className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700">{total} produit(s)</span>
-        <a href="/catalogue/produits" className="inline-flex h-9 items-center rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-600 hover:bg-slate-50">Retour aux produits</a>
+        <Link href="/catalogue/produits" className="inline-flex h-9 items-center rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-600 hover:bg-slate-50">Retour aux produits</Link>
       </div>
     </div>
 

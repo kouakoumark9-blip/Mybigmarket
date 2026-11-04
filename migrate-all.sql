@@ -1,4 +1,4 @@
--- Mybigmarket — application de toutes les migrations (16 fichiers)
+-- Mybigmarket — application de toutes les migrations (17 fichiers)
 -- Régénérer avec : npm run db:sql:all
 -- Appliquer avec : psql "$DATABASE_URL" -f migrate-all.sql
 --
@@ -2188,6 +2188,28 @@ ON CONFLICT DO NOTHING;
 $sql$;
     INSERT INTO drizzle.__drizzle_migrations (hash, created_at)
       VALUES ('0015_catalog_pricing_stock.sql:plain:517532b28f', (EXTRACT(EPOCH FROM now()) * 1000)::bigint);
+  END IF;
+END
+$migration$;
+
+
+-- ============ 0016_checkout_customers.sql ============
+DO $migration$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM drizzle.__drizzle_migrations WHERE hash IN ('0016_checkout_customers.sql:plain:8e998ab709', '9016618417d7970f0e1e923730bf11ec236e051783dd840195ff9421f4ff1bd6')) THEN
+    EXECUTE $sql$
+ALTER TABLE "carts" ADD COLUMN "voucher_codes" jsonb DEFAULT '[]'::jsonb NOT NULL;
+ALTER TABLE "orders" ADD COLUMN "customer_id" uuid;
+ALTER TABLE "orders" ADD COLUMN "checkout_group_id" uuid;
+ALTER TABLE "orders" ADD COLUMN "applied_vouchers" jsonb DEFAULT '[]'::jsonb NOT NULL;
+ALTER TABLE "orders" ADD CONSTRAINT "orders_customer_id_customers_id_fk" FOREIGN KEY ("customer_id") REFERENCES "public"."customers"("id") ON DELETE set null ON UPDATE no action;
+CREATE INDEX "orders_checkout_group_idx" ON "orders" USING btree ("checkout_group_id");
+CREATE INDEX "orders_customer_idx" ON "orders" USING btree ("customer_id","created_at");
+-- Rattache les commandes existantes au profil client de l'acheteur, quand il existe.
+UPDATE "orders" o SET "customer_id" = c."id" FROM "customers" c WHERE c."user_id" = o."buyer_id" AND o."customer_id" IS NULL;
+$sql$;
+    INSERT INTO drizzle.__drizzle_migrations (hash, created_at)
+      VALUES ('0016_checkout_customers.sql:plain:8e998ab709', (EXTRACT(EPOCH FROM now()) * 1000)::bigint);
   END IF;
 END
 $migration$;

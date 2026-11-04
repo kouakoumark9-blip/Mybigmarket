@@ -277,14 +277,20 @@ export async function releaseReservation(database: Db, id: string, context: Cont
 
 /* ─────────────────────────────  Alertes, intégrité, réapprovisionnement  ───────────────────────────── */
 
+/**
+ * Un produit « suit son stock par déclinaison » dès qu'une déclinaison a du stock physique ou
+ * réservé. Il est alors alerté déclinaison par déclinaison ; sinon, au niveau du produit. Cela évite
+ * de signaler en rupture une déclinaison dont le stock n'a jamais été géré séparément.
+ */
+const tracksVariantStock = sql`exists (select 1 from ${stockLevels} l where l.product_id = ${products.id} and l.variant_id is not null and (l.physical_quantity <> 0 or l.reserved_quantity <> 0))`;
+
 export async function lowStockAlerts(database: Db) {
   const productsLow = await database.select({ productId: products.id, title: products.title, reference: products.reference, available: products.quantity, threshold: products.lowStockThreshold, supplierId: products.supplierId, restockDate: products.restockDate })
-    .from(products).where(and(isNull(products.deletedAt), ne(products.productType, "virtual"), ne(products.productType, "pack"), sql`${products.quantity} <= ${products.lowStockThreshold}`, ne(products.status, "archived"),
-      sql`not exists (select 1 from ${productVariants} v where v.product_id = ${products.id} and v.deleted_at is null)`))
+    .from(products).where(and(isNull(products.deletedAt), ne(products.productType, "virtual"), ne(products.productType, "pack"), sql`${products.quantity} <= ${products.lowStockThreshold}`, ne(products.status, "archived"), sql`not ${tracksVariantStock}`))
     .orderBy(asc(products.quantity)).limit(500);
   const variantsLow = await database.select({ productId: products.id, title: products.title, variantId: productVariants.id, variant: productVariants.value, sku: productVariants.sku, available: productVariants.stock, threshold: productVariants.lowStockThreshold })
     .from(productVariants).innerJoin(products, eq(products.id, productVariants.productId))
-    .where(and(isNull(products.deletedAt), isNull(productVariants.deletedAt), eq(productVariants.isActive, true), sql`${productVariants.stock} <= ${productVariants.lowStockThreshold}`))
+    .where(and(isNull(products.deletedAt), isNull(productVariants.deletedAt), eq(productVariants.isActive, true), ne(products.status, "archived"), sql`${productVariants.stock} <= ${productVariants.lowStockThreshold}`, tracksVariantStock))
     .orderBy(asc(productVariants.stock)).limit(500);
   return { products: productsLow.map((row) => ({ ...row, restockDate: row.restockDate?.toISOString() ?? null, outOfStock: row.available <= 0 })), variants: variantsLow.map((row) => ({ ...row, outOfStock: row.available <= 0 })) };
 }
