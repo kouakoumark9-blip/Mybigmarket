@@ -172,3 +172,14 @@ describe("non-cumul palier + promo", () => {
     expect(result.unitPriceXof).toBe(8_100);
   });
 });
+
+describe("prix fixe spécifique", () => {
+  it("remplace le prix courant sans jamais le dépasser", async () => {
+    const { computeUnitPrice } = await import("@/lib/pricing");
+    const lower = computeUnitPrice({ basePriceXof: 10_000, quantity: 1, specificPrices: [{ id: "sp1", source: "specific_price", discountType: "fixed_price", discountValue: 8_000 }] });
+    expect(lower).toMatchObject({ unitPriceXof: 8_000, specificDiscountXof: 2_000, specificRuleApplied: true });
+    expect(lower.appliedRule?.id).toBe("sp1");
+    const higher = computeUnitPrice({ basePriceXof: 10_000, quantity: 1, specificPrices: [{ discountType: "fixed_price", discountValue: 12_000 }] });
+    expect(higher).toMatchObject({ unitPriceXof: 10_000, specificRuleApplied: false, appliedRule: null });
+  });
+});

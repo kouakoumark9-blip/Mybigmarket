@@ -2,11 +2,15 @@
  * Tests d'intégration du catalogue, des prix et des stocks sur PostgreSQL réel (PGlite),
  * à travers tout le pipeline HTTP de l'API v1.
  */
-import { beforeAll, describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it, vi } from "vitest";
 import { sql } from "drizzle-orm";
 import { resetLedgerReadiness } from "@/lib/stock-ledger";
 import type { Db } from "@/server/core/db";
 import { ADMIN_EMAIL, ADMIN_PASSWORD, api, createEmployeeRow, createTestDatabase, loginAs } from "../helpers/test-api";
+
+// Session client de la boutique (Auth.js) simulée : null = visiteur.
+const session = vi.hoisted(() => ({ current: null as null | { user: { id: string; role: string; email: string } } }));
+vi.mock("@/auth", () => ({ auth: async () => session.current }));
 
 let db: Db;
 let token: string;
@@ -229,5 +233,90 @@ describe("produits", () => {
     expect(bulk.json.data).toEqual({ updated: 2, notFound: ["30000000-0000-4000-8000-000000000000"] });
     const listed = await call("GET", `/admin/products?filter[status]=approved&q=perceuse&sort=title`);
     expect(listed.json.data.length).toBeGreaterThanOrEqual(2);
+  });
+});
+
+describe("prix et promotions", () => {
+  let productId: string;
+  let categoryId: number;
+  let groupId: number;
+  let customerId: string;
+
+  beforeAll(async () => {
+    await ensureSeller();
+    categoryId = await category("Électroportatif");
+    const group = await db.execute(sql`insert into customer_groups (code, name, discount_basis_points) values ('pro', 'Professionnels', 500) returning id`);
+    groupId = (group as unknown as { rows: Array<{ id: number }> }).rows[0].id;
+    await db.execute(sql`insert into users (id, name, email, password_hash) values ('10000000-0000-4000-8000-0000000000c1', 'Client Pro', 'client-pro@exemple.ci', 'x')`);
+    const customer = await db.execute(sql`insert into customers (user_id, customer_group_id) values ('10000000-0000-4000-8000-0000000000c1', ${groupId}) returning id`);
+    customerId = (customer as unknown as { rows: Array<{ id: string }> }).rows[0].id;
+    const taxGroup = await db.execute(sql`insert into tax_rule_groups (name) values ('TVA standard') returning id`);
+    const taxGroupId = (taxGroup as unknown as { rows: Array<{ id: string }> }).rows[0].id;
+    const rule = await db.execute(sql`insert into tax_rules (code, country_code, label, rate_percent, is_active) values ('tva', 'CI', 'TVA 18 %', 18, true) returning id`);
+    await db.execute(sql`insert into tax_rule_group_rules (tax_rule_group_id, tax_rule_id) values (${taxGroupId}, ${(rule as unknown as { rows: Array<{ id: string }> }).rows[0].id})`);
+    productId = (await call("POST", "/admin/products", { title: "Meuleuse 125 mm", sellerId: SELLER_ID, categoryId, priceXof: 24000, purchasePriceXof: 15000, taxRuleGroupId: taxGroupId, initialQuantity: 50 })).json.data.id;
+  });
+
+  it("calcule HT, TTC et prix barré sans remise", async () => {
+    const price = await call("GET", `/admin/products/${productId}/price?country=CI`);
+    expect(price.json.data).toMatchObject({ unitPriceExclTaxXof: 24000, unitPriceInclTaxXof: 28320, regularPriceInclTaxXof: 28320, hasDiscount: false, taxRatePercent: 18, marginXof: 9000 });
+  });
+
+  it("applique la règle la plus favorable : prix spécifique de groupe contre règle catalogue", async () => {
+    const rule = await call("POST", "/admin/catalog-price-rules", { name: "Promo électroportatif -10 %", reductionType: "percent", reductionValue: 10, conditions: { categoryIds: [categoryId] } });
+    expect(rule.status).toBe(201);
+    expect(rule.json.data.matchingProductCount).toBe(1);
+    const anonymous = await call("GET", `/admin/products/${productId}/price`);
+    expect(anonymous.json.data).toMatchObject({ unitPriceExclTaxXof: 21600, regularPriceExclTaxXof: 24000, hasDiscount: true, discountPercent: 10, appliedRule: { source: "catalog_rule", id: rule.json.data.id } });
+
+    const specific = await call("POST", `/admin/products/${productId}/specific-prices`, { customerGroupId: groupId, reductionType: "fixed_price", reductionValue: 20000 });
+    expect(specific.status).toBe(201);
+    // Groupe -5 % → 22 800 ; règle catalogue -10 % → 20 520 ; prix fixe 20 000 : le prix fixe gagne.
+    const pro = await call("GET", `/admin/products/${productId}/price?customerId=${customerId}`);
+    expect(pro.json.data).toMatchObject({ unitPriceExclTaxXof: 20000, groupDiscountXof: 1200, appliedRule: { source: "specific_price", id: specific.json.data.id } });
+
+    const invalid = await call("POST", `/admin/products/${productId}/specific-prices`, { reductionType: "percent", reductionValue: 150 });
+    expect(invalid.status).toBe(400);
+  });
+
+  it("ne vend jamais sous le prix d'achat et applique les paliers dégressifs", async () => {
+    const deep = await call("POST", "/admin/catalog-price-rules", { name: "Destockage", reductionType: "percent", reductionValue: 50, conditions: { productIds: [productId] } });
+    const floored = await call("GET", `/admin/products/${productId}/price`);
+    expect(floored.json.data).toMatchObject({ unitPriceExclTaxXof: 15000, floorApplied: true });
+    await call("DELETE", `/admin/catalog-price-rules/${deep.json.data.id}`);
+
+    const overlap = await call("PUT", `/admin/products/${productId}/price-tiers`, { tiers: [{ minimumQuantity: 1, maximumQuantity: 10, unitPriceXof: 24000 }, { minimumQuantity: 5, unitPriceXof: 22000 }] });
+    expect(overlap.status).toBe(400);
+    const tiers = await call("PUT", `/admin/products/${productId}/price-tiers`, { tiers: [{ minimumQuantity: 10, unitPriceXof: 22000 }] });
+    expect(tiers.status).toBe(200);
+    const bulk = await call("GET", `/admin/products/${productId}/price?quantity=10`);
+    // Palier 22 000, puis règle catalogue -10 % : 19 800 HT par unité.
+    expect(bulk.json.data).toMatchObject({ tierApplied: true, unitPriceExclTaxXof: 19800, totalExclTaxXof: 198000 });
+  });
+
+  it("crée des bons et les vérifie depuis la boutique sur les prix TTC", async () => {
+    const voucher = await call("POST", "/admin/vouchers", { code: "bienvenue10", discountType: "percent", discountValue: 10, maximumDiscountXof: 5000 });
+    expect(voucher.status).toBe(201);
+    expect(voucher.json.data.code).toBe("BIENVENUE10");
+    expect((await call("POST", "/admin/vouchers", { code: "BIENVENUE10", discountType: "amount", discountValue: 1000 })).status).toBe(409);
+    expect((await call("POST", "/admin/vouchers", { discountType: "percent", discountValue: 120 })).status).toBe(400);
+    const generated = await call("POST", "/admin/vouchers", { discountType: "none", freeShipping: true, perCustomerLimit: 1 });
+    expect(generated.json.data.code).toMatch(/^MBM-[A-Z2-9]{8}$/);
+
+    const check = await api("POST", "/shop/vouchers/check", { body: { codes: ["bienvenue10", "INCONNU", generated.json.data.code], lines: [{ productId, quantity: 1 }] } });
+    expect(check.status).toBe(200);
+    // 21 600 HT → 25 488 TTC ; 10 % = 2 549, plafonné à 5 000.
+    expect(check.json.data).toMatchObject({ subtotalInclTaxXof: 25488, discountXof: 2549, freeShipping: false });
+    expect(check.json.data.rejected.map((entry: { code: string; reason: string }) => [entry.code, entry.reason])).toEqual([["INCONNU", "unknown"], [generated.json.data.code, "login_required"]]);
+
+    // Client professionnel connecté : son prix (20 000 HT → 23 600 TTC) et le meilleur bon non cumulable.
+    session.current = { user: { id: "10000000-0000-4000-8000-0000000000c1", role: "buyer", email: "client-pro@exemple.ci" } };
+    try {
+      const logged = await api("POST", "/shop/vouchers/check", { body: { codes: ["BIENVENUE10", generated.json.data.code], lines: [{ productId, quantity: 1 }] } });
+      expect(logged.json.data).toMatchObject({ subtotalInclTaxXof: 23600, discountXof: 2360, applied: [{ code: "BIENVENUE10" }] });
+      expect(logged.json.data.rejected).toEqual([expect.objectContaining({ code: generated.json.data.code, reason: "not_combinable" })]);
+    } finally {
+      session.current = null;
+    }
   });
 });
