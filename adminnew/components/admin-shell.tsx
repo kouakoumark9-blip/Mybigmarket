@@ -4,9 +4,10 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
-import { Activity, BadgePercent, Bell, Boxes, Calculator, ChevronRight, CircleHelp, ClipboardList, CreditCard, FileText, Globe2, Headset, Image, LayoutDashboard, MapPin, Menu, PackageSearch, Plane, Ruler, Search, Settings2, Shield, Trash2, Truck, Undo2, UserCog, Users, X } from "lucide-react";
+import { Activity, ArrowLeftRight, BadgePercent, Bell, Boxes, Calculator, ChevronRight, CircleHelp, ClipboardList, CreditCard, FileText, Globe2, Headset, History, Image, LayoutDashboard, ListChecks, MapPin, Menu, PackageSearch, Percent, Plane, Ruler, Search, Settings2, Shield, Tags, Ticket, Trash2, TriangleAlert, Truck, Undo2, UserCog, Users, Warehouse, X } from "lucide-react";
 import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
+import { can, isPermissionCode } from "@/lib/permission-matrix";
 
 type NavItem = { label: string; href: string; permission: string; icon?: typeof Boxes; implemented?: boolean };
 type NavGroup = { label: string; items: NavItem[] };
@@ -22,7 +23,13 @@ const navGroups: NavGroup[] = [
     { label: "Produits", href: "/catalogue/produits", permission: "catalog.products.read", icon: PackageSearch, implemented: true },
     { label: "Catégories et marques", href: "/catalogue/categories", permission: "catalog.categories.manage", icon: Boxes, implemented: true },
     { label: "Fournisseurs", href: "/catalogue/fournisseurs", permission: "catalog.suppliers.manage", icon: Users, implemented: true },
+    { label: "Attributs", href: "/catalogue/attributs", permission: "catalog.attributes.read", icon: Tags, implemented: true },
+    { label: "Caractéristiques", href: "/catalogue/caracteristiques", permission: "catalog.features.read", icon: ListChecks, implemented: true },
     { label: "Stock", href: "/catalogue/stock", permission: "catalog.stock.read", icon: Boxes, implemented: true },
+    { label: "Opérations de stock", href: "/catalogue/stock/operations", permission: "catalog.stock.update", icon: ArrowLeftRight, implemented: true },
+    { label: "Mouvements de stock", href: "/catalogue/stock/mouvements", permission: "catalog.stock.read", icon: History, implemented: true },
+    { label: "Alertes et réappro", href: "/catalogue/stock/alertes", permission: "catalog.stock.read", icon: TriangleAlert, implemented: true },
+    { label: "Entrepôts", href: "/catalogue/entrepots", permission: "catalog.stock.read", icon: Warehouse, implemented: true },
     { label: "Avis", href: "/catalogue/avis", permission: "catalog.reviews.moderate", icon: CircleHelp, implemented: true },
     { label: "Corbeille", href: "/catalogue/corbeille", permission: "catalog.trash.manage", icon: Trash2, implemented: true },
   ] },
@@ -45,6 +52,8 @@ const navGroups: NavGroup[] = [
   { label: "Boutique", items: [
     { label: "Apparence et pages", href: "/apparence", permission: "appearance.manage", icon: Image, implemented: true },
     { label: "Marketing", href: "/marketing", permission: "marketing.manage", icon: BadgePercent, implemented: true },
+    { label: "Bons de réduction", href: "/marketing/bons", permission: "pricing.read", icon: Ticket, implemented: true },
+    { label: "Règles de prix", href: "/marketing/regles", permission: "pricing.read", icon: Percent, implemented: true },
     { label: "Statistiques", href: "/statistiques", permission: "analytics.read", icon: Activity, implemented: true },
   ] },
   { label: "Configuration", items: [
@@ -67,8 +76,13 @@ const roleLabels: Record<string, string> = {
 export function AdminShell({ children, user }: { children: ReactNode; user: { name: string; email: string; roleCode: string; permissions: string[] } }) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const permissions = new Set(user.permissions);
-  const groups = navGroups.map((group) => ({ ...group, items: group.items.filter((item) => permissions.has(item.permission)) })).filter((group) => group.items.length > 0);
+  // Même règle que l'API : `.manage` accorde toute la ressource, une écriture accorde la lecture.
+  const allowed = (code: string) => (isPermissionCode(code) ? can(user.permissions, code) : user.permissions.includes(code));
+  const groups = navGroups.map((group) => ({ ...group, items: group.items.filter((item) => allowed(item.permission)) })).filter((group) => group.items.length > 0);
+  // L'entrée active est la plus précise (« Mouvements de stock » plutôt que « Stock »).
+  const activeHref = groups.flatMap((group) => group.items.map((item) => item.href))
+    .filter((href) => pathname === href || (href !== "/" && pathname.startsWith(`${href}/`)))
+    .sort((a, b) => b.length - a.length)[0];
   const initials = user.name.split(/\s+/).map((part) => part[0]).slice(0, 2).join("").toUpperCase() || "M";
 
   return <div className="admin-frame">
@@ -79,7 +93,7 @@ export function AdminShell({ children, user }: { children: ReactNode; user: { na
           <p className="admin-nav-group">{group.label}</p>
           {group.items.map((item) => {
             const Icon = item.icon || Boxes;
-            const active = pathname === item.href || (item.href !== "/" && pathname.startsWith(`${item.href}/`));
+            const active = item.href === activeHref;
             if (!item.implemented) return <div key={item.href} className="admin-nav-link" aria-disabled="true" title="Ce module sera activé lors de son étape de livraison"><Icon size={16}/><span>{item.label}</span><span className="ml-auto rounded bg-white/10 px-1.5 py-0.5 text-[9px]">À venir</span></div>;
             return <Link key={item.href} className={`admin-nav-link ${active ? "active" : ""}`} href={item.href} onClick={() => setMobileOpen(false)}><Icon size={16}/><span>{item.label}</span>{active && <ChevronRight size={14} className="ml-auto"/>}</Link>;
           })}
