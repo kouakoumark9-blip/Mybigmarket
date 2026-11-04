@@ -38,3 +38,9 @@ export const integer = (form: FormData, key: string) => {
   return value === "" ? undefined : Number(value);
 };
 export const checkbox = (form: FormData, key: string) => form.get(key) === "on" || form.get(key) === "true";
+
+/** Code technique à partir d'un libellé (« Rouge vif » → « rouge-vif »). */
+export const codeFrom = (value: string) => value.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 60) || "valeur";
+
+/** Liste séparée par des virgules ou des retours à la ligne. */
+export const list = (form: FormData, key: string) => text(form, key).split(/[,\n]/).map((entry) => entry.trim()).filter(Boolean);
