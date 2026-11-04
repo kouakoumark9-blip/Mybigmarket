@@ -10,7 +10,7 @@
  * - verrou optimiste facultatif : envoyer `version` refuse la modification si le produit a changé ;
  * - chaque écriture est journalisée et émet product.created / product.updated / product.deleted.
  */
-import { and, asc, count, eq, inArray, isNotNull, isNull, ne, or, sql } from "drizzle-orm";
+import { and, asc, count, eq, inArray, isNotNull, isNull, sql } from "drizzle-orm";
 import { packAvailableStock } from "@/lib/catalog-rules";
 import { adjustStock, stockByWarehouse } from "@/lib/stock-ledger";
 import {
