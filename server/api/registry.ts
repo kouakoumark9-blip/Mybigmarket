@@ -14,6 +14,7 @@ import { teamRoutes } from "@/server/modules/team/routes";
 import { systemRoutes } from "@/server/modules/system/routes";
 import { webhooksModule } from "@/server/modules/webhooks/module";
 import { taxonomyRoutes } from "@/server/modules/catalog/taxonomy/routes";
+import { productRoutes } from "@/server/modules/catalog/products/routes";
 
 export const MODULES: ModuleDefinition[] = [webhooksModule];
 registerModules(MODULES);
@@ -29,6 +30,7 @@ export const ALL_ROUTES: AnyRoute[] = [
   ...teamRoutes,
   ...systemRoutes,
   ...taxonomyRoutes,
+  ...productRoutes,
   ...MODULES.flatMap((module) => module.routes ?? []),
   openApiRoute,
 ];
