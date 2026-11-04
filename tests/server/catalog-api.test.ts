@@ -426,3 +426,77 @@ describe("stocks", () => {
     expect(suggested).toMatchObject({ suggestedQuantity: 8, targetStock: 11 });
   });
 });
+
+describe("catalogue public de la boutique", () => {
+  let parent: number;
+  let child: number;
+  let hiddenBranch: number;
+  let visibleId: string;
+
+  beforeAll(async () => {
+    await ensureSeller();
+    await db.execute(sql`insert into seller_profiles (user_id, university, city_china, verification_status) values (${SELLER_ID}, 'Université', 'Guangzhou', 'approved') on conflict do nothing`);
+    parent = await category("Maison");
+    child = (await call("POST", "/admin/categories", { name: "Cuisine", parentId: parent })).json.data.id;
+    hiddenBranch = (await call("POST", "/admin/categories", { name: "Archives", parentId: parent, isActive: false })).json.data.id;
+    await call("POST", "/admin/categories", { name: "Sous-archives", parentId: hiddenBranch });
+    const brand = await call("POST", "/admin/brands", { name: "Kitchen Pro" });
+    visibleId = (await call("POST", "/admin/products", { title: "Mixeur plongeant 800 W", sellerId: SELLER_ID, categoryId: child, brandId: brand.json.data.id, priceXof: 15000, status: "approved", tags: ["blender"], initialQuantity: 3, lowStockThreshold: 5 })).json.data.id;
+    await call("POST", "/admin/products", { title: "Mixeur brouillon", sellerId: SELLER_ID, categoryId: child, priceXof: 9000, status: "draft" });
+    await call("POST", "/admin/products", { title: "Batteur caché", sellerId: SELLER_ID, categoryId: child, priceXof: 8000, status: "approved", visibility: "nowhere" });
+    await call("POST", "/admin/catalog-price-rules", { name: "Semaine cuisine", reductionType: "amount", reductionValue: 1500, conditions: { categoryIds: [child] } });
+  });
+
+  it("masque les branches inactives de l'arbre", async () => {
+    const tree = await api("GET", "/shop/categories");
+    expect(tree.status).toBe(200);
+    const maison = tree.json.data.find((node: { id: number }) => node.id === parent);
+    expect(maison.children.map((node: { id: number }) => node.id)).toEqual([child]);
+    expect(maison.productCount).toBe(1);
+    expect(tree.json.data.some((node: { name: string }) => node.name === "Sous-archives")).toBe(false);
+  });
+
+  it("liste uniquement les produits visibles, avec prix barré et disponibilité", async () => {
+    const list = await api("GET", "/shop/products?category=maison");
+    expect(list.status).toBe(200);
+    expect(list.json.data.map((entry: { id: string }) => entry.id)).toEqual([visibleId]);
+    expect(list.json.data[0]).toMatchObject({
+      price: { unitPriceInclTaxXof: 13500, regularPriceInclTaxXof: 15000, hasDiscount: true },
+      availability: { status: "low_stock", lowStockQuantity: 3, canOrder: true },
+    });
+    const byTag = await api("GET", "/shop/products?q=blender");
+    expect(byTag.json.data.map((entry: { id: string }) => entry.id)).toEqual([visibleId]);
+    const brands = await api("GET", "/shop/brands");
+    expect(brands.json.data.find((entry: { slug: string }) => entry.slug === "kitchen-pro").productCount).toBe(1);
+  });
+
+  it("sert la fiche produit et redirige en 301 depuis l'ancienne URL", async () => {
+    const detail = await api("GET", "/shop/products/mixeur-plongeant-800-w");
+    expect(detail.status).toBe(200);
+    expect(detail.json.data).toMatchObject({ title: "Mixeur plongeant 800 W", breadcrumb: [{ slug: "maison" }, { slug: "cuisine" }], brand: { slug: "kitchen-pro" } });
+    await call("PATCH", `/admin/products/${visibleId}`, { slug: "mixeur-plongeant-pro" });
+    const old = await api("GET", "/shop/products/mixeur-plongeant-800-w");
+    expect(old.status).toBe(301);
+    expect(old.headers.get("location")).toBe("/api/v1/shop/products/mixeur-plongeant-pro");
+    expect((await api("GET", "/shop/products/mixeur-brouillon")).status).toBe(404);
+  });
+
+  it("redirige un produit désactivé vers sa catégorie quand c'est configuré", async () => {
+    await call("PATCH", `/admin/products/${visibleId}`, { status: "archived", redirectType: "302", redirectTargetType: "category" });
+    const response = await api("GET", "/shop/products/mixeur-plongeant-pro");
+    expect(response.status).toBe(404);
+    expect(response.json.error.details).toEqual({ redirectTo: "/produits?categorie=cuisine", permanent: false });
+    const { resolveProductRedirect } = await import("@/server/modules/storefront/service");
+    expect(await resolveProductRedirect(db, "mixeur-plongeant-800-w")).toEqual({ location: "/produits/mixeur-plongeant-pro", permanent: true });
+  });
+});
+
+describe("documentation OpenAPI", () => {
+  it("décrit les nouvelles routes du catalogue, des prix et des stocks", async () => {
+    const spec = await api("GET", "/openapi.json");
+    const paths = Object.keys(spec.json.paths);
+    for (const path of ["/api/v1/admin/products", "/api/v1/admin/products/{id}/combinations/generate", "/api/v1/admin/categories/tree", "/api/v1/admin/catalog-price-rules", "/api/v1/admin/vouchers", "/api/v1/admin/stock/import", "/api/v1/shop/products/{slug}", "/api/v1/shop/vouchers/check"]) {
+      expect(paths).toContain(path);
+    }
+  });
+});

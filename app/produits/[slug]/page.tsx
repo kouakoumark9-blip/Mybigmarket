@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect, redirect } from "next/navigation";
 import { getPdpProduct } from "@/lib/pdp/get-product";
 import { getPublishedReviewsForSlug } from "@/lib/reviews";
 import { ProductDetailPage } from "@/components/product-detail/product-page";
 import "@/components/product-detail/pdp.css";
+import { db } from "@/server/core/db";
+import { resolveProductRedirect } from "@/server/modules/storefront/service";
 
 type Props = { params: Promise<{ slug: string }> };
 export const dynamic = "force-dynamic";
@@ -24,10 +26,24 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
+/** Ancienne URL (slug modifié) ou produit désactivé avec redirection configurée. */
+async function redirectTarget(slug: string) {
+  if (!process.env.DATABASE_URL) return null;
+  try {
+    return await resolveProductRedirect(db(), slug);
+  } catch {
+    return null; // base non migrée ou indisponible : page introuvable classique
+  }
+}
+
 export default async function ProductPage({ params }: Props) {
   const { slug } = await params;
   const payload = await getPdpProduct(slug);
-  if (!payload) notFound();
+  if (!payload) {
+    const target = await redirectTarget(slug);
+    if (target) (target.permanent ? permanentRedirect : redirect)(target.location);
+    notFound();
+  }
   const { product, cartItem } = payload;
   const publishedReviews = await getPublishedReviewsForSlug(product.slug);
   const url = `${siteUrl()}/produits/${product.slug}`;

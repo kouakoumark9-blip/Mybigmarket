@@ -63,11 +63,6 @@ export type ResolvedPrice = {
   ecotaxXof: number;
 };
 
-async function productCategoryIds(executor: Executor, productId: string, defaultCategoryId: number): Promise<number[]> {
-  const links = await executor.select({ id: productCategories.categoryId }).from(productCategories).where(eq(productCategories.productId, productId));
-  return [...new Set([defaultCategoryId, ...links.map((link) => link.id)])];
-}
-
 /** Une règle catalogue vise-t-elle ce produit ? Chaque type de condition renseigné doit être satisfait. */
 export function ruleMatchesProduct(conditions: CatalogPriceRuleConditions, product: { id: string; categoryIds: number[]; brandId: number | null; supplierId: string | null }): boolean {
   if (conditions.excludeProductIds?.includes(product.id)) return false;
@@ -78,7 +73,7 @@ export function ruleMatchesProduct(conditions: CatalogPriceRuleConditions, produ
   return true;
 }
 
-async function customerGroup(executor: Executor, request: PriceRequest): Promise<{ groupId: number | null; basisPoints: number }> {
+async function customerGroup(executor: Executor, request: PricingContext): Promise<{ groupId: number | null; basisPoints: number }> {
   let groupId = request.customerGroupId ?? null;
   if (groupId == null && request.customerId) {
     const [customer] = await executor.select({ groupId: customers.customerGroupId }).from(customers).where(eq(customers.id, request.customerId)).limit(1);
@@ -97,72 +92,90 @@ export async function taxRateFor(executor: Executor, taxRuleGroupId: string | nu
   return { ratePercent: resolved.ratePercent, ruleId: resolved.ruleId };
 }
 
-/** Règles applicables (prix spécifiques du produit + règles catalogue actives qui le visent). */
-async function candidateRules(executor: Executor, product: typeof products.$inferSelect, variantId: number | null, now: Date): Promise<SpecificPriceRule[]> {
-  const inPeriod = (from: AnyPgColumn, to: AnyPgColumn) => and(or(isNull(from), lte(from, now)), or(isNull(to), gte(to, now)));
-  const [specific, catalog] = await Promise.all([
-    executor.select().from(specificPrices).where(and(eq(specificPrices.productId, product.id), variantId == null ? isNull(specificPrices.variantId) : or(isNull(specificPrices.variantId), eq(specificPrices.variantId, variantId)), inPeriod(specificPrices.dateFrom, specificPrices.dateTo))),
-    executor.select().from(catalogPriceRules).where(and(eq(catalogPriceRules.isActive, true), isNull(catalogPriceRules.deletedAt), inPeriod(catalogPriceRules.dateFrom, catalogPriceRules.dateTo))),
-  ]);
-  const categoryIds = await productCategoryIds(executor, product.id, product.categoryId);
-  const rules: SpecificPriceRule[] = specific.map((row) => ({
-    id: row.id, source: "specific_price", variantId: row.variantId, customerId: row.customerId, groupId: row.customerGroupId == null ? null : String(row.customerGroupId),
-    countryCode: row.countryCode, currency: row.currency, dateFrom: row.dateFrom, dateTo: row.dateTo, minimumQuantity: row.fromQuantity,
-    discountType: row.reductionType, discountValue: Number(row.reductionValue), priority: row.priority,
-  }));
-  for (const row of catalog) {
-    if (!ruleMatchesProduct(row.conditions, { id: product.id, categoryIds, brandId: product.brandId, supplierId: product.supplierId })) continue;
-    rules.push({
-      id: row.id, source: "catalog_rule", groupId: row.customerGroupId == null ? null : String(row.customerGroupId), countryCode: row.countryCode, currency: row.currency,
-      dateFrom: row.dateFrom, dateTo: row.dateTo, minimumQuantity: row.fromQuantity, discountType: row.reductionType, discountValue: Number(row.reductionValue), priority: row.priority,
-    });
+export type PriceItem = { productId: string; variantId?: number | null; quantity: number };
+export type PricingContext = Omit<PriceRequest, "productId" | "variantId" | "quantity">;
+
+/**
+ * Prix de plusieurs produits en une passe (listes, panier) : un nombre fixe de requêtes quel que
+ * soit le nombre de lignes, puis le calcul pur de lib/pricing.ts pour chaque ligne.
+ */
+export async function priceProducts(executor: Executor, items: PriceItem[], context: PricingContext = {}): Promise<Array<ResolvedPrice & { breakdown: PriceBreakdown }>> {
+  if (!items.length) return [];
+  const ids = [...new Set(items.map((item) => item.productId))];
+  const rows = await executor.select().from(products).where(and(inArray(products.id, ids), isNull(products.deletedAt)));
+  const productById = new Map(rows.map((row) => [row.id, row]));
+  const missing = ids.find((id) => !productById.has(id));
+  if (missing) throw errors.notFound("Produit", missing);
+  const variantIds = [...new Set(items.map((item) => item.variantId).filter((id): id is number => id != null))];
+  const variants = variantIds.length ? await executor.select({ id: productVariants.id, productId: productVariants.productId, delta: productVariants.priceDeltaXof }).from(productVariants).where(and(inArray(productVariants.id, variantIds), isNull(productVariants.deletedAt))) : [];
+  for (const item of items) {
+    if (item.variantId != null && variants.find((variant) => variant.id === item.variantId)?.productId !== item.productId) throw errors.notFound("Déclinaison", item.variantId);
   }
-  return rules;
+  const now = context.now ?? new Date();
+  const countryCode = (context.countryCode ?? "CI").toUpperCase();
+  const currency = (context.currency ?? "XOF").toUpperCase();
+  const inPeriod = (from: AnyPgColumn, to: AnyPgColumn) => and(or(isNull(from), lte(from, now)), or(isNull(to), gte(to, now)));
+  const [allTiers, group, specific, catalog, links] = await Promise.all([
+    executor.select().from(productPriceTiers).where(inArray(productPriceTiers.productId, ids)),
+    customerGroup(executor, context),
+    executor.select().from(specificPrices).where(and(inArray(specificPrices.productId, ids), inPeriod(specificPrices.dateFrom, specificPrices.dateTo))),
+    executor.select().from(catalogPriceRules).where(and(eq(catalogPriceRules.isActive, true), isNull(catalogPriceRules.deletedAt), inPeriod(catalogPriceRules.dateFrom, catalogPriceRules.dateTo))),
+    executor.select({ productId: productCategories.productId, categoryId: productCategories.categoryId }).from(productCategories).where(inArray(productCategories.productId, ids)),
+  ]);
+  const taxByGroup = new Map<string, { ratePercent: number; ruleId: string | null }>();
+  for (const taxGroupId of new Set(rows.map((row) => row.taxRuleGroupId).filter((id): id is string => Boolean(id)))) taxByGroup.set(taxGroupId, await taxRateFor(executor, taxGroupId, countryCode));
+
+  return items.map((item) => {
+    const product = productById.get(item.productId)!;
+    const variantId = item.variantId ?? null;
+    const variantDelta = variantId == null ? 0 : variants.find((variant) => variant.id === variantId)!.delta;
+    const categoryIds = [...new Set([product.categoryId, ...links.filter((link) => link.productId === product.id).map((link) => link.categoryId)])];
+    const rules: SpecificPriceRule[] = specific
+      .filter((row) => row.productId === product.id && (row.variantId == null || row.variantId === variantId))
+      .map((row) => ({
+        id: row.id, source: "specific_price" as const, variantId: row.variantId, customerId: row.customerId, groupId: row.customerGroupId == null ? null : String(row.customerGroupId),
+        countryCode: row.countryCode, currency: row.currency, dateFrom: row.dateFrom, dateTo: row.dateTo, minimumQuantity: row.fromQuantity,
+        discountType: row.reductionType, discountValue: Number(row.reductionValue), priority: row.priority,
+      }));
+    for (const row of catalog) {
+      if (!ruleMatchesProduct(row.conditions, { id: product.id, categoryIds, brandId: product.brandId, supplierId: product.supplierId })) continue;
+      rules.push({
+        id: row.id, source: "catalog_rule", groupId: row.customerGroupId == null ? null : String(row.customerGroupId), countryCode: row.countryCode, currency: row.currency,
+        dateFrom: row.dateFrom, dateTo: row.dateTo, minimumQuantity: row.fromQuantity, discountType: row.reductionType, discountValue: Number(row.reductionValue), priority: row.priority,
+      });
+    }
+    // Paliers propres à la déclinaison s'il en existe, sinon paliers du produit.
+    const productTiers = allTiers.filter((tier) => tier.productId === product.id);
+    const variantTiers = variantId != null ? productTiers.filter((tier) => tier.variantId === variantId) : [];
+    const tiers = (variantTiers.length ? variantTiers : productTiers.filter((tier) => tier.variantId == null)).map((tier) => ({ minimumQuantity: tier.minimumQuantity, maximumQuantity: tier.maximumQuantity, unitPriceXof: tier.unitPriceXof }));
+    const tax = product.taxRuleGroupId ? taxByGroup.get(product.taxRuleGroupId)! : { ratePercent: 0, ruleId: null };
+
+    const breakdown = computeUnitPrice({
+      basePriceXof: product.priceXof, variantDeltaXof: variantDelta, purchasePriceXof: product.purchasePriceXof, ecotaxXof: product.ecotaxXof,
+      quantity: item.quantity, tiers, groupDiscountBasisPoints: group.basisPoints, specificPrices: rules,
+      customer: { customerId: context.customerId ?? null, groupId: group.groupId == null ? null : String(group.groupId), countryCode, currency }, now,
+    }, variantId);
+
+    const regularExcl = breakdown.basePriceXof + breakdown.ecotaxXof;
+    const unitIncl = priceIncludingTax(breakdown.unitPriceXof, tax.ratePercent);
+    const regularIncl = priceIncludingTax(regularExcl, tax.ratePercent);
+    const hasDiscount = breakdown.unitPriceXof < regularExcl;
+    return {
+      productId: product.id, variantId, quantity: item.quantity, currency, countryCode, taxRatePercent: tax.ratePercent, taxRuleId: tax.ruleId,
+      unitPriceExclTaxXof: breakdown.unitPriceXof, unitPriceInclTaxXof: unitIncl,
+      regularPriceExclTaxXof: regularExcl, regularPriceInclTaxXof: regularIncl,
+      hasDiscount, discountPercent: hasDiscount && regularExcl > 0 ? Math.round(((regularExcl - breakdown.unitPriceXof) / regularExcl) * 1000) / 10 : 0,
+      totalExclTaxXof: breakdown.unitPriceXof * item.quantity, totalInclTaxXof: unitIncl * item.quantity,
+      tierApplied: breakdown.tierApplied, groupDiscountXof: breakdown.groupDiscountXof, specificDiscountXof: breakdown.specificDiscountXof,
+      appliedRule: breakdown.appliedRule?.id && breakdown.appliedRule.source ? { source: breakdown.appliedRule.source, id: breakdown.appliedRule.id } : null,
+      floorApplied: breakdown.floorApplied, ecotaxXof: breakdown.ecotaxXof, breakdown,
+    };
+  });
 }
 
 export async function resolvePrice(executor: Executor, request: PriceRequest): Promise<ResolvedPrice & { breakdown: PriceBreakdown }> {
-  const [product] = await executor.select().from(products).where(and(eq(products.id, request.productId), isNull(products.deletedAt))).limit(1);
-  if (!product) throw errors.notFound("Produit", request.productId);
-  const variantId = request.variantId ?? null;
-  let variantDelta = 0;
-  if (variantId != null) {
-    const [variant] = await executor.select({ delta: productVariants.priceDeltaXof }).from(productVariants).where(and(eq(productVariants.id, variantId), eq(productVariants.productId, product.id), isNull(productVariants.deletedAt))).limit(1);
-    if (!variant) throw errors.notFound("Déclinaison", variantId);
-    variantDelta = variant.delta;
-  }
-  const now = request.now ?? new Date();
-  const countryCode = (request.countryCode ?? "CI").toUpperCase();
-  const currency = (request.currency ?? "XOF").toUpperCase();
-  const [allTiers, group, rules, tax] = await Promise.all([
-    executor.select().from(productPriceTiers).where(eq(productPriceTiers.productId, product.id)),
-    customerGroup(executor, request),
-    candidateRules(executor, product, variantId, now),
-    taxRateFor(executor, product.taxRuleGroupId, countryCode),
-  ]);
-  // Paliers propres à la déclinaison s'il en existe, sinon paliers du produit.
-  const variantTiers = variantId != null ? allTiers.filter((tier) => tier.variantId === variantId) : [];
-  const tiers = (variantTiers.length ? variantTiers : allTiers.filter((tier) => tier.variantId == null)).map((tier) => ({ minimumQuantity: tier.minimumQuantity, maximumQuantity: tier.maximumQuantity, unitPriceXof: tier.unitPriceXof }));
-
-  const breakdown = computeUnitPrice({
-    basePriceXof: product.priceXof, variantDeltaXof: variantDelta, purchasePriceXof: product.purchasePriceXof, ecotaxXof: product.ecotaxXof,
-    quantity: request.quantity, tiers, groupDiscountBasisPoints: group.basisPoints, specificPrices: rules,
-    customer: { customerId: request.customerId ?? null, groupId: group.groupId == null ? null : String(group.groupId), countryCode, currency }, now,
-  }, variantId);
-
-  const regularExcl = breakdown.basePriceXof + breakdown.ecotaxXof;
-  const unitIncl = priceIncludingTax(breakdown.unitPriceXof, tax.ratePercent);
-  const regularIncl = priceIncludingTax(regularExcl, tax.ratePercent);
-  const hasDiscount = breakdown.unitPriceXof < regularExcl;
-  return {
-    productId: product.id, variantId, quantity: request.quantity, currency, countryCode, taxRatePercent: tax.ratePercent, taxRuleId: tax.ruleId,
-    unitPriceExclTaxXof: breakdown.unitPriceXof, unitPriceInclTaxXof: unitIncl,
-    regularPriceExclTaxXof: regularExcl, regularPriceInclTaxXof: regularIncl,
-    hasDiscount, discountPercent: hasDiscount && regularExcl > 0 ? Math.round(((regularExcl - breakdown.unitPriceXof) / regularExcl) * 1000) / 10 : 0,
-    totalExclTaxXof: breakdown.unitPriceXof * request.quantity, totalInclTaxXof: unitIncl * request.quantity,
-    tierApplied: breakdown.tierApplied, groupDiscountXof: breakdown.groupDiscountXof, specificDiscountXof: breakdown.specificDiscountXof,
-    appliedRule: breakdown.appliedRule?.id && breakdown.appliedRule.source ? { source: breakdown.appliedRule.source, id: breakdown.appliedRule.id } : null,
-    floorApplied: breakdown.floorApplied, ecotaxXof: breakdown.ecotaxXof, breakdown,
-  };
+  const [price] = await priceProducts(executor, [{ productId: request.productId, variantId: request.variantId, quantity: request.quantity }], request);
+  return price;
 }
 
 /** Variante publique (sans détail interne : plancher, marge). */
@@ -458,12 +471,14 @@ export async function checkVouchers(executor: Executor, input: { codes: string[]
     const members = await executor.select({ groupId: customerGroupMembers.customerGroupId }).from(customerGroupMembers).where(eq(customerGroupMembers.customerId, input.customerId));
     groupIds = [...new Set([...(primaryGroup != null ? [primaryGroup] : []), ...members.map((member) => member.groupId)])];
   }
-  const priced = [];
-  for (const line of input.lines) {
-    const price = await resolvePrice(executor, { productId: line.productId, variantId: line.variantId ?? null, quantity: line.quantity, customerId: input.customerId ?? null, customerGroupId: primaryGroup, countryCode: input.country });
-    const [product] = await executor.select({ categoryId: products.categoryId }).from(products).where(eq(products.id, line.productId)).limit(1);
-    priced.push({ line, price, categoryIds: await productCategoryIds(executor, line.productId, product.categoryId) });
-  }
+  const prices = await priceProducts(executor, input.lines.map((line) => ({ productId: line.productId, variantId: line.variantId ?? null, quantity: line.quantity })), { customerId: input.customerId ?? null, customerGroupId: primaryGroup, countryCode: input.country });
+  const productIds = [...new Set(input.lines.map((line) => line.productId))];
+  const [defaults, links] = await Promise.all([
+    executor.select({ id: products.id, categoryId: products.categoryId }).from(products).where(inArray(products.id, productIds)),
+    executor.select({ productId: productCategories.productId, categoryId: productCategories.categoryId }).from(productCategories).where(inArray(productCategories.productId, productIds)),
+  ]);
+  const categoriesOf = (productId: string) => [...new Set([...defaults.filter((row) => row.id === productId).map((row) => row.categoryId), ...links.filter((link) => link.productId === productId).map((link) => link.categoryId)])];
+  const priced = input.lines.map((line, index) => ({ line, price: prices[index], categoryIds: categoriesOf(line.productId) }));
   const subtotal = priced.reduce((sum, entry) => sum + entry.price.totalInclTaxXof, 0);
   const codes = [...new Set(input.codes.map(normalizeVoucherCode))];
   const rows = await executor.select().from(promoCodes).where(and(inArray(promoCodes.code, codes), isNull(promoCodes.deletedAt)));

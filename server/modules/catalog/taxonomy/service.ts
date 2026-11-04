@@ -55,16 +55,24 @@ export async function listCategories(database: Db, query: ListQuery) {
 }
 
 /** Arbre complet (catégories non supprimées), avec profondeur, chemin et nombre de produits. */
-export async function categoryTree(executor: Executor, options: { activeOnly?: boolean } = {}): Promise<CategoryNode[]> {
-  const rows = await executor.select().from(categories).where(and(isNull(categories.deletedAt), options.activeOnly ? eq(categories.isActive, true) : undefined)).orderBy(asc(categories.sortOrder), asc(categories.name));
-  const counts = await executor.select({ categoryId: products.categoryId, value: count() }).from(products).where(isNull(products.deletedAt)).groupBy(products.categoryId);
-  const countById = new Map(counts.map((row) => [row.categoryId, Number(row.value)]));
-  const nodes = new Map<number, CategoryNode>(rows.map((row) => [row.id, { ...toCategoryView(row), depth: 0, path: [], productCount: countById.get(row.id) ?? 0, children: [] }]));
+export async function categoryTree(executor: Executor, options: { activeOnly?: boolean; productCounts?: Map<number, number> } = {}): Promise<CategoryNode[]> {
+  const rows = await executor.select().from(categories).where(isNull(categories.deletedAt)).orderBy(asc(categories.sortOrder), asc(categories.name));
+  let countById = options.productCounts;
+  if (!countById) {
+    const counts = await executor.select({ categoryId: products.categoryId, value: count() }).from(products).where(isNull(products.deletedAt)).groupBy(products.categoryId);
+    countById = new Map(counts.map((row) => [row.categoryId, Number(row.value)]));
+  }
+  const nodes = new Map<number, CategoryNode>(rows.map((row) => [row.id, { ...toCategoryView(row), depth: 0, path: [], productCount: countById!.get(row.id) ?? 0, children: [] }]));
   const roots: CategoryNode[] = [];
   for (const node of nodes.values()) {
     const parent = node.parentId != null ? nodes.get(node.parentId) : undefined;
     if (parent) parent.children.push(node);
     else roots.push(node);
+  }
+  // Boutique : une catégorie inactive masque toute sa branche (ses enfants ne remontent pas à la racine).
+  if (options.activeOnly) {
+    const prune = (list: CategoryNode[]): CategoryNode[] => list.filter((node) => node.isActive).map((node) => ({ ...node, children: prune(node.children) }));
+    roots.splice(0, roots.length, ...prune(roots));
   }
   const walk = (list: CategoryNode[], depth: number, path: string[]) => {
     for (const node of list) {

@@ -20,7 +20,13 @@ Toutes les couleurs sont regroupées dans `app/theme.css` (orange `#ff8000` et n
 
 ## Backend et API REST v1
 
-Le backend est organisé par domaine dans `server/` (route → service → repository) et exposé sous `/api/v1` : `/api/v1/admin` pour le back-office (jetons employé ou clés d'API, permissions par rôle) et `/api/v1/shop` pour la boutique. La spécification OpenAPI est servie sur `/api/v1/openapi.json`. Documentation : `docs/backend/01-audit-et-plan.md` (audit et plan) et `docs/backend/02-fondations.md` (fondations, mise à jour de la base de production, variables d'environnement).
+Le backend est organisé par domaine dans `server/` (route → service → repository) et exposé sous `/api/v1` : `/api/v1/admin` pour le back-office (jetons employé ou clés d'API, permissions par rôle) et `/api/v1/shop` pour la boutique. La spécification OpenAPI est servie sur `/api/v1/openapi.json`. La documentation est dans `docs/backend/` :
+
+- `01-audit-et-plan.md` : audit et plan ;
+- `02-fondations.md` : fondations, mise à jour de la base de production, variables d'environnement ;
+- `03-catalogue-prix-stocks.md` : catalogue, prix, promotions, bons, entrepôts et grand livre de stock.
+
+Toute variation de stock passe par `lib/stock-ledger.ts` (réservations tracées, mouvements avant/après, sans survente).
 
 ## Pages et fonctionnalités
 
