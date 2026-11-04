@@ -192,3 +192,102 @@ describe("tunnel historique de la boutique (panier du navigateur)", () => {
     session.current = null;
   });
 });
+
+describe("administration des commandes, clients, taxes et devises", () => {
+  let paidOrder: { id: string; reference: string };
+  let pendingOrder: { id: string };
+
+  it("liste les commandes, applique les statuts et leurs effets (paiement, séquestre, stock)", async () => {
+    const list = await admin("GET", "/admin/orders?q=awa@exemple.ci&sort=createdAt");
+    expect(list.status).toBe(200);
+    expect(list.json.data.length).toBeGreaterThanOrEqual(3);
+    [paidOrder, pendingOrder] = list.json.data;
+
+    const paid = await admin("POST", `/admin/orders/${paidOrder.id}/status`, { status: "paid_escrow", note: "Virement reçu" });
+    expect(paid.status).toBe(200);
+    expect(paid.json.data).toMatchObject({ status: "paid_escrow", payments: [expect.objectContaining({ status: "succeeded" })], escrow: { status: "blocked" } });
+    expect(paid.json.data.escrow.commissionXof).toBe(Math.round(paid.json.data.totals.totalXof * 0.08));
+
+    const invalid = await admin("POST", `/admin/orders/${paidOrder.id}/status`, { status: "delivered" });
+    expect(invalid.status).toBe(422);
+
+    await admin("POST", `/admin/orders/${paidOrder.id}/status`, { status: "seller_confirmed" });
+    const shipped = await admin("POST", `/admin/orders/${paidOrder.id}/status`, { status: "shipped", trackingNumber: "CN123456789" });
+    expect(shipped.json.data.reservations.every((entry: { status: string }) => entry.status === "consumed")).toBe(true);
+    expect(shipped.json.data.history.map((entry: { to: string }) => entry.to)).toEqual(["awaiting_payment", "paid_escrow", "seller_confirmed", "shipped"]);
+    const sales = await rows<{ n: number }>(sql`select count(*)::int as n from stock_movements where order_id = ${paidOrder.id} and reason = 'sale'`);
+    expect(sales[0].n).toBeGreaterThan(0);
+  });
+
+  it("annule une commande et libère sa réservation", async () => {
+    const before = await admin("GET", `/admin/orders/${pendingOrder.id}`);
+    const productId = before.json.data.items[0].productId;
+    const variantId = before.json.data.items[0].variantId;
+    const counter = async () => variantId
+      ? (await rows<{ n: number }>(sql`select stock as n from product_variants where id = ${variantId}`))[0].n
+      : (await rows<{ n: number }>(sql`select quantity as n from products where id = ${productId}`))[0].n;
+    const start = await counter();
+    const cancelled = await admin("POST", `/admin/orders/${pendingOrder.id}/status`, { status: "cancelled", note: "Demande du client" });
+    expect(cancelled.json.data.reservations.every((entry: { status: string }) => entry.status === "released")).toBe(true);
+    expect(await counter()).toBe(start + before.json.data.items[0].quantity);
+    const events = await rows<{ n: number }>(sql`select count(*)::int as n from domain_events where name = 'order.status_changed'`);
+    expect(events[0].n).toBeGreaterThanOrEqual(4);
+  });
+
+  it("émet une facture numérotée, des avoirs plafonnés et un document imprimable", async () => {
+    const invoice = await admin("POST", `/admin/orders/${paidOrder.id}/invoice`);
+    expect(invoice.status).toBe(201);
+    expect(invoice.json.data.number).toMatch(/^FAC-\d{4}-000001$/);
+    expect((await admin("POST", `/admin/orders/${paidOrder.id}/invoice`)).status).toBe(409);
+    expect((await admin("POST", `/admin/orders/${pendingOrder.id}/invoice`)).status).toBe(422);
+
+    const credit = await admin("POST", `/admin/orders/${paidOrder.id}/credit-notes`, { amountXof: 1000, reason: "Geste commercial" });
+    expect(credit.json.data.number).toMatch(/^AVR-\d{4}-000001$/);
+    expect((await admin("POST", `/admin/orders/${paidOrder.id}/credit-notes`, { amountXof: invoice.json.data.totalXof, reason: "Trop élevé" })).status).toBe(422);
+
+    const { handleApi } = await import("@/server/api/registry");
+    const response = await handleApi(new Request(`http://shop.test/api/v1/admin/invoices/${invoice.json.data.id}/document`, { headers: { authorization: `Bearer ${token}`, "x-forwarded-for": "203.0.113.10" } }), ["admin", "invoices", invoice.json.data.id, "document"]);
+    expect(response.headers.get("content-type")).toContain("text/html");
+    const html = await response.text();
+    expect(html).toContain(invoice.json.data.number);
+    expect(html).toContain("Awa Koné");
+
+    session.current = { user: { id: BUYER, role: "buyer", email: "awa@exemple.ci" } };
+    const mine = await handleApi(new Request(`http://shop.test/api/v1/shop/orders/${paidOrder.id}/invoice`, { headers: { "x-forwarded-for": "203.0.113.10" } }), ["shop", "orders", paidOrder.id, "invoice"]);
+    expect(mine.status).toBe(200);
+    session.current = { user: { id: SELLER_B, role: "seller", email: "b@vendeurs.ci" } };
+    const other = await handleApi(new Request(`http://shop.test/api/v1/shop/orders/${paidOrder.id}/invoice`, { headers: { "x-forwarded-for": "203.0.113.10" } }), ["shop", "orders", paidOrder.id, "invoice"]);
+    expect(other.status).toBe(404);
+    session.current = null;
+  });
+
+  it("gère clients et groupes, et refuse l'anonymisation tant qu'une commande est en cours", async () => {
+    const customers = await admin("GET", "/admin/customers?q=awa");
+    expect(customers.json.data).toHaveLength(1);
+    const customer = customers.json.data[0];
+    expect(customer).toMatchObject({ email: "awa@exemple.ci", segment: "business" });
+    expect(customer.orderCount).toBeGreaterThanOrEqual(3);
+
+    const group = await admin("POST", "/admin/customer-groups", { code: "grossistes", name: "Grossistes", discountBasisPoints: 700 });
+    expect(group.json.data.discountPercent).toBe(7);
+    const updated = await admin("PATCH", `/admin/customers/${customer.id}`, { customerGroupId: group.json.data.id, internalNote: "Cliente fidèle" });
+    expect(updated.json.data).toMatchObject({ customerGroupId: group.json.data.id, internalNote: "Cliente fidèle" });
+    const refused = await admin("POST", `/admin/customers/${customer.id}/anonymize`);
+    expect(refused.status).toBe(422);
+    expect((await admin("DELETE", `/admin/customer-groups/${group.json.data.id}`)).status).toBe(204);
+    expect((await admin("GET", `/admin/customers/${customer.id}`)).json.data.customerGroupId).toBeNull();
+  });
+
+  it("administre taxes et devises", async () => {
+    const rule = await admin("POST", "/admin/tax-rules", { code: "tva-sn", countryCode: "SN", label: "TVA Sénégal 18 %", ratePercent: 18 });
+    expect(rule.status).toBe(201);
+    const group = await admin("POST", "/admin/tax-rule-groups", { name: "TVA UEMOA", ruleIds: [rule.json.data.id] });
+    expect(group.json.data.rules).toHaveLength(1);
+    const lowered = await admin("PATCH", `/admin/tax-rules/${rule.json.data.id}`, { ratePercent: 10 });
+    expect(lowered.json.data.ratePercent).toBe(10);
+    const euro = await admin("POST", "/admin/currencies", { code: "EUR", name: "Euro", symbol: "€", conversionRate: 0.001524 });
+    expect(euro.status).toBe(201);
+    const listed = await api("GET", "/shop/currencies");
+    expect(listed.json.data.map((entry: { code: string }) => entry.code)).toContain("EUR");
+  });
+});
