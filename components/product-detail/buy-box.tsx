@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ChevronDown, ChevronRight, MessageCircle, RotateCcw, ShieldCheck, ShoppingCart } from "lucide-react";
+import { ChevronDown, ChevronRight, Code2, Globe, MessageCircle, RotateCcw, ShieldCheck, ShoppingBag, ShoppingCart, Store } from "lucide-react";
+
+const integrationIcons = { bag: ShoppingBag, cart: ShoppingCart, globe: Globe, store: Store, code: Code2 } as const;
 import type { Product } from "@/lib/pdp/types";
 import { pdpConfig } from "@/lib/pdp/config";
 import { startConversationAction } from "@/actions/messages";
@@ -84,7 +86,7 @@ export function BuyBox({ product, variants, compact, onOrder, onAddToCart, feedb
       <hr className="pd-rule"/>
       <section className="pd-dropship" aria-labelledby="pd-dropship-title">
         <h2 id="pd-dropship-title">{pdpConfig.dropshipping.title}</h2>
-        <ul className="pd-integrations" aria-label="Intégrations disponibles">{pdpConfig.dropshipping.integrations.map((item) => <li key={item.label} title={item.label}><span aria-hidden="true">{item.short}</span><span className="sr-only">{item.label}</span></li>)}</ul>
+        <ul className="pd-integrations" aria-label="Intégrations disponibles">{pdpConfig.dropshipping.integrations.map((item) => { const Icon = integrationIcons[item.icon]; return <li key={item.label} title={item.label}><Icon size={15} strokeWidth={1.5} aria-hidden="true"/><span className="sr-only">{item.label}</span></li>; })}</ul>
         <Link href={pdpConfig.dropshipping.href} className="pd-btn pd-btn-outline pd-btn-block">{pdpConfig.dropshipping.cta}</Link>
       </section>
     </>}

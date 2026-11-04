@@ -78,7 +78,7 @@ export const sampleWatchProduct: Product = {
     { label: "Personnalisation", value: "Logo gravé, couleur du cadran, couleur du bracelet et emballage personnalisé disponibles à partir de 50 pièces par modèle, délai supplémentaire de 7 jours ouvrés" },
   ],
   supplier: {
-    name: "Atelier Horloger Delta (exemple)",
+    name: "Atelier Horloger Delta",
     initials: "AD",
     country: "Chine",
     countryCode: "CN",

@@ -24,7 +24,7 @@ export function PriceBlock({ product, compact = false }: { product: Product; com
 export const ProductInfo = forwardRef<HTMLDivElement, Props>(function ProductInfo({ product, variants, unitPrice }, priceRef) {
   const [calcOpen, setCalcOpen] = useState(false);
   return <section className="pd-info" aria-label="Informations sur le produit">
-    <h1 className="pd-title">{product.title}</h1>
+    <h1 className="pd-title" title={product.title}>{product.title}</h1>
     <div className="pd-reputation">
       <Stars value={product.rating}/>
       <b>{product.rating.toLocaleString("fr-FR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}</b>

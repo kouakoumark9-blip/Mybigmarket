@@ -24,11 +24,11 @@ export const pdpConfig = {
     href: "/vendeur",
     /** Intégrations e-commerce affichées en pastilles (initiales). */
     integrations: [
-      { label: "Shopify", short: "S" },
-      { label: "WooCommerce", short: "W" },
-      { label: "Wix", short: "Wx" },
-      { label: "Ma boutique", short: "M" },
-      { label: "API", short: "API" },
+      { label: "Boutique Shopify", icon: "bag" },
+      { label: "WooCommerce", icon: "cart" },
+      { label: "Site Wix", icon: "globe" },
+      { label: "Boutique physique", icon: "store" },
+      { label: "Connexion API", icon: "code" },
     ],
   },
   tabs: [

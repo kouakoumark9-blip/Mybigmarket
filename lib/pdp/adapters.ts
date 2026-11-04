@@ -7,11 +7,9 @@ const DEFAULT_CARRIERS: Product["shipping"]["carriers"] = [
   { id: "sea", label: "Fret maritime", delay: "35 à 50 jours" },
 ];
 
+/** Note globale connue, répartition inconnue : on ne l'invente pas. */
 function summary(rating: number, count: number): ReviewSummary {
-  const distribution: ReviewSummary["distribution"] = [0, 0, 0, 0, 0];
-  const bucket = 5 - Math.min(5, Math.max(1, Math.round(rating)));
-  distribution[bucket] = count;
-  return { average: rating, count, distribution, items: [] };
+  return { average: rating, count, items: [] };
 }
 
 export function demoToCard(product: DemoProduct): ProductCardData {

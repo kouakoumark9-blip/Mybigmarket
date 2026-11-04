@@ -1308,6 +1308,8 @@ main .catalog-category-product-grid .product-card-price{color:var(--color-primar
 .search-form .search-image-button:hover{color:var(--color-text)}
 .search-form button[type="submit"]{border-radius:var(--radius-pill);margin:3px;height:calc(100% - 6px)}
 @media (min-width:981px){
-  body:has(main.pd) .header-main{grid-template-columns:auto minmax(280px,1fr) auto}
+  body:has(main.pd) .header-main{grid-template-columns:auto minmax(300px,1fr) auto;gap:18px}
+  body:has(main.pd) .header-main .search-form button[type="submit"]{padding:0 18px;font-size:14px}
+  body:has(main.pd) .header-main .search-form input{padding:0 8px}
   body:has(main.pd) .header-main .search-form.header-scroll-search,body:has(main.pd) .header-main.is-scrolled .search-form.header-scroll-search{display:flex;min-width:0;grid-column:auto;grid-row:auto;width:100%;max-width:640px;justify-self:center}
 }

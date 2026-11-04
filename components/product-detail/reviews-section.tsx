@@ -9,7 +9,7 @@ type Filter = "all" | "photos" | 1 | 2 | 3 | 4 | 5;
 
 export function ReviewsSection({ summary, id }: { summary: ReviewSummary; id: string }) {
   const [filter, setFilter] = useState<Filter>("all");
-  const total = summary.distribution.reduce((sum, value) => sum + value, 0) || summary.count;
+  const total = summary.distribution?.reduce((sum, value) => sum + value, 0) || summary.count;
   const photos = summary.items.flatMap((review) => review.photos ?? []);
   const items = useMemo(() => summary.items.filter((review: Review) => filter === "all" || (filter === "photos" ? Boolean(review.photos?.length) : review.rating === filter)), [summary.items, filter]);
   const filters: Array<{ id: Filter; label: string }> = [
@@ -26,16 +26,16 @@ export function ReviewsSection({ summary, id }: { summary: ReviewSummary; id: st
         <Stars value={summary.average} size={16}/>
         <span className="pd-muted">{summary.count.toLocaleString("fr-FR")} avis</span>
       </div>
-      <ul className="pd-reviews-bars" aria-label="Répartition des notes">
+      {summary.distribution && <ul className="pd-reviews-bars" aria-label="Répartition des notes">
         {summary.distribution.map((value, index) => {
           const stars = 5 - index;
           const percent = total ? Math.round((value / total) * 100) : 0;
           return <li key={stars}><span>{stars} ★</span><span className="pd-bar" role="meter" aria-valuemin={0} aria-valuemax={100} aria-valuenow={percent} aria-label={`${stars} étoiles : ${percent} %`}><i style={{ width: `${percent}%` }}/></span><span>{value}</span></li>;
         })}
-      </ul>
+      </ul>}
     </div>
     {photos.length > 0 && <ul className="pd-review-photos" aria-label="Photos des clients">{photos.map((photo) => <li key={photo.src}><PdpImage src={photo.src} alt={photo.alt} width={96} height={96} sizes="96px" loading="lazy"/></li>)}</ul>}
-    <div className="pd-chips pd-review-filters" role="group" aria-label="Filtrer les avis">
+    {summary.items.length > 0 ? <><div className="pd-chips pd-review-filters" role="group" aria-label="Filtrer les avis">
       {filters.map((item) => <button key={String(item.id)} type="button" className={`pd-chip${filter === item.id ? " is-selected" : ""}`} aria-pressed={filter === item.id} onClick={() => setFilter(item.id)}>{item.label}</button>)}
     </div>
     {items.length ? <ul className="pd-review-list">
@@ -45,6 +45,7 @@ export function ReviewsSection({ summary, id }: { summary: ReviewSummary; id: st
         <p>{review.text}</p>
         {review.photos?.length ? <ul className="pd-review-photos is-inline">{review.photos.map((photo) => <li key={photo.src}><PdpImage src={photo.src} alt={photo.alt} width={72} height={72} sizes="72px" loading="lazy"/></li>)}</ul> : null}
       </li>)}
-    </ul> : <p className="pd-empty"><MessageSquare size={18} strokeWidth={1.5} aria-hidden="true"/> Aucun avis ne correspond à ce filtre.</p>}
+    </ul> : <p className="pd-empty"><MessageSquare size={18} strokeWidth={1.5} aria-hidden="true"/> Aucun avis ne correspond à ce filtre.</p>}</>
+    : <p className="pd-empty"><MessageSquare size={18} strokeWidth={1.5} aria-hidden="true"/> Les commentaires détaillés des acheteurs s&apos;afficheront ici après leurs premières commandes.</p>}
   </section>;
 }

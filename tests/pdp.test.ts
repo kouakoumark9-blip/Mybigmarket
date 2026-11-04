@@ -48,6 +48,6 @@ describe("adaptateurs de la fiche produit", () => {
   it("l'exemple respecte le format attendu", () => {
     expect(sampleWatchProduct.images.length).toBeGreaterThanOrEqual(6);
     expect(sampleWatchProduct.priceMin).toBeLessThanOrEqual(sampleWatchProduct.priceMax);
-    expect(sampleWatchProduct.reviews.distribution.reduce((a, b) => a + b, 0)).toBe(sampleWatchProduct.reviews.count);
+    expect((sampleWatchProduct.reviews.distribution ?? []).reduce((a, b) => a + b, 0)).toBe(sampleWatchProduct.reviews.count);
   });
 });

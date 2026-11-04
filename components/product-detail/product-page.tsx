@@ -29,8 +29,8 @@ export type PublicReview = { id: string; rating: number; comment: string | null;
 function mergeReviews(summary: ReviewSummary, published: PublicReview[]): ReviewSummary {
   if (!published.length) return summary;
   const items: Review[] = published.map((review) => ({ id: review.id, author: "Client", rating: review.rating, date: new Date(review.createdAt).toISOString(), text: review.comment || "", verified: true }));
-  const distribution = [...summary.distribution] as ReviewSummary["distribution"];
-  items.forEach((review) => { distribution[5 - Math.min(5, Math.max(1, review.rating))] += 1; });
+  const distribution = summary.distribution ? [...summary.distribution] as NonNullable<ReviewSummary["distribution"]> : undefined;
+  items.forEach((review) => { if (distribution) distribution[5 - Math.min(5, Math.max(1, review.rating))] += 1; });
   const count = summary.count + items.length;
   const average = (summary.average * summary.count + items.reduce((sum, review) => sum + review.rating, 0)) / count;
   return { average: Math.round(average * 10) / 10, count, distribution, items: [...items, ...summary.items] };

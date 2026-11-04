@@ -15,10 +15,10 @@ export function SupplierCard({ supplier, id, idPrefix = "pd-supplier" }: { suppl
   const [reportOpen, setReportOpen] = useState(false);
   const rating = supplier.rating.toLocaleString("fr-FR", { maximumFractionDigits: 1 });
   const metrics = [
-    { label: "Chiffre d'affaires en ligne", value: supplier.onlineRevenue },
+    { label: "Chiffre d'affaires", value: supplier.onlineRevenue },
     { label: "Temps de réponse", value: supplier.responseTime },
-    { label: "Expédition dans les délais", value: supplier.onTimeShipping ? `${supplier.onTimeShipping} %` : "Non communiqué" },
-    { label: "Note de la boutique", value: <>{rating}/5 <small>({supplier.ratingCount.toLocaleString("fr-FR")})</small></> },
+    { label: "Expédié à temps", value: supplier.onTimeShipping ? `${supplier.onTimeShipping} %` : "Non communiqué" },
+    { label: "Note boutique", value: <>{rating}/5 <small>({supplier.ratingCount.toLocaleString("fr-FR")})</small></> },
   ].filter((metric) => metric.value !== "Non communiqué");
 
   return <section className="pd-supplier" id={id} aria-labelledby={`${idPrefix}-name`}>

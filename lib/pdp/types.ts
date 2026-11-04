@@ -78,8 +78,8 @@ export type Review = {
 export type ReviewSummary = {
   average: number;
   count: number;
-  /** Nombre d'avis par note, index 0 = 5 étoiles … index 4 = 1 étoile. */
-  distribution: [number, number, number, number, number];
+  /** Nombre d'avis par note, index 0 = 5 étoiles … index 4 = 1 étoile. Absent si inconnu. */
+  distribution?: [number, number, number, number, number];
   items: Review[];
 };
 
