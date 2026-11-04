@@ -31,6 +31,8 @@ describe("erreurs uniformes", () => {
   it("traduit les violations PostgreSQL en erreurs métier", () => {
     expect(fromDatabaseError({ code: "23505", constraint_name: "employees_email_unique" })?.code).toBe("CONFLICT");
     expect(fromDatabaseError({ cause: { code: "23503" } })?.code).toBe("BUSINESS_RULE");
+    expect(fromDatabaseError({ cause: { code: "42P01" } })).toMatchObject({ code: "SERVICE_UNAVAILABLE", status: 503 });
+    expect(fromDatabaseError({ code: "42703" })?.code).toBe("SERVICE_UNAVAILABLE");
     expect(fromDatabaseError(new Error("autre"))).toBeNull();
   });
 });

@@ -67,6 +67,8 @@ export function fromDatabaseError(error: unknown): AppError | null {
   if (code === "23505") return new AppError("CONFLICT", "Cette valeur existe déjà.", constraint ? { constraint } : undefined);
   if (code === "23503") return new AppError("BUSINESS_RULE", "Cette ressource est liée à d'autres données.", constraint ? { constraint } : undefined);
   if (code === "23514" || code === "22P02") return new AppError("VALIDATION_ERROR", "Valeur refusée par la base de données.", constraint ? { constraint } : undefined);
+  // Table ou colonne absente : la base n'a pas reçu les dernières migrations.
+  if (code === "42P01" || code === "42703") return new AppError("SERVICE_UNAVAILABLE", "La base de données n'est pas à jour : appliquez migrate-all.sql (voir docs/backend).", { reason: "schema_outdated" });
   return null;
 }
 
