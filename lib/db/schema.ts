@@ -401,7 +401,13 @@ export const orders = pgTable("orders", {
   internalNote: text("internal_note").notNull().default(""),
   /** Langue de la commande, pour les e-mails. */
   locale: varchar("locale", { length: 5 }).notNull().default("fr"),
-}, (t) => [index("orders_buyer_idx").on(t.buyerId, t.createdAt), index("orders_status_idx").on(t.status), index("orders_shipment_idx").on(t.shipmentId), uniqueIndex("orders_reference_unique").on(t.reference), index("orders_created_status_idx").on(t.createdAt, t.status)]);
+  /** Profil client (étape 4) ; les commandes antérieures restent reliées par buyerId seulement. */
+  customerId: uuid("customer_id").references((): AnyPgColumn => customers.id, { onDelete: "set null" }),
+  /** Regroupe les commandes d'un même paiement (une commande par vendeur). */
+  checkoutGroupId: uuid("checkout_group_id"),
+  /** Bons appliqués à la commande : code et part de remise TTC. */
+  appliedVouchers: jsonb("applied_vouchers").$type<Array<{ code: string; discountXof: number }>>().notNull().default([]),
+}, (t) => [index("orders_checkout_group_idx").on(t.checkoutGroupId), index("orders_customer_idx").on(t.customerId, t.createdAt), index("orders_buyer_idx").on(t.buyerId, t.createdAt), index("orders_status_idx").on(t.status), index("orders_shipment_idx").on(t.shipmentId), uniqueIndex("orders_reference_unique").on(t.reference), index("orders_created_status_idx").on(t.createdAt, t.status)]);
 
 export const conversations = pgTable("conversations", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -669,6 +675,8 @@ export const carts = pgTable("carts", {
   convertedOrderId: uuid("converted_order_id"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  /** Codes de réduction saisis (étape 4), réévalués à chaque calcul du panier. */
+  voucherCodes: jsonb("voucher_codes").$type<string[]>().notNull().default([]),
 }, (t) => [uniqueIndex("carts_guest_token_unique").on(t.guestTokenHash), index("carts_customer_status_idx").on(t.customerId, t.status), index("carts_abandoned_idx").on(t.status, t.abandonedAt)]);
 
 export const cartItems = pgTable("cart_items", {
