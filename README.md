@@ -12,7 +12,22 @@
 - Neon PostgreSQL + Drizzle ORM, schéma et migrations dans `lib/db/schema.ts` et `drizzle/`
 - Auth.js Credentials, mots de passe hachés avec bcrypt, rôles `buyer`, `seller`, `admin`
 - Vercel Blob : images produit publiques, justificatifs vendeurs en stockage privé
-- Interface française, FCFA/XOF, responsive/mobile-first; association typographique Inter (texte) + Manrope (titres), auto-hébergées sous licence SIL OFL; aucune favicon
+- Interface française, FCFA/XOF, responsive/mobile-first; police Alibaba Sans si disponible, sinon Inter auto-hébergée (SIL OFL); aucune favicon
+
+## Thème dynamique (design system)
+
+Toutes les couleurs passent par des variables CSS définies dans `app/theme.css`. C'est le seul fichier qui contient des couleurs littérales : `globals.css` et les composants n'utilisent que `var(--color-*)` ou les utilitaires Tailwind (`bg-primary`, `hover:bg-primary-hover`, `text-on-primary`, `bg-primary-soft`, `text-text-muted`, `border-border`, `bg-surface`…).
+
+- **Une seule couleur** : `--brand-color`. Le CSS en dérive `--color-primary`, `--color-primary-hover` (assombri de 10 %), `--color-primary-soft` (10 % sur blanc) et `--color-on-primary`, en blanc ou en noir selon le contraste WCAG AA.
+- **Détection automatique** (`lib/theme/brand.ts`, `components/theme-script.tsx`, `components/theme-provider.tsx`), dans cet ordre :
+  1. la variable `--brand-color` ou `--primary` du site hôte ;
+  2. `<meta name="theme-color">` ;
+  3. la couleur du bouton ou du lien principal ;
+  4. `#FF6A00` par défaut.
+- **Configurer la couleur** : `NEXT_PUBLIC_BRAND_COLOR=#0057FF`, ou `:root{--brand-color:#0057FF}`, ou `document.documentElement.style.setProperty("--brand-color", "#16A34A")`.
+- **Mode sombre** : suit `prefers-color-scheme`. Il peut aussi être forcé avec `data-theme="dark"` ou `data-theme="light"` sur `<html>`.
+- **Couleurs fixes** : les couleurs sémantiques (WhatsApp, en stock, erreurs, étoiles) et les drapeaux ne suivent pas la marque.
+- **Démonstration** : `/theme-demo` (non indexée).
 
 ## Pages et fonctionnalités
 

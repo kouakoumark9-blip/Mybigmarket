@@ -1,0 +1,197 @@
+/*
+ * mybigmarket — design tokens
+ * ---------------------------------------------------------------------------
+ * Toute la palette de marque est dérivée d'UNE seule couleur : --brand-color.
+ *
+ *   :root { --brand-color: #0057FF; }      → toute l'interface passe au bleu
+ *   document.documentElement.style.setProperty("--brand-color", "#16A34A")
+ *
+ * Ce fichier est le SEUL endroit autorisé à contenir des couleurs littérales.
+ * Les composants et les autres feuilles de style n'utilisent que var(--color-*)
+ * ou les utilitaires Tailwind générés (bg-primary, text-text-muted, …).
+ *
+ * --brand-color n'est volontairement PAS déclarée ici : le site hôte (ou le
+ * ThemeProvider) la définit. Sans elle, --brand-default (#FF6A00) s'applique.
+ */
+
+/* Police : Alibaba Sans si elle est installée localement ou ajoutée dans
+   public/fonts (décommentez la ligne url()), sinon Inter auto-hébergée. */
+@font-face{font-family:"Alibaba Sans";font-style:normal;font-weight:400;font-display:swap;src:local("Alibaba Sans"),local("AlibabaSans-Regular")/*,url("/fonts/alibaba-sans-regular.woff2") format("woff2")*/}
+@font-face{font-family:"Alibaba Sans";font-style:normal;font-weight:500;font-display:swap;src:local("Alibaba Sans Medium"),local("AlibabaSans-Medium")/*,url("/fonts/alibaba-sans-medium.woff2") format("woff2")*/}
+@font-face{font-family:"Alibaba Sans";font-style:normal;font-weight:600 700;font-display:swap;src:local("Alibaba Sans Bold"),local("AlibabaSans-Bold")/*,url("/fonts/alibaba-sans-bold.woff2") format("woff2")*/}
+@font-face{font-family:"Alibaba Sans";font-style:normal;font-weight:800 900;font-display:swap;src:local("Alibaba Sans Heavy"),local("AlibabaSans-Heavy")/*,url("/fonts/alibaba-sans-heavy.woff2") format("woff2")*/}
+
+/* ---------------------------------------------------------------------------
+ * 1. Couleurs de base (mode clair)
+ * ------------------------------------------------------------------------- */
+:root{
+  color-scheme:light dark;
+
+  --brand-default:#FF6A00;
+
+  /* Neutres */
+  --color-text:#1f2328;
+  --color-text-muted:#5f6871;          /* 5,6:1 sur --color-surface */
+  --color-text-subtle:#868e96;         /* légendes, texte non essentiel */
+  --color-border:#e6e8eb;
+  --color-border-strong:#cdd2d7;
+  --color-bg:#f6f7f8;                  /* fond de page */
+  --color-surface:#ffffff;             /* cartes, en-tête, panneaux */
+  --color-surface-2:#f0f2f4;           /* puces, champs, zones secondaires */
+  --color-surface-inverse:#24282d;     /* bandeaux sombres, toasts, pied de page */
+  --color-on-inverse:#ffffff;
+  --color-shadow:#10161c;
+  --color-static-white:#ffffff;        /* texte posé sur photo, quel que soit le thème */
+  --color-static-black:#000000;
+
+  /* Couleurs sémantiques — FIXES, indépendantes du thème de marque */
+  --color-success:#15803d;             /* « en stock », validations (texte AA) */
+  --color-success-soft:#ecfdf3;
+  --color-whatsapp:#25d366;
+  --color-on-whatsapp:#0b2e17;
+  --color-danger:#c62828;              /* erreurs */
+  --color-danger-soft:#fdeeee;
+  --color-rating:#f5b400;              /* étoiles de notation */
+  --color-info:#1d4ed8;
+
+  /* Drapeaux : contenu, jamais teinté par la marque */
+  --flag-ci-orange:#f77f00;
+  --flag-ci-green:#009e60;
+  --flag-white:#ffffff;
+  --flag-cn-red:#de2910;
+  --flag-cn-yellow:#ffde00;
+
+  /* Ombres très légères */
+  --shadow-xs:0 1px 2px color-mix(in srgb,var(--color-shadow) 5%,transparent);
+  --shadow-sm:0 1px 2px color-mix(in srgb,var(--color-shadow) 4%,transparent),0 4px 14px color-mix(in srgb,var(--color-shadow) 5%,transparent);
+  --shadow-md:0 2px 6px color-mix(in srgb,var(--color-shadow) 5%,transparent),0 10px 28px color-mix(in srgb,var(--color-shadow) 7%,transparent);
+
+  /* Forme & typographie */
+  --radius-pill:999px;
+  --font-sans:"Alibaba Sans","Inter",Arial,sans-serif;
+  --font-weight-price:700;
+}
+
+/* ---------------------------------------------------------------------------
+ * 2. Palette de marque dérivée de --brand-color
+ *    Déclarée aussi sur [data-theme-scope] pour pouvoir prévisualiser une autre
+ *    marque dans une sous-partie de la page (voir /theme-demo).
+ * ------------------------------------------------------------------------- */
+:root,[data-theme-scope]{
+  --color-primary:var(--brand-color,var(--brand-default));
+  /* hover = primaire assombri de 10 % */
+  --color-primary-hover:color-mix(in srgb,var(--color-primary) 90%,var(--color-static-black));
+  /* variante foncée pour le texte/lien primaire sur fond clair */
+  --color-primary-strong:color-mix(in srgb,var(--color-primary) 72%,var(--color-static-black));
+  /* soft = primaire à 10 % sur fond blanc */
+  --color-primary-soft:color-mix(in srgb,var(--color-primary) 10%,var(--color-static-white));
+  /* bordure / état sélectionné teinté */
+  --color-primary-muted:color-mix(in srgb,var(--color-primary) 28%,var(--color-static-white));
+  --color-focus-ring:color-mix(in srgb,var(--color-primary) 55%,transparent);
+
+  /* Texte sur primaire. Valeur de secours (sans JS ni color relative) :
+     noir, lisible sur la teinte par défaut #FF6A00 (7,3:1). Le ThemeProvider
+     la recalcule ensuite selon le contraste WCAG exact. */
+  --color-on-primary:var(--color-static-black);
+}
+
+/* Navigateurs récents : blanc ou noir calculé en CSS pur à partir de la
+   luminance perçue (OKLCH). Seuil 0,6 ≈ point d'égalité de contraste WCAG. */
+@supports (color:oklch(from red l c h)){
+  :root,[data-theme-scope]{
+    --color-on-primary:oklch(from var(--color-primary) clamp(0,(0.6 - l) * 1000,1) 0 0);
+  }
+}
+
+/* ---------------------------------------------------------------------------
+ * 3. Mode sombre (préférence système, sauf si data-theme="light" est forcé)
+ * ------------------------------------------------------------------------- */
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --color-text:#e8eaed;
+    --color-text-muted:#a7afb7;
+    --color-text-subtle:#838b93;
+    --color-border:#2e3338;
+    --color-border-strong:#454b52;
+    --color-bg:#111316;
+    --color-surface:#1a1d21;
+    --color-surface-2:#23272c;
+    --color-surface-inverse:#0b0c0e;
+    --color-on-inverse:#f3f4f6;
+    --color-shadow:#000000;
+    --color-success:#4ade80;
+    --color-success-soft:#10291a;
+    --color-danger:#f87171;
+    --color-danger-soft:#3a1517;
+  }
+  :root:not([data-theme="light"]),:root:not([data-theme="light"]) [data-theme-scope]{
+    --color-primary-strong:color-mix(in srgb,var(--color-primary) 70%,var(--color-static-white));
+    --color-primary-soft:color-mix(in srgb,var(--color-primary) 14%,var(--color-surface));
+    --color-primary-muted:color-mix(in srgb,var(--color-primary) 35%,var(--color-surface));
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --color-text:#e8eaed;
+  --color-text-muted:#a7afb7;
+  --color-text-subtle:#838b93;
+  --color-border:#2e3338;
+  --color-border-strong:#454b52;
+  --color-bg:#111316;
+  --color-surface:#1a1d21;
+  --color-surface-2:#23272c;
+  --color-surface-inverse:#0b0c0e;
+  --color-on-inverse:#f3f4f6;
+  --color-shadow:#000000;
+  --color-success:#4ade80;
+  --color-success-soft:#10291a;
+  --color-danger:#f87171;
+  --color-danger-soft:#3a1517;
+}
+:root[data-theme="dark"],:root[data-theme="dark"] [data-theme-scope]{
+  --color-primary-strong:color-mix(in srgb,var(--color-primary) 70%,var(--color-static-white));
+  --color-primary-soft:color-mix(in srgb,var(--color-primary) 14%,var(--color-surface));
+  --color-primary-muted:color-mix(in srgb,var(--color-primary) 35%,var(--color-surface));
+}
+:root[data-theme="light"]{color-scheme:light}
+
+/* ---------------------------------------------------------------------------
+ * 4. Mapping Tailwind v4 (équivalent de theme.extend.colors en v3)
+ *    `inline` : les utilitaires référencent directement les variables
+ *    ci-dessus → bg-primary, hover:bg-primary-hover, text-on-primary,
+ *    bg-primary-soft, text-text-muted, border-border, bg-surface, …
+ *    L'opacité fonctionne aussi : bg-primary/20.
+ * ------------------------------------------------------------------------- */
+@theme inline{
+  --color-primary:var(--color-primary);
+  --color-primary-hover:var(--color-primary-hover);
+  --color-primary-strong:var(--color-primary-strong);
+  --color-primary-soft:var(--color-primary-soft);
+  --color-primary-muted:var(--color-primary-muted);
+  --color-on-primary:var(--color-on-primary);
+  --color-text:var(--color-text);
+  --color-text-muted:var(--color-text-muted);
+  --color-text-subtle:var(--color-text-subtle);
+  --color-border:var(--color-border);
+  --color-border-strong:var(--color-border-strong);
+  --color-bg:var(--color-bg);
+  --color-surface:var(--color-surface);
+  --color-surface-2:var(--color-surface-2);
+  --color-surface-inverse:var(--color-surface-inverse);
+  --color-on-inverse:var(--color-on-inverse);
+  --color-success:var(--color-success);
+  --color-success-soft:var(--color-success-soft);
+  --color-whatsapp:var(--color-whatsapp);
+  --color-on-whatsapp:var(--color-on-whatsapp);
+  --color-danger:var(--color-danger);
+  --color-danger-soft:var(--color-danger-soft);
+  --color-rating:var(--color-rating);
+  --font-sans:var(--font-sans);
+  --radius-pill:var(--radius-pill);
+  --shadow-xs:var(--shadow-xs);
+  --shadow-sm:var(--shadow-sm);
+  --shadow-md:var(--shadow-md);
+}
+
+/* Prix et chiffres : graisse 600-700, chiffres tabulaires */
+.price,[data-price]{font-weight:var(--font-weight-price);font-variant-numeric:tabular-nums}
