@@ -18,6 +18,7 @@ import { enforceRateLimit, type RateLimitPolicyName } from "@/server/core/rate-l
 import { beginIdempotent, completeIdempotent, readIdempotencyKey, releaseIdempotent } from "@/server/core/idempotency";
 import { resolveShop, type ShopContext } from "@/server/core/shop";
 import { scheduleDispatch } from "@/server/core/events";
+import { DEFAULT_SHOP_ID } from "@/lib/db/schema";
 
 export type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 export type Surface = "admin" | "shop" | "public";
@@ -134,15 +135,21 @@ export async function executeRoute(route: AnyRoute, request: Request, options: E
   let idempotency: { scope: string; key: string } | null = null;
   let database: Db | null = null;
   try {
-    database = options.database();
+    try {
+      database = options.database();
+    } catch (error) {
+      // Seules les routes publiques sans base (ex. /openapi.json) fonctionnent sans DATABASE_URL.
+      if (route.surface !== "public") throw error;
+    }
     const url = new URL(request.url);
-    const shop = await resolveShop(database, request.headers);
+    const shop = database ? await resolveShop(database, request.headers) : { id: DEFAULT_SHOP_ID, code: "default", name: "mybigmarket" };
     const authMode = route.auth ?? (route.surface === "admin" ? "required" : "optional");
 
     let admin: AdminPrincipal | null = null;
     let customer: CustomerPrincipal | null = null;
+    if (!database && route.surface !== "public") throw errors.unavailable("La base de données n'est pas configurée.");
     if (route.surface === "admin" && authMode !== "none") {
-      admin = await resolveAdminPrincipal(database, request.headers, meta.ip);
+      admin = await resolveAdminPrincipal(database!, request.headers, meta.ip);
       if (route.permission) assertPermission(admin, route.permission);
       if (admin.shopId !== shop.id && admin.kind === "api_key") throw errors.forbidden();
     } else if (route.surface === "shop" && authMode !== "none") {
@@ -153,7 +160,7 @@ export async function executeRoute(route: AnyRoute, request: Request, options: E
 
     const policy = route.rateLimit ?? (route.surface === "admin" ? (route.method === "GET" ? "admin.default" : "admin.write") : "shop.default");
     const subject = admin?.actorId ?? customer?.userId ?? meta.ip ?? "anonymous";
-    const limit = await enforceRateLimit(() => database!, policy, subject);
+    const limit = database ? await enforceRateLimit(() => database!, policy, subject) : null;
     if (limit) {
       baseHeaders["x-ratelimit-limit"] = String(limit.limit);
       baseHeaders["x-ratelimit-remaining"] = String(limit.remaining);
@@ -170,7 +177,7 @@ export async function executeRoute(route: AnyRoute, request: Request, options: E
       const key = readIdempotencyKey(request.headers, route.idempotency === "required");
       if (key) {
         const scope = `${route.id}:${subject}`;
-        const replay = await beginIdempotent(database, scope, key, `${url.pathname}\n${bodyInput.raw}`);
+        const replay = await beginIdempotent(database!, scope, key, `${url.pathname}\n${bodyInput.raw}`);
         if (replay) return Response.json(replay.body, { status: replay.status, headers: { ...baseHeaders, "idempotent-replayed": "true" } });
         idempotency = { scope, key };
       }
@@ -180,9 +187,9 @@ export async function executeRoute(route: AnyRoute, request: Request, options: E
     if (result instanceof Response) return result;
     const status = route.status ?? (route.method === "POST" ? 201 : 200);
     const payload = result === undefined ? null : isListResult(result) ? result : { data: result };
-    if (idempotency) await completeIdempotent(database, idempotency.scope, idempotency.key, { status, body: payload });
+    if (idempotency) await completeIdempotent(database!, idempotency.scope, idempotency.key, { status, body: payload });
     // Les événements écrits par le handler sont distribués après la réponse (outbox).
-    if (route.method !== "GET") await scheduleDispatch(options.database);
+    if (route.method !== "GET" && database) await scheduleDispatch(options.database);
     logger.info("api.request", { requestId: meta.requestId, route: route.id, status, ms: Date.now() - started, actor: admin?.actorId ?? customer?.userId });
     if (status === 204) return new Response(null, { status, headers: baseHeaders });
     return Response.json(payload, { status, headers: baseHeaders });

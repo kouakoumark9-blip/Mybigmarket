@@ -2,7 +2,7 @@ import { loadEnvConfig } from "@next/env";
 loadEnvConfig(process.cwd());
 
 import { randomBytes } from "node:crypto";
-import bcrypt from "bcryptjs";
+import { hashPassword } from "@/server/core/auth/password";
 import { eq } from "drizzle-orm";
 import catalog from "@/drizzle/seed/products.json";
 import { getDb } from "@/lib/db";
@@ -161,7 +161,7 @@ async function ensureSuperAdmin(db: ReturnType<typeof getDb>, roleId: string) {
   const fullName = (process.env.SEED_SUPERADMIN_NAME || "Admin").trim().split(/\s+/);
   const firstName = fullName.shift() || "Admin";
   const lastName = fullName.join(" ");
-  const passwordHash = await bcrypt.hash(password, 12);
+  const passwordHash = await hashPassword(password);
   const [created] = await db.insert(employees).values({
     roleId,
     email,
@@ -181,7 +181,7 @@ async function ensureCatalogSeller(db: ReturnType<typeof getDb>) {
   const email = "catalog-import@mybigmarket.invalid";
   let [user] = await db.select().from(users).where(eq(users.email, email)).limit(1);
   if (!user) {
-    const passwordHash = await bcrypt.hash(randomBytes(48).toString("base64url"), 12);
+    const passwordHash = await hashPassword(randomBytes(48).toString("base64url"));
     [user] = await db.insert(users).values({
       name: "Import catalogue interne",
       email,

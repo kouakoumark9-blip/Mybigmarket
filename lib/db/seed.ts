@@ -1,6 +1,6 @@
 import { loadEnvConfig } from "@next/env";
 loadEnvConfig(process.cwd());
-import bcrypt from "bcryptjs";
+import { hashPassword } from "@/server/core/auth/password";
 import { eq } from "drizzle-orm";
 import { getDb } from "@/lib/db";
 import { categories as categoryRows, sellerProfiles, users, products, pickupPoints } from "@/lib/db/schema";
@@ -11,7 +11,7 @@ async function main() {
   const password = process.env.SEED_DEMO_PASSWORD;
   if (!password || password.length < 10) throw new Error("Définissez SEED_DEMO_PASSWORD avec au moins 10 caractères dans votre environnement local.");
   const db = getDb();
-  const passwordHash = await bcrypt.hash(password, 12);
+  const passwordHash = await hashPassword(password);
   const now = new Date();
 
   await db.insert(categoryRows).values(demoCategories.map((item, index) => ({ name: item.name, slug: item.slug, sortOrder: index, isActive: true }))).onConflictDoUpdate({ target: categoryRows.slug, set: { isActive: true } });

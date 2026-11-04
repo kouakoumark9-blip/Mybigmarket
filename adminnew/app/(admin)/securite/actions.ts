@@ -1,6 +1,6 @@
 "use server";
 
-import bcrypt from "bcryptjs";
+import { hashPassword, verifyPassword } from "@/lib/password";
 import { and, eq } from "drizzle-orm";
 import { headers } from "next/headers";
 import { z } from "zod";
@@ -49,11 +49,11 @@ export async function changeEmployeePassword(_previousState: PasswordChangeState
     if (!employee || employee.status !== "active" || employee.passwordChangedAt.toISOString() !== session.user.passwordChangedAt) {
       return error("Ta session n’est plus valide. Reconnecte-toi puis réessaie.");
     }
-    if (!(await bcrypt.compare(parsed.data.currentPassword, employee.passwordHash))) {
+    if (!(await verifyPassword(parsed.data.currentPassword, employee.passwordHash))) {
       return error("Le mot de passe actuel est incorrect.");
     }
 
-    const passwordHash = await bcrypt.hash(parsed.data.newPassword, 12);
+    const passwordHash = await hashPassword(parsed.data.newPassword);
     const requestHeaders = await headers();
     const ipAddress = requestHeaders.get("x-forwarded-for")?.split(",")[0]?.trim().slice(0, 45)
       || requestHeaders.get("x-real-ip")?.slice(0, 45)

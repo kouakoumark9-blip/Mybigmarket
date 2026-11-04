@@ -1,7 +1,10 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { eq } from "drizzle-orm";
-import bcrypt from "bcryptjs";
+import { hashPassword, needsRehash, verifyAgainstDummy, verifyPassword } from "@/server/core/auth/password";
+import { clientIp } from "@/server/core/http/request-context";
+import { db as serviceDb } from "@/server/core/db";
+import { enforceRateLimit } from "@/server/core/rate-limit";
 import { z } from "zod";
 import { getDb } from "@/lib/db";
 import { users } from "@/lib/db/schema";
@@ -13,14 +16,26 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   pages: { signIn: "/connexion" },
   providers: [Credentials({
     credentials: { email: { label: "E-mail", type: "email" }, password: { label: "Mot de passe", type: "password" } },
-    async authorize(raw) {
+    async authorize(raw, request) {
       const parsed = credentialsSchema.safeParse(raw);
       if (!parsed.success) return null;
+      const email = parsed.data.email.toLowerCase();
+      // Limite partagée entre instances : 10 tentatives / 15 min par IP et adresse.
+      try {
+        await enforceRateLimit(serviceDb, "auth.login", `shop:${clientIp(request.headers) ?? "unknown"}:${email}`);
+      } catch {
+        return null;
+      }
       const db = getDb();
-      const [user] = await db.select().from(users).where(eq(users.email, parsed.data.email.toLowerCase())).limit(1);
-      if (!user || user.status !== "active") return null;
-      const valid = await bcrypt.compare(parsed.data.password, user.passwordHash);
+      const [user] = await db.select().from(users).where(eq(users.email, email)).limit(1);
+      if (!user || user.status !== "active") {
+        await verifyAgainstDummy(parsed.data.password);
+        return null;
+      }
+      const valid = await verifyPassword(parsed.data.password, user.passwordHash);
       if (!valid) return null;
+      // Migration transparente des anciens hashes bcrypt vers argon2id.
+      if (needsRehash(user.passwordHash)) await db.update(users).set({ passwordHash: await hashPassword(parsed.data.password) }).where(eq(users.id, user.id));
       return { id: user.id, name: user.name, email: user.email, role: user.role };
     },
   })],

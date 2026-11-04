@@ -9,6 +9,7 @@
     "lint": "eslint ."
   },
   "dependencies": {
+    "@node-rs/argon2": "2.2.2",
     "@radix-ui/react-slot": "^1.2.3",
     "bcryptjs": "^3.0.2",
     "class-variance-authority": "^0.7.1",
