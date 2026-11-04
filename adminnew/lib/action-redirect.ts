@@ -9,13 +9,18 @@ export async function runAndRedirect(path: string, success: string, work: () => 
   let target: string;
   try {
     const result = await work();
-    const base = options.successPath ? options.successPath(result) : path;
-    target = `${base}${base.includes("?") ? "&" : "?"}ok=${encodeURIComponent(success)}`;
+    target = withParam(options.successPath ? options.successPath(result) : path, "ok", success);
   } catch (error) {
     if (isRedirect(error)) throw error;
-    target = `${path}${path.includes("?") ? "&" : "?"}error=${encodeURIComponent(apiErrorMessage(error))}`;
+    target = withParam(path, "error", apiErrorMessage(error));
   }
   redirect(target);
+}
+
+/** Ajoute un paramètre de requête en conservant l'ancre (#section). */
+function withParam(path: string, key: string, value: string): string {
+  const [base, hash] = path.split("#");
+  return `${base}${base.includes("?") ? "&" : "?"}${key}=${encodeURIComponent(value)}${hash ? `#${hash}` : ""}`;
 }
 
 function isRedirect(error: unknown): boolean {
