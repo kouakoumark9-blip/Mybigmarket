@@ -36,6 +36,8 @@ export type RouteContext<P, Q, B, S extends Surface> = {
   db: Db;
   admin: [S] extends ["admin"] ? AdminPrincipal : AdminPrincipal | null;
   customer: CustomerPrincipal | null;
+  /** En-têtes ajoutés à la réponse (ex. Set-Cookie du panier invité). */
+  responseHeaders: Headers;
 };
 
 export type RouteDefinition<PS extends ZodType | undefined = ZodType | undefined, QS extends ZodType | undefined = ZodType | undefined, BS extends ZodType | undefined = ZodType | undefined, S extends Surface = Surface> = {
@@ -183,7 +185,8 @@ export async function executeRoute(route: AnyRoute, request: Request, options: E
       }
     }
 
-    const result = await route.handler({ request, params, query, body, list, meta, shop, db: database, admin, customer } as never);
+    const responseHeaders = new Headers();
+    const result = await route.handler({ request, params, query, body, list, meta, shop, db: database, admin, customer, responseHeaders } as never);
     if (result instanceof Response) return result;
     const status = route.status ?? (route.method === "POST" ? 201 : 200);
     const payload = result === undefined ? null : isListResult(result) ? result : { data: result };
@@ -191,8 +194,10 @@ export async function executeRoute(route: AnyRoute, request: Request, options: E
     // Les événements écrits par le handler sont distribués après la réponse (outbox).
     if (route.method !== "GET" && database) await scheduleDispatch(options.database);
     logger.info("api.request", { requestId: meta.requestId, route: route.id, status, ms: Date.now() - started, actor: admin?.actorId ?? customer?.userId });
-    if (status === 204) return new Response(null, { status, headers: baseHeaders });
-    return Response.json(payload, { status, headers: baseHeaders });
+    const headers = new Headers(baseHeaders);
+    responseHeaders.forEach((value, name) => headers.append(name, value));
+    if (status === 204) return new Response(null, { status, headers });
+    return Response.json(payload, { status, headers });
   } catch (error) {
     if (idempotency && database) await releaseIdempotent(database, idempotency.scope, idempotency.key).catch(() => undefined);
     const appError = error instanceof AppError ? error : fromDatabaseError(error);
