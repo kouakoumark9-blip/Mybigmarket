@@ -1,6 +1,6 @@
 "use server";
 
-import { and, eq, gte, inArray, sql } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { z } from "zod";
 import { auth } from "@/auth";
 import { assertActiveAccount } from "@/lib/session-account";
@@ -8,6 +8,7 @@ import { getDb } from "@/lib/db";
 import { orderEvents, orderItems, orders, payments, pickupPoints, products, sellerProfiles, users } from "@/lib/db/schema";
 import { getPaymentProvider, type PayMethod } from "@/lib/payments/provider";
 import { countryName, destinationCountries, destinationByCode } from "@/lib/west-africa";
+import { reserveOrderStock, StockLedgerError } from "@/lib/stock-ledger";
 
 const checkoutSchema = z.object({
   cart: z.string().min(2), method: z.enum(["orange_money", "mtn_momo", "wave", "card"]),
@@ -68,21 +69,33 @@ export async function createCheckoutAction(formData: FormData): Promise<{ error?
       const created: string[] = [];
       for (const [sellerId, lines] of grouped) {
         const total = lines.reduce((sum, line) => sum + line.product.priceXof * line.qty, 0);
+        // Le produit doit toujours être validé au moment de réserver (verrou de ligne).
         for (const line of lines) {
-          const [reserved] = await tx.update(products).set({ quantity: sql`${products.quantity} - ${line.qty}`, updatedAt: new Date() }).where(and(eq(products.id, line.product.id), eq(products.status, "approved"), gte(products.quantity, line.qty))).returning({ id: products.id });
-          if (!reserved) throw new Error(`STOCK_CHANGED:${line.product.title}`);
+          const [current] = await tx.select({ status: products.status }).from(products).where(eq(products.id, line.product.id)).for("update");
+          if (current?.status !== "approved") throw new Error(`STOCK_CHANGED:${line.product.title}`);
         }
+        const paymentExpiresAt = new Date(Date.now() + 30 * 60 * 1000);
         const [order] = await tx.insert(orders).values({
           buyerId: session.user.id,
           totalXof: total,
           status: "awaiting_payment",
           deliveryMethod: parsed.data.deliveryMethod,
-          paymentExpiresAt: new Date(Date.now() + 30 * 60 * 1000),
+          paymentExpiresAt,
           pickupPointId: parsed.data.deliveryMethod === "pickup" ? parsed.data.pickupPointId : null,
           deliveryAddress: parsed.data.deliveryMethod === "delivery" ? { name: parsed.data.name || "", phone: parsed.data.phone || "", address: parsed.data.address || "", city: parsed.data.city || "", countryCode: parsed.data.countryCode, countryName: countryName(parsed.data.countryCode, "fr"), currency: destination.currency, language: parsed.data.language } : { countryCode: parsed.data.countryCode, countryName: countryName(parsed.data.countryCode, "fr"), currency: destination.currency, language: parsed.data.language },
         }).returning();
         if (!order) throw new Error("Impossible de créer la commande.");
         created.push(order.id);
+        // Réservation tracée (grand livre de stock) : libérée si le paiement expire ou échoue.
+        try {
+          await reserveOrderStock(tx, { orderId: order.id, expiresAt: paymentExpiresAt, lines: lines.map(({ product, qty }) => ({ productId: product.id, variantId: null, quantity: qty })) });
+        } catch (error) {
+          if (error instanceof StockLedgerError && error.code === "INSUFFICIENT_STOCK") {
+            const title = lines.find(({ product }) => product.id === error.details.productId)?.product.title ?? "un produit";
+            throw new Error(`STOCK_CHANGED:${title}`);
+          }
+          throw error;
+        }
         await tx.insert(orderItems).values(lines.map(({ product, qty }) => ({ orderId: order.id, productId: product.id, sellerId, quantity: qty, unitPriceXof: product.priceXof, productTitle: product.title })));
         const paymentIntent = await provider.createPayment(order.id, total, parsed.data.method as PayMethod);
         await tx.insert(payments).values({ orderId: order.id, method: parsed.data.method, amountXof: total, status: "pending", provider: paymentIntent.provider, externalReference: paymentIntent.reference });

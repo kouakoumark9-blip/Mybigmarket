@@ -1,10 +1,11 @@
 "use server";
 
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { auth } from "@/auth";
 import { getDb } from "@/lib/db";
 import { adminAuditLog, escrowEntries, orderEvents, orderItems, orders, payments, platformSettings, products, sellerProfiles, users } from "@/lib/db/schema";
 import type { FormState } from "@/actions/seller";
+import { releaseOrderStock } from "@/lib/stock-ledger";
 
 async function adminContext() {
   const session = await auth();
@@ -122,8 +123,11 @@ export async function adminChangeOrderStatus(orderId: string, status: string, no
   if (next === "delivered") await db.update(escrowEntries).set({ status: "eligible" }).where(and(eq(escrowEntries.orderId, order.id), eq(escrowEntries.status, "blocked")));
   if (next === "refunded" || next === "cancelled") await db.update(escrowEntries).set({ status: "refund_pending" }).where(and(eq(escrowEntries.orderId, order.id), eq(escrowEntries.status, "blocked")));
   if (next === "cancelled") {
-    const lines=await db.select().from(orderItems).where(eq(orderItems.orderId,order.id));
-    for(const line of lines)await db.update(products).set({quantity:sql`${products.quantity} + ${line.quantity}`,updatedAt:now}).where(eq(products.id,line.productId));
+    // Libère la réservation de stock de la commande (grand livre), ou restitue le stock d'une commande ancienne.
+    await db.transaction(async (tx) => {
+      const lines = await tx.select().from(orderItems).where(eq(orderItems.orderId, order.id));
+      await releaseOrderStock(tx, { orderId: order.id, lines: lines.map((line) => ({ productId: line.productId, variantId: null, quantity: line.quantity })), note: "Commande annulée par l'administration." });
+    });
     await db.update(payments).set({status:"cancelled"}).where(and(eq(payments.orderId,order.id),eq(payments.status,"pending")));
   }
   await audit(admin.id, "order_status_changed", "order", order.id, { from: order.status, to: next, note: note.trim() });

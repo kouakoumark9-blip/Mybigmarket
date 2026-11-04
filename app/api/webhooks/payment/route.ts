@@ -1,7 +1,8 @@
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { getDb } from "@/lib/db";
-import { escrowEntries, orderEvents, orderItems, orders, payments, platformSettings, products } from "@/lib/db/schema";
+import { escrowEntries, orderEvents, orderItems, orders, payments, platformSettings } from "@/lib/db/schema";
 import { getPaymentProvider } from "@/lib/payments/provider";
+import { releaseOrderStock } from "@/lib/stock-ledger";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -39,7 +40,7 @@ export async function POST(request: Request) {
         const [cancelledOrder] = await tx.update(orders).set({ status: "cancelled", updatedAt: new Date() }).where(and(eq(orders.id, order.id), eq(orders.status, "awaiting_payment"))).returning({ id: orders.id });
         if (cancelledOrder) {
           const lines = await tx.select().from(orderItems).where(eq(orderItems.orderId, order.id));
-          for (const line of lines) await tx.update(products).set({ quantity: sql`${products.quantity} + ${line.quantity}`, updatedAt: new Date() }).where(eq(products.id, line.productId));
+          await releaseOrderStock(tx, { orderId: order.id, lines: lines.map((line) => ({ productId: line.productId, variantId: null, quantity: line.quantity })), note: "Paiement refusé." });
           await tx.insert(orderEvents).values({ orderId: order.id, status: "cancelled", note: "Paiement échoué; réservation de stock libérée." });
         }
         return "failed_restocked" as const;

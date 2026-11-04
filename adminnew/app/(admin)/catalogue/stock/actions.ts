@@ -1,13 +1,12 @@
 "use server";
 
-import { and, eq, sql } from "drizzle-orm";
-import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { getAdminDb } from "@/lib/db";
-import { adminInventoryMovements, adminProducts, employeeAuditLogs } from "@/lib/db/schema";
+import { employeeAuditLogs } from "@/lib/db/schema";
 import { requireEmployee } from "@/lib/permissions";
+import { adjustStock, StockLedgerError } from "@/lib/stock-ledger";
 
 const stockSchema = z.object({
   productId: z.string().uuid(),
@@ -29,34 +28,26 @@ export async function adjustStockAction(formData: FormData) {
   let newQuantity: number | undefined;
   try {
     await getAdminDb().transaction(async (tx) => {
-      const [updated] = await tx.update(adminProducts).set({
-        quantity: sql`${adminProducts.quantity} + ${delta}`,
-        updatedAt: new Date(),
-      }).where(and(
-        eq(adminProducts.id, parsed.data.productId),
-        sql`${adminProducts.quantity} + ${delta} >= 0`,
-      )).returning({ id: adminProducts.id, quantity: adminProducts.quantity });
-      if (!updated) return;
-      newQuantity = updated.quantity;
-      await tx.insert(adminInventoryMovements).values({
-        id: randomUUID(),
+      // Grand livre partagé : niveau de stock de l'entrepôt par défaut, compteur produit,
+      // mouvement tracé avant/après et alerte de stock bas, dans la même transaction.
+      const state = await adjustStock(tx, {
         productId: parsed.data.productId,
-        quantityDelta: delta,
-        movementType: parsed.data.direction === "in" ? "admin_increase" : "admin_decrease",
-        reason: parsed.data.reason,
+        delta,
+        reason: "adjustment",
         employeeId,
-        createdAt: new Date(),
+        note: parsed.data.reason,
       });
+      newQuantity = state.counterAfter;
       await tx.insert(employeeAuditLogs).values({
         actorEmployeeId: employeeId,
         action: "stock.adjusted",
         entityType: "product",
         entityId: parsed.data.productId,
-        details: { delta, newQuantity: updated.quantity, reason: parsed.data.reason },
+        details: { delta, newQuantity: state.counterAfter, warehouseId: state.warehouseId, reason: parsed.data.reason },
       });
     });
-  } catch {
-    redirect("/catalogue/stock?notice=error");
+  } catch (error) {
+    if (!(error instanceof StockLedgerError)) redirect("/catalogue/stock?notice=error");
   }
   if (newQuantity === undefined) redirect("/catalogue/stock?notice=missing-or-negative");
   revalidatePath("/catalogue/stock");
