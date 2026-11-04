@@ -20,7 +20,7 @@ import {
   employeeAuditLogs,
 } from "@/lib/db/schema";
 import { requireEmployee } from "@/lib/permissions";
-import { adjustStock, consumeOrderReservations, releaseOrderStock } from "@/lib/stock-ledger";
+import { adjustStock, confirmOrderReservations, consumeOrderReservations, releaseOrderStock } from "@/lib/stock-ledger";
 import {
   canPaySeller,
   canRefund,
@@ -132,6 +132,7 @@ export async function changeOrderStatusAction(formData: FormData) {
     const lines = await tx.select({ productId: adminOrderItems.productId, quantity: adminOrderItems.quantity })
       .from(adminOrderItems).where(eq(adminOrderItems.orderId, order.id));
 
+    if (parsed.data.status === "paid_escrow") await confirmOrderReservations(tx, order.id);
     if (parsed.data.status === "shipped" || parsed.data.status === "delivered") {
       await consumeOrderReservations(tx, { orderId: order.id, employeeId });
     }

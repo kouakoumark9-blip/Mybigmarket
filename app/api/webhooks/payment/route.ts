@@ -2,7 +2,7 @@ import { and, eq } from "drizzle-orm";
 import { getDb } from "@/lib/db";
 import { escrowEntries, orderEvents, orderItems, orders, payments, platformSettings } from "@/lib/db/schema";
 import { getPaymentProvider } from "@/lib/payments/provider";
-import { releaseOrderStock } from "@/lib/stock-ledger";
+import { confirmOrderReservations, releaseOrderStock } from "@/lib/stock-ledger";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -55,6 +55,7 @@ export async function POST(request: Request) {
       if (!paidPayment) return "already_processed" as const;
       const [paidOrder] = await tx.update(orders).set({ status: "paid_escrow", paymentExpiresAt: null, updatedAt: new Date() }).where(and(eq(orders.id, order.id), eq(orders.status, "awaiting_payment"))).returning({ id: orders.id });
       if (!paidOrder) throw new Error("Le paiement a été confirmé, mais l’état de commande a changé. Rapprochement manuel requis.");
+      await confirmOrderReservations(tx, order.id);
       await tx.insert(escrowEntries).values({ orderId: order.id, amountXof: payment.amountXof, commissionBps, commissionXof, sellerNetXof: payment.amountXof - commissionXof, status: "blocked" }).onConflictDoNothing();
       await tx.insert(orderEvents).values({ orderId: order.id, status: "paid_escrow", note: "Paiement confirmé par webhook; écriture ledger bloquée créée." });
       return "paid" as const;

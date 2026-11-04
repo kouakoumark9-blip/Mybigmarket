@@ -453,6 +453,12 @@ export async function consumeOrderReservations(executor: LedgerExecutor, input: 
   return claimed.reduce((sum, reservation) => sum + reservation.quantity, 0);
 }
 
+/** Paiement confirmé : la réservation de la commande ne doit plus expirer. */
+export async function confirmOrderReservations(executor: LedgerExecutor, orderId: string): Promise<void> {
+  if (!(await ledgerReady(executor))) return;
+  await executor.execute(sql`update stock_reservations set expires_at = null where order_id = ${orderId}::uuid and status = 'active'`);
+}
+
 /** Réserve toutes les lignes d'une commande (dans la transaction qui crée la commande). */
 export async function reserveOrderStock(executor: LedgerExecutor, input: { orderId: string; lines: StockLine[]; expiresAt?: Date | null; allowBackorder?: boolean }): Promise<Reservation[]> {
   const sorted = [...input.lines].sort((a, b) => a.productId.localeCompare(b.productId) || (a.variantId ?? 0) - (b.variantId ?? 0));

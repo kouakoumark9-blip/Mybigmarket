@@ -320,3 +320,109 @@ describe("prix et promotions", () => {
     }
   });
 });
+
+describe("stocks", () => {
+  let productId: string;
+  let transitId: string;
+  const DEFAULT_WAREHOUSE = "00000000-0000-4000-8000-000000000002";
+
+  beforeAll(async () => {
+    await ensureSeller();
+    const categoryId = await category("Quincaillerie");
+    productId = (await call("POST", "/admin/products", { title: "Cadenas laiton 50 mm", sellerId: SELLER_ID, categoryId, priceXof: 3500, purchasePriceXof: 1800, reference: "CAD-50", sku: "CAD50", lowStockThreshold: 10, initialQuantity: 40 })).json.data.id;
+  });
+
+  it("gère les entrepôts et protège l'entrepôt par défaut", async () => {
+    const transit = await call("POST", "/admin/warehouses", { code: "transit-gz", name: "Transit Guangzhou", countryCode: "CN", isSellable: false });
+    expect(transit.status).toBe(201);
+    transitId = transit.json.data.id;
+    expect((await call("PATCH", `/admin/warehouses/${DEFAULT_WAREHOUSE}`, { isActive: false })).status).toBe(422);
+    expect((await call("DELETE", `/admin/warehouses/${DEFAULT_WAREHOUSE}`)).status).toBe(422);
+    const list = await call("GET", "/admin/warehouses");
+    expect(list.json.data.map((entry: { code: string }) => entry.code)).toEqual(expect.arrayContaining(["principal", "transit-gz"]));
+  });
+
+  it("trace réception, transfert, perte et inventaire, avec alerte de stock bas", async () => {
+    const receipt = await call("POST", "/admin/stock/receipts", { warehouseId: transitId, reference: "BL-2026-001", items: [{ productId, quantity: 100, unitCostXof: 1700 }] });
+    expect(receipt.status).toBe(201);
+    let stock = await call("GET", `/admin/products/${productId}/stock`);
+    expect(stock.json.data.available).toBe(40); // le transit n'est pas vendable
+
+    const moved = await call("POST", "/admin/stock/transfers", { productId, fromWarehouseId: transitId, toWarehouseId: DEFAULT_WAREHOUSE, quantity: 60 });
+    expect(moved.status).toBe(201);
+    stock = await call("GET", `/admin/products/${productId}/stock`);
+    expect(stock.json.data.available).toBe(100);
+    expect(stock.json.data.warehouses.find((entry: { code: string }) => entry.code === "transit-gz")).toMatchObject({ physical: 40, counted: false });
+
+    const tooMuch = await call("POST", "/admin/stock/adjustments", { productId, delta: -500, reason: "loss" });
+    expect(tooMuch.status).toBe(422);
+    expect(tooMuch.json.error.details.reason).toBe("insufficient_stock");
+    const loss = await call("POST", "/admin/stock/adjustments", { productId, delta: -3, reason: "loss", note: "Cartons abîmés" });
+    expect(loss.json.data).toMatchObject({ physicalBefore: 100, physicalAfter: 97, counterAfter: 97 });
+
+    const counted = await call("POST", "/admin/stock/inventory", { reference: "INV-Q4", items: [{ productId, quantity: 8 }] });
+    expect(counted.json.data).toMatchObject({ lines: 1, changed: 1 });
+    expect(counted.json.data.results[0]).toMatchObject({ before: 97, after: 8, delta: -89 });
+
+    const alerts = await call("GET", "/admin/stock/alerts");
+    expect(alerts.json.data.products.map((entry: { productId: string }) => entry.productId)).toContain(productId);
+    const low = await call("GET", "/admin/stock?lowStock=true&limit=50");
+    expect(low.json.data.some((entry: { productId: string; lowStock: boolean }) => entry.productId === productId && entry.lowStock)).toBe(true);
+    const events = await db.execute(sql`select count(*)::int as n from domain_events where name = 'stock.low' and aggregate_id = ${productId}`);
+    expect((events as unknown as { rows: Array<{ n: number }> }).rows[0].n).toBe(1);
+
+    const movements = await call("GET", `/admin/stock/movements?filter[productId]=${productId}&sort=createdAt`);
+    expect(movements.json.data.map((entry: { reason: string }) => entry.reason)).toEqual(["inventory", "purchase", "transfer", "transfer", "loss", "inventory"]);
+  });
+
+  it("refuse de supprimer un entrepôt non vide puis le rend non comptable sans écart", async () => {
+    expect((await call("DELETE", `/admin/warehouses/${transitId}`)).status).toBe(422);
+    const sellable = await call("PATCH", `/admin/warehouses/${transitId}`, { isSellable: true });
+    expect(sellable.status).toBe(200);
+    expect((await call("GET", `/admin/products/${productId}/stock`)).json.data.available).toBe(48);
+    await call("PATCH", `/admin/warehouses/${transitId}`, { isSellable: false });
+    expect((await call("GET", `/admin/products/${productId}/stock`)).json.data.available).toBe(8);
+    const drifts = await call("GET", "/admin/stock/drifts");
+    expect(drifts.json.data.drifts).toEqual([]);
+  });
+
+  it("exporte le stock en CSV protégé contre l'injection de formules", async () => {
+    await call("PATCH", `/admin/products/${productId}`, { title: "=HYPERLINK(\"x\") Cadenas" });
+    const { handleApi } = await import("@/server/api/registry");
+    const response = await handleApi(new Request("http://shop.test/api/v1/admin/stock/export.csv", { headers: { authorization: `Bearer ${token}`, "x-forwarded-for": "203.0.113.10" } }), ["admin", "stock", "export.csv"]);
+    expect(response.status).toBe(200);
+    expect(response.headers.get("content-type")).toContain("text/csv");
+    const text = await response.text();
+    const lines = text.split("\r\n");
+    expect(lines[0]).toBe("reference;sku;ean13;titre;sku_declinaison;declinaison;entrepot;physique;reserve;disponible;emplacement");
+    // La formule est neutralisée (apostrophe) et la cellule est entre guillemets.
+    expect(lines.find((line) => line.startsWith("CAD-50;") && line.includes(";principal;"))).toBe(`CAD-50;CAD50;;"'=HYPERLINK(""x"") Cadenas";;;principal;8;0;8;`);
+  });
+
+  it("simule puis importe un CSV, tout ou rien", async () => {
+    const csv = "reference;quantite;entrepot\nCAD-50;25;principal\nINCONNU;3;principal\n";
+    const simulation = await call("POST", "/admin/stock/import", { csv, mode: "set", dryRun: true });
+    expect(simulation.status).toBe(200);
+    expect(simulation.json.data.summary).toEqual({ lines: 2, ok: 1, unchanged: 0, errors: 1 });
+    expect((await call("GET", `/admin/products/${productId}/stock`)).json.data.available).toBe(8);
+
+    const refused = await call("POST", "/admin/stock/import", { csv, mode: "set", dryRun: false });
+    expect(refused.status).toBe(422);
+    expect((await call("GET", `/admin/products/${productId}/stock`)).json.data.available).toBe(8);
+
+    const applied = await call("POST", "/admin/stock/import", { csv: "sku,quantite\nCAD50,5\n", mode: "add", dryRun: false });
+    expect(applied.json.data.summary).toMatchObject({ ok: 1, errors: 0 });
+    expect((await call("GET", `/admin/products/${productId}/stock`)).json.data.available).toBe(13);
+  });
+
+  it("suggère un réapprovisionnement regroupé par fournisseur", async () => {
+    const response = await call("GET", "/admin/stock/replenishment?days=30");
+    expect(response.status).toBe(200);
+    const line = response.json.data.suppliers.flatMap((entry: { lines: Array<{ productId: string; suggestedQuantity: number }> }) => entry.lines).find((entry: { productId: string }) => entry.productId === productId);
+    expect(line).toBeUndefined(); // 13 en stock > seuil 10, aucune vente : rien à commander
+    await call("POST", "/admin/stock/adjustments", { productId, delta: -10, reason: "loss" });
+    const after = await call("GET", "/admin/stock/replenishment?days=30");
+    const suggested = after.json.data.suppliers.flatMap((entry: { lines: Array<{ productId: string; suggestedQuantity: number }> }) => entry.lines).find((entry: { productId: string }) => entry.productId === productId);
+    expect(suggested).toMatchObject({ suggestedQuantity: 8, targetStock: 11 });
+  });
+});
