@@ -179,9 +179,10 @@ async function assertProductTarget(executor: Executor, productId: string, varian
   if (product.productType === "virtual") throw errors.rule("Un produit virtuel n'a pas de stock physique.");
 }
 
-const MANUAL_REASONS = ["purchase", "return", "adjustment", "loss", "restock"] as const satisfies readonly StockReason[];
+/** Motifs saisis à la main ; vente, annulation, transfert, inventaire et import ont leur propre opération. */
+type ManualReason = Extract<StockReason, "purchase" | "return" | "adjustment" | "loss" | "restock">;
 
-export async function adjust(database: Db, input: { productId: string; variantId?: number | null; warehouseId?: string | null; delta: number; reason: (typeof MANUAL_REASONS)[number]; note?: string | null; reference?: string | null }, context: Context) {
+export async function adjust(database: Db, input: { productId: string; variantId?: number | null; warehouseId?: string | null; delta: number; reason: ManualReason; note?: string | null; reference?: string | null }, context: Context) {
   return database.transaction(async (tx) => {
     await assertProductTarget(tx, input.productId, input.variantId);
     const state = await adjustStock(tx, { ...input, employeeId: context.actor.employeeId }).catch(fromLedgerError);
