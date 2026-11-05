@@ -10,7 +10,7 @@ const tagsFrom = (value: string) => value.split(",").map((tag) => tag.trim().toL
 export async function createProductAction(form: FormData) {
   await requireEmployee("catalog.products.create");
   const initialQuantity = integer(form, "initialQuantity");
-  await runAndRedirect("/catalogue/produits/nouveau", "Produit créé.", () => adminApi<{ id: string }>("POST", "/admin/products", {
+  await runAndRedirect("/catalogue/produits/nouveau", "Produit créé : ajoutez maintenant ses photos.", () => adminApi<{ id: string }>("POST", "/admin/products", {
     idempotencyKey: text(form, "idempotencyKey") || undefined,
     body: {
       title: text(form, "title"),
@@ -30,5 +30,5 @@ export async function createProductAction(form: FormData) {
       status: checkbox(form, "publish") ? "approved" : undefined,
       ...(initialQuantity ? { initialQuantity } : {}),
     },
-  }), { successPath: (result) => `/catalogue/produits/${(result as { id: string }).id}` });
+  }), { successPath: (result) => `/catalogue/produits/${(result as { id: string }).id}#images` });
 }

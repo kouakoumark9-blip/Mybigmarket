@@ -42,7 +42,7 @@ export default async function NewProductPage({ searchParams }: { searchParams: P
         <Field label="Résumé" className="md:col-span-2"><input name="shortDescription" maxLength={320} className="ui-input"/></Field>
         <Field label="Description" className="md:col-span-2"><textarea name="description" rows={6} className="ui-input !h-auto py-2"/></Field>
         <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 md:col-span-2"><input type="checkbox" name="publish"/> Mettre en ligne immédiatement (permission de publication requise)</label>
-        <div className="md:col-span-2"><button type="submit" className="ui-button ui-button-primary">Créer le produit</button></div>
+        <div className="flex flex-wrap items-center gap-3 md:col-span-2"><button type="submit" className="ui-button ui-button-primary">Créer le produit</button><span className="text-xs text-slate-500">Vous ajouterez ensuite les photos sur la fiche du produit.</span></div>
       </form>
     </Card>
   </>;

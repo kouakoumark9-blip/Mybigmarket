@@ -7,6 +7,7 @@ import { PRODUCT_STATUS_LABELS, type AttributeGroup, type ProductDetail, type Si
 import { attributeGroupOptions, brandOptions, categoryOptions, customerGroupOptions, taxGroupOptions, warehouseOptions } from "@/lib/catalog-lookups";
 import { requireEmployee } from "@/lib/permissions";
 import * as actions from "./actions";
+import { PhotoUploader } from "./photo-uploader";
 
 export const dynamic = "force-dynamic";
 
@@ -147,7 +148,8 @@ export default async function ProductPage({ params, searchParams }: { params: Pr
         </form>
       </Section>
 
-      <Section id="images" title="Images" description="La couverture apparaît dans les listes et en tête de la fiche. URL HTTPS de l’image hébergée.">
+      <Section id="images" title="Images" description="Ajoutez les photos depuis l’ordinateur ou le téléphone. La couverture apparaît dans les listes et en tête de la fiche.">
+        <PhotoUploader productId={product.id} hasImages={product.images.length > 0}/>
         {product.images.length ? <div className="mb-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">{product.images.map((image, index) => <div key={image.id} className="overflow-hidden rounded-lg border border-slate-200">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={image.url} alt={image.alt ?? ""} className="aspect-square w-full bg-slate-50 object-contain"/>
@@ -159,13 +161,16 @@ export default async function ProductPage({ params, searchParams }: { params: Pr
             <form action={actions.deleteImageAction}>{hidden}<input type="hidden" name="imageId" value={image.id}/><button className="rounded p-1.5 text-red-700 hover:bg-red-50" aria-label="Supprimer l’image"><Trash2 size={15}/></button></form>
           </div>
         </div>)}</div> : <p className="mb-4 text-sm text-slate-500">Aucune image.</p>}
-        <form action={actions.addImageAction} className="grid gap-3 md:grid-cols-[2fr_1fr_auto_auto] md:items-end">
+        <details className="mt-2 rounded-lg border border-slate-200 px-4 py-3">
+        <summary className="cursor-pointer text-sm font-semibold text-slate-700">Ajouter une image par son adresse (URL)</summary>
+        <form action={actions.addImageAction} className="mt-3 grid gap-3 md:grid-cols-[2fr_1fr_auto_auto] md:items-end">
           {hidden}
           <Field label="URL de l’image"><input name="url" type="url" required placeholder="https://…" className="ui-input"/></Field>
           <Field label="Texte alternatif"><input name="alt" maxLength={190} className="ui-input"/></Field>
           <label className="flex items-center gap-2 pb-2 text-sm font-semibold text-slate-700"><input type="checkbox" name="isCover"/> Couverture</label>
           <button type="submit" className="ui-button ui-button-outline"><ImagePlus size={15}/> Ajouter</button>
         </form>
+        </details>
       </Section>
 
       <Section id="declinaisons" title="Déclinaisons" description="Générées à partir des valeurs d’attributs choisies (toutes les combinaisons, 500 au maximum). Régénérer n’efface rien et ne crée pas de doublon.">
