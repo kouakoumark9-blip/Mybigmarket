@@ -71,7 +71,7 @@ export const cmsRoutes: AnyRoute[] = [
   /* ───────────── Administration : pages ───────────── */
   defineRoute({
     id: "admin.pages.list", method: "GET", path: "/admin/pages", surface: "admin", tags, permission: "appearance.read",
-    summary: "Pages", list: service.pageListSpec, handler: ({ db, list }) => service.listPages(db, list),
+    summary: "Liste des pages", list: service.pageListSpec, handler: ({ db, list }) => service.listPages(db, list),
   }),
   defineRoute({
     id: "admin.pages.create", method: "POST", path: "/admin/pages", surface: "admin", tags, permission: "appearance.create", status: 201,
@@ -80,7 +80,7 @@ export const cmsRoutes: AnyRoute[] = [
   }),
   defineRoute({
     id: "admin.pages.get", method: "GET", path: "/admin/pages/:id", surface: "admin", tags, permission: "appearance.read",
-    summary: "Page", params: uuidParams, handler: ({ db, params }) => service.getPage(db, params.id),
+    summary: "Détail d'une page (blocs, SEO, publication)", params: uuidParams, handler: ({ db, params }) => service.getPage(db, params.id),
   }),
   defineRoute({
     id: "admin.pages.update", method: "PATCH", path: "/admin/pages/:id", surface: "admin", tags, permission: "appearance.update",

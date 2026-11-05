@@ -13,7 +13,7 @@ const groupBody = z.object({
 export const customerRoutes: AnyRoute[] = [
   defineRoute({
     id: "admin.customers.list", method: "GET", path: "/admin/customers", surface: "admin", tags, permission: "customers.read",
-    summary: "Clients", description: "Recherche par nom, e-mail, téléphone ou société ; nombre de commandes et montant dépensé.", list: service.customerListSpec,
+    summary: "Liste des clients", description: "Recherche par nom, e-mail, téléphone ou société ; nombre de commandes et montant dépensé.", list: service.customerListSpec,
     handler: ({ db, list }) => service.listCustomers(db, list),
   }),
   defineRoute({
