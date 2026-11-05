@@ -57,7 +57,7 @@ export const users = pgTable("users", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   anonymizedAt: timestamp("anonymized_at", { withTimezone: true }),
   deletedAt: timestamp("deleted_at", { withTimezone: true }),
-}, (t) => [uniqueIndex("users_email_unique").on(t.email), index("users_role_idx").on(t.role)]);
+}, (t) => [uniqueIndex("users_email_unique").on(t.email), index("users_role_idx").on(t.role), index("users_name_idx").on(t.name)]);
 
 export const adminRoles = pgTable("roles", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -102,7 +102,7 @@ export const employees = pgTable("employees", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   /** Suppression logique : l'employé disparaît des listes mais reste lié à l'historique d'audit. */
   deletedAt: timestamp("deleted_at", { withTimezone: true }),
-}, (t) => [uniqueIndex("employees_email_unique").on(t.email), index("employees_status_idx").on(t.status), index("employees_role_idx").on(t.roleId), index("employees_deleted_idx").on(t.deletedAt)]);
+}, (t) => [uniqueIndex("employees_email_unique").on(t.email), index("employees_status_idx").on(t.status), index("employees_role_idx").on(t.roleId), index("employees_deleted_idx").on(t.deletedAt), index("employees_created_at_idx").on(t.createdAt), index("employees_last_login_at_idx").on(t.lastLoginAt), index("employees_last_name_idx").on(t.lastName), index("employees_totp_enabled_last_name_idx").on(t.totpEnabled, t.lastName)]);
 
 export const employeeSessions = pgTable("employee_sessions", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -129,7 +129,7 @@ export const employeeLoginEvents = pgTable("employee_login_events", {
   userAgent: varchar("user_agent", { length: 500 }),
   failureReason: varchar("failure_reason", { length: 100 }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-}, (t) => [index("employee_login_email_time_idx").on(t.emailAttempted, t.createdAt), index("employee_login_ip_time_idx").on(t.ipAddress, t.createdAt)]);
+}, (t) => [index("employee_login_email_time_idx").on(t.emailAttempted, t.createdAt), index("employee_login_ip_time_idx").on(t.ipAddress, t.createdAt), index("employee_login_events_employee_id_idx").on(t.employeeId)]);
 
 export const employeeSecurityEvents = pgTable("employee_security_events", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -158,7 +158,7 @@ export const employeeAuditLogs = pgTable("employee_audit_logs", {
   afterState: jsonb("after_state").$type<Record<string, unknown>>(),
   changedFields: jsonb("changed_fields").$type<string[]>(),
   requestId: varchar("request_id", { length: 64 }),
-}, (t) => [index("employee_audit_actor_time_idx").on(t.actorEmployeeId, t.createdAt), index("employee_audit_entity_idx").on(t.entityType, t.entityId), index("employee_audit_action_time_idx").on(t.action, t.createdAt), index("employee_audit_time_idx").on(t.createdAt)]);
+}, (t) => [index("employee_audit_actor_time_idx").on(t.actorEmployeeId, t.createdAt), index("employee_audit_entity_idx").on(t.entityType, t.entityId), index("employee_audit_action_time_idx").on(t.action, t.createdAt), index("employee_audit_time_idx").on(t.createdAt), index("employee_audit_logs_api_key_id_idx").on(t.apiKeyId), index("employee_audit_logs_shop_id_idx").on(t.shopId), index("employee_audit_logs_actor_type_idx").on(t.actorType), index("employee_audit_logs_request_id_idx").on(t.requestId)]);
 
 export const sellerProfiles = pgTable("seller_profiles", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -206,7 +206,7 @@ export const categories = pgTable("categories", {
   deletedAt: timestamp("deleted_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
-}, (t) => [uniqueIndex("categories_slug_unique").on(t.slug), index("categories_parent_idx").on(t.parentId)]);
+}, (t) => [uniqueIndex("categories_slug_unique").on(t.slug), index("categories_parent_idx").on(t.parentId), index("categories_created_at_idx").on(t.createdAt), index("categories_name_idx").on(t.name), index("categories_sort_order_idx").on(t.sortOrder)]);
 
 export const brands = pgTable("brands", {
   id: serial("id").primaryKey(),
@@ -220,7 +220,7 @@ export const brands = pgTable("brands", {
   metaTitle: varchar("meta_title", { length: 190 }),
   metaDescription: varchar("meta_description", { length: 320 }),
   deletedAt: timestamp("deleted_at", { withTimezone: true }),
-}, (t) => [uniqueIndex("brands_slug_unique").on(t.slug), uniqueIndex("brands_name_unique").on(t.name)]);
+}, (t) => [uniqueIndex("brands_slug_unique").on(t.slug), uniqueIndex("brands_name_unique").on(t.name), index("brands_created_at_idx").on(t.createdAt), index("brands_is_active_name_idx").on(t.isActive, t.name)]);
 
 export const suppliers = pgTable("suppliers", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -243,7 +243,7 @@ export const suppliers = pgTable("suppliers", {
   description: text("description"),
   contactEmail: varchar("contact_email", { length: 190 }),
   deletedAt: timestamp("deleted_at", { withTimezone: true }),
-}, (t) => [uniqueIndex("suppliers_slug_unique").on(t.slug), index("suppliers_country_active_idx").on(t.countryCode, t.isActive), index("suppliers_user_idx").on(t.sellerUserId)]);
+}, (t) => [uniqueIndex("suppliers_slug_unique").on(t.slug), index("suppliers_country_active_idx").on(t.countryCode, t.isActive), index("suppliers_user_idx").on(t.sellerUserId), index("suppliers_company_name_idx").on(t.companyName), index("suppliers_created_at_idx").on(t.createdAt), index("suppliers_profile_status_idx").on(t.profileStatus)]);
 
 export const productTypeEnum = pgEnum("product_type", ["standard", "pack", "virtual"]);
 export const productConditionEnum = pgEnum("product_condition", ["new", "used", "refurbished"]);
@@ -313,7 +313,7 @@ productType: productTypeEnum("product_type").notNull().default("standard"),
   redirectTargetType: redirectTargetTypeEnum("redirect_target_type"),
   /** Cible de la redirection d'un produit désactivé : slug, identifiant ou URL selon `redirectTargetType`. */
   redirectTarget: varchar("redirect_target", { length: 300 }),
-}, (t) => [uniqueIndex("products_slug_unique").on(t.slug), uniqueIndex("products_sku_unique").on(t.sku), index("products_seller_idx").on(t.sellerId), index("products_supplier_idx").on(t.supplierId), index("products_brand_idx").on(t.brandId), index("products_category_idx").on(t.categoryId), index("products_listing_idx").on(t.status, t.categoryId), uniqueIndex("products_reference_unique").on(t.reference).where(sql`${t.deletedAt} IS NULL AND ${t.reference} IS NOT NULL`), index("products_ean13_idx").on(t.ean13), index("products_type_idx").on(t.productType, t.deletedAt)]);
+}, (t) => [uniqueIndex("products_slug_unique").on(t.slug), uniqueIndex("products_sku_unique").on(t.sku), index("products_seller_idx").on(t.sellerId), index("products_supplier_idx").on(t.supplierId), index("products_brand_idx").on(t.brandId), index("products_category_idx").on(t.categoryId), index("products_listing_idx").on(t.status, t.categoryId), uniqueIndex("products_reference_unique").on(t.reference).where(sql`${t.deletedAt} IS NULL AND ${t.reference} IS NOT NULL`), index("products_ean13_idx").on(t.ean13), index("products_type_idx").on(t.productType, t.deletedAt), index("products_tax_rule_group_id_idx").on(t.taxRuleGroupId), index("products_available_for_order_created_at_idx").on(t.availableForOrder, t.createdAt), index("products_created_at_idx").on(t.createdAt), index("products_is_featured_created_at_idx").on(t.isFeatured, t.createdAt), index("products_price_xof_idx").on(t.priceXof), index("products_quantity_idx").on(t.quantity), index("products_title_idx").on(t.title), index("products_updated_at_idx").on(t.updatedAt), index("products_visibility_idx").on(t.visibility)]);
 
 export const productImages = pgTable("product_images", {
   id: serial("id").primaryKey(),
@@ -375,7 +375,7 @@ export const shipments = pgTable("shipments", {
   expectedArrivalAt: timestamp("expected_arrival_at", { withTimezone: true }),
   note: text("note").notNull().default(""),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
-}, (t) => [uniqueIndex("shipments_batch_ref_unique").on(t.batchRef), index("shipments_status_idx").on(t.status)]);
+}, (t) => [uniqueIndex("shipments_batch_ref_unique").on(t.batchRef), index("shipments_status_idx").on(t.status), index("shipments_created_at_idx").on(t.createdAt), index("shipments_departed_at_idx").on(t.departedAt), index("shipments_mode_idx").on(t.mode)]);
 
 export const orders = pgTable("orders", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -422,7 +422,7 @@ export const orders = pgTable("orders", {
   /** Transporteur choisi (étape 5) et lien de suivi du colis. */
   shippingMethodId: uuid("shipping_method_id").references((): AnyPgColumn => shippingMethods.id, { onDelete: "set null" }),
   trackingUrl: text("tracking_url"),
-}, (t) => [index("orders_checkout_group_idx").on(t.checkoutGroupId), index("orders_customer_idx").on(t.customerId, t.createdAt), index("orders_buyer_idx").on(t.buyerId, t.createdAt), index("orders_status_idx").on(t.status), index("orders_shipment_idx").on(t.shipmentId), uniqueIndex("orders_reference_unique").on(t.reference), index("orders_created_status_idx").on(t.createdAt, t.status)]);
+}, (t) => [index("orders_checkout_group_idx").on(t.checkoutGroupId), index("orders_customer_idx").on(t.customerId, t.createdAt), index("orders_buyer_idx").on(t.buyerId, t.createdAt), index("orders_status_idx").on(t.status), index("orders_shipment_idx").on(t.shipmentId), uniqueIndex("orders_reference_unique").on(t.reference), index("orders_created_status_idx").on(t.createdAt, t.status), index("orders_pickup_point_id_idx").on(t.pickupPointId), index("orders_shipping_method_id_idx").on(t.shippingMethodId), index("orders_delivery_method_idx").on(t.deliveryMethod), index("orders_total_xof_idx").on(t.totalXof), index("orders_updated_at_idx").on(t.updatedAt)]);
 
 export const conversations = pgTable("conversations", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -437,6 +437,8 @@ export const conversations = pgTable("conversations", {
   uniqueIndex("conversations_buyer_seller_product_unique").on(t.buyerId, t.sellerId, t.productId),
   index("conversations_buyer_recent_idx").on(t.buyerId, t.lastMessageAt),
   index("conversations_seller_recent_idx").on(t.sellerId, t.lastMessageAt),
+  index("conversations_assigned_employee_id_idx").on(t.assignedEmployeeId),
+  index("conversations_product_id_idx").on(t.productId),
 ]);
 
 export const messages = pgTable("messages", {
@@ -469,6 +471,8 @@ export const quoteRequests = pgTable("quote_requests", {
   index("quote_requests_buyer_recent_idx").on(t.buyerId, t.createdAt),
   index("quote_requests_seller_recent_idx").on(t.sellerId, t.createdAt),
   index("quote_requests_status_recent_idx").on(t.status, t.createdAt),
+  index("quote_requests_conversation_id_idx").on(t.conversationId),
+  index("quote_requests_product_id_idx").on(t.productId),
 ]);
 
 export const orderItems = pgTable("order_items", {
@@ -492,7 +496,7 @@ export const orderItems = pgTable("order_items", {
   /** Quantité déjà retournée : le retour ne peut pas dépasser le livré. */
   returnedQuantity: integer("returned_quantity").notNull().default(0),
   ecotaxXof: integer("ecotax_xof").notNull().default(0),
-}, (t) => [index("order_items_order_idx").on(t.orderId), index("order_items_seller_idx").on(t.sellerId), index("order_items_product_idx").on(t.productId)]);
+}, (t) => [index("order_items_order_idx").on(t.orderId), index("order_items_seller_idx").on(t.sellerId), index("order_items_product_idx").on(t.productId), index("order_items_variant_id_idx").on(t.variantId)]);
 
 export const payments = pgTable("payments", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -555,6 +559,10 @@ export const paymentIntents = pgTable("payment_intents", {
   index("payment_intents_group_idx").on(t.checkoutGroupId),
   index("payment_intents_provider_ref_idx").on(t.provider, t.providerReference),
   index("payment_intents_user_idx").on(t.userId, t.createdAt),
+  index("payment_intents_customer_id_idx").on(t.customerId),
+  index("payment_intents_amount_xof_idx").on(t.amountXof),
+  index("payment_intents_method_idx").on(t.method),
+  index("payment_intents_updated_at_idx").on(t.updatedAt),
 ]);
 
 /**
@@ -583,6 +591,8 @@ export const paymentTransactions = pgTable("payment_transactions", {
   index("payment_transactions_intent_idx").on(t.intentId, t.createdAt),
   index("payment_transactions_order_idx").on(t.orderId, t.createdAt),
   index("payment_transactions_kind_idx").on(t.kind, t.createdAt),
+  index("payment_transactions_payment_id_idx").on(t.paymentId),
+  index("payment_transactions_refund_id_idx").on(t.refundId),
 ]);
 
 /**
@@ -607,6 +617,7 @@ export const paymentWebhookEvents = pgTable("payment_webhook_events", {
   uniqueIndex("payment_webhook_events_key_unique").on(t.provider, t.eventKey),
   index("payment_webhook_events_status_idx").on(t.status, t.receivedAt),
   index("payment_webhook_events_intent_idx").on(t.intentId),
+  index("payment_webhook_events_signature_valid_received_at_idx").on(t.signatureValid, t.receivedAt),
 ]);
 
 export const escrowEntries = pgTable("escrow_entries", {
@@ -628,7 +639,7 @@ export const orderEvents = pgTable("order_events", {
   actorUserId: uuid("actor_user_id").references(() => users.id, { onDelete: "set null" }),
   note: text("note"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-}, (t) => [index("order_events_order_time_idx").on(t.orderId, t.createdAt)]);
+}, (t) => [index("order_events_order_time_idx").on(t.orderId, t.createdAt), index("order_events_actor_user_id_idx").on(t.actorUserId)]);
 
 export const wallets = pgTable("wallets", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -664,7 +675,7 @@ export const reviews = pgTable("reviews", {
   moderatedByEmployeeId: uuid("moderated_by_employee_id").references(() => employees.id, { onDelete: "set null" }),
   moderatedAt: timestamp("moderated_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-}, (t) => [uniqueIndex("reviews_order_product_buyer_unique").on(t.orderId, t.productId, t.buyerId), index("reviews_product_publish_idx").on(t.productId, t.isPublished, t.verifiedPurchase), index("reviews_supplier_publish_idx").on(t.supplierId, t.isPublished, t.verifiedPurchase)]);
+}, (t) => [uniqueIndex("reviews_order_product_buyer_unique").on(t.orderId, t.productId, t.buyerId), index("reviews_product_publish_idx").on(t.productId, t.isPublished, t.verifiedPurchase), index("reviews_supplier_publish_idx").on(t.supplierId, t.isPublished, t.verifiedPurchase), index("reviews_buyer_id_idx").on(t.buyerId), index("reviews_moderated_by_employee_id_idx").on(t.moderatedByEmployeeId)]);
 
 export const disputes = pgTable("disputes", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -678,7 +689,7 @@ export const disputes = pgTable("disputes", {
   resolvedBy: uuid("resolved_by").references(() => users.id, { onDelete: "set null" }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
-}, (t) => [index("disputes_order_idx").on(t.orderId), index("disputes_status_idx").on(t.status)]);
+}, (t) => [index("disputes_order_idx").on(t.orderId), index("disputes_status_idx").on(t.status), index("disputes_buyer_id_idx").on(t.buyerId), index("disputes_resolved_by_idx").on(t.resolvedBy)]);
 
 export const platformSettings = pgTable("platform_settings", {
   id: serial("id").primaryKey(),
@@ -686,7 +697,7 @@ export const platformSettings = pgTable("platform_settings", {
   value: varchar("value", { length: 240 }).notNull(),
   updatedBy: uuid("updated_by").references(() => users.id, { onDelete: "set null" }),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
-}, (t) => [uniqueIndex("platform_settings_key_unique").on(t.key)]);
+}, (t) => [uniqueIndex("platform_settings_key_unique").on(t.key), index("platform_settings_updated_by_idx").on(t.updatedBy)]);
 
 export const adminAuditLog = pgTable("admin_audit_log", {
   id: serial("id").primaryKey(),
@@ -750,7 +761,7 @@ export const customers = pgTable("customers", {
   deletedAt: timestamp("deleted_at", { withTimezone: true }),
   anonymizedAt: timestamp("anonymized_at", { withTimezone: true }),
   version: integer("version").notNull().default(0),
-}, (t) => [uniqueIndex("customers_user_unique").on(t.userId), index("customers_group_idx").on(t.customerGroup), index("customers_group_fk_idx").on(t.customerGroupId), index("customers_segment_idx").on(t.segment), index("customers_activity_idx").on(t.lastActivityAt)]);
+}, (t) => [uniqueIndex("customers_user_unique").on(t.userId), index("customers_group_idx").on(t.customerGroup), index("customers_group_fk_idx").on(t.customerGroupId), index("customers_segment_idx").on(t.segment), index("customers_activity_idx").on(t.lastActivityAt), index("customers_created_at_idx").on(t.createdAt)]);
 
 export const customerAddresses = pgTable("addresses", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -803,7 +814,7 @@ export const cartItems = pgTable("cart_items", {
   quantity: integer("quantity").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
-}, (t) => [uniqueIndex("cart_items_product_without_variant_unique").on(t.cartId, t.productId).where(sql`${t.variantId} IS NULL`), uniqueIndex("cart_items_product_variant_unique").on(t.cartId, t.productId, t.variantId).where(sql`${t.variantId} IS NOT NULL`), index("cart_items_product_idx").on(t.productId)]);
+}, (t) => [uniqueIndex("cart_items_product_without_variant_unique").on(t.cartId, t.productId).where(sql`${t.variantId} IS NULL`), uniqueIndex("cart_items_product_variant_unique").on(t.cartId, t.productId, t.variantId).where(sql`${t.variantId} IS NOT NULL`), index("cart_items_product_idx").on(t.productId), index("cart_items_variant_id_idx").on(t.variantId)]);
 
 /**
  * Rattachement d'un client à plusieurs groupes (segmentation multi-critères).
@@ -851,7 +862,7 @@ export const productPriceTiers = pgTable("price_tiers", {
   unitPriceXof: integer("unit_price_xof").notNull(),
   sortOrder: integer("sort_order").notNull().default(0),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-}, (t) => [uniqueIndex("price_tiers_default_variant_min_unique").on(t.productId, t.minimumQuantity).where(sql`${t.variantId} IS NULL`), uniqueIndex("price_tiers_specific_variant_min_unique").on(t.productId, t.variantId, t.minimumQuantity).where(sql`${t.variantId} IS NOT NULL`), index("price_tiers_product_qty_idx").on(t.productId, t.minimumQuantity)]);
+}, (t) => [uniqueIndex("price_tiers_default_variant_min_unique").on(t.productId, t.minimumQuantity).where(sql`${t.variantId} IS NULL`), uniqueIndex("price_tiers_specific_variant_min_unique").on(t.productId, t.variantId, t.minimumQuantity).where(sql`${t.variantId} IS NOT NULL`), index("price_tiers_product_qty_idx").on(t.productId, t.minimumQuantity), index("price_tiers_variant_id_idx").on(t.variantId)]);
 
 export const productAttributes = pgTable("product_attributes", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -867,7 +878,7 @@ export const productKeyAttributes = pgTable("product_key_attributes", {
   productId: uuid("product_id").notNull().references(() => products.id, { onDelete: "cascade" }),
   attributeId: uuid("attribute_id").notNull().references(() => productAttributes.id, { onDelete: "cascade" }),
   sortOrder: integer("sort_order").notNull(),
-}, (t) => [uniqueIndex("product_key_attributes_product_order_unique").on(t.productId, t.sortOrder), uniqueIndex("product_key_attributes_attribute_unique").on(t.productId, t.attributeId)]);
+}, (t) => [uniqueIndex("product_key_attributes_product_order_unique").on(t.productId, t.sortOrder), uniqueIndex("product_key_attributes_attribute_unique").on(t.productId, t.attributeId), index("product_key_attributes_attribute_id_idx").on(t.attributeId)]);
 
 export const productPackaging = pgTable("product_packaging", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -901,7 +912,7 @@ export const productAttachments = pgTable("product_attachments", {
   sizeBytes: integer("size_bytes").notNull(),
   uploadedByEmployeeId: uuid("uploaded_by_employee_id").references(() => employees.id, { onDelete: "set null" }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-}, (t) => [index("product_attachments_product_idx").on(t.productId, t.createdAt)]);
+}, (t) => [index("product_attachments_product_idx").on(t.productId, t.createdAt), index("product_attachments_uploaded_by_employee_id_idx").on(t.uploadedByEmployeeId)]);
 
 export const inventoryMovements = pgTable("inventory_movements", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -913,7 +924,7 @@ export const inventoryMovements = pgTable("inventory_movements", {
   reference: varchar("reference", { length: 120 }),
   employeeId: uuid("employee_id").references(() => employees.id, { onDelete: "set null" }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-}, (t) => [index("inventory_movements_product_time_idx").on(t.productId, t.createdAt), index("inventory_movements_variant_time_idx").on(t.variantId, t.createdAt)]);
+}, (t) => [index("inventory_movements_product_time_idx").on(t.productId, t.createdAt), index("inventory_movements_variant_time_idx").on(t.variantId, t.createdAt), index("inventory_movements_employee_id_idx").on(t.employeeId)]);
 
 export const productKeywords = pgTable("product_keywords", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -928,7 +939,7 @@ export const relatedProducts = pgTable("related_products", {
   relatedProductId: uuid("related_product_id").notNull().references(() => products.id, { onDelete: "cascade" }),
   relationType: varchar("relation_type", { length: 32 }).notNull().default("related"),
   sortOrder: integer("sort_order").notNull().default(0),
-}, (t) => [uniqueIndex("related_products_pair_type_unique").on(t.productId, t.relatedProductId, t.relationType), index("related_products_product_order_idx").on(t.productId, t.relationType, t.sortOrder)]);
+}, (t) => [uniqueIndex("related_products_pair_type_unique").on(t.productId, t.relatedProductId, t.relationType), index("related_products_product_order_idx").on(t.productId, t.relationType, t.sortOrder), index("related_products_related_product_id_idx").on(t.relatedProductId)]);
 
 export const orderStatuses = pgTable("order_statuses", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -977,7 +988,7 @@ export const returnRequests = pgTable("return_requests", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   version: integer("version").notNull().default(0),
-}, (t) => [uniqueIndex("return_requests_reference_unique").on(t.reference), index("return_requests_order_idx").on(t.orderId), index("return_requests_status_idx").on(t.status, t.createdAt), index("return_requests_customer_idx").on(t.customerId, t.createdAt)]);
+}, (t) => [uniqueIndex("return_requests_reference_unique").on(t.reference), index("return_requests_order_idx").on(t.orderId), index("return_requests_status_idx").on(t.status, t.createdAt), index("return_requests_customer_idx").on(t.customerId, t.createdAt), index("return_requests_handled_by_employee_id_idx").on(t.handledByEmployeeId)]);
 
 export const returnRequestItems = pgTable("return_request_items", {
   id: serial("id").primaryKey(),
@@ -988,7 +999,7 @@ export const returnRequestItems = pgTable("return_request_items", {
   /** Décision de remise en stock, prise à la réception. */
   restock: boolean("restock").notNull().default(false),
   condition: varchar("condition", { length: 16 }).notNull().default("new"),
-}, (t) => [index("return_request_items_request_idx").on(t.returnRequestId), uniqueIndex("return_request_items_unique").on(t.returnRequestId, t.orderItemId)]);
+}, (t) => [index("return_request_items_request_idx").on(t.returnRequestId), uniqueIndex("return_request_items_unique").on(t.returnRequestId, t.orderItemId), index("return_request_items_order_item_id_idx").on(t.orderItemId)]);
 
 /**
  * Remboursement : toujours rattaché à un paiement encaissé, jamais supérieur
@@ -1008,7 +1019,7 @@ export const refunds = pgTable("refunds", {
   processedAt: timestamp("processed_at", { withTimezone: true }),
   createdByEmployeeId: uuid("created_by_employee_id").references(() => employees.id, { onDelete: "set null" }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-}, (t) => [uniqueIndex("refunds_reference_unique").on(t.reference), index("refunds_order_idx").on(t.orderId), index("refunds_status_idx").on(t.status, t.createdAt)]);
+}, (t) => [uniqueIndex("refunds_reference_unique").on(t.reference), index("refunds_order_idx").on(t.orderId), index("refunds_status_idx").on(t.status, t.createdAt), index("refunds_created_by_employee_id_idx").on(t.createdByEmployeeId), index("refunds_payment_id_idx").on(t.paymentId), index("refunds_return_request_id_idx").on(t.returnRequestId), index("refunds_amount_xof_idx").on(t.amountXof)]);
 
 /**
  * Séquences de numérotation (factures, avoirs, commandes, retours).
@@ -1047,7 +1058,7 @@ export const invoices = pgTable("invoices", {
   voidedAt: timestamp("voided_at", { withTimezone: true }),
   voidReason: text("void_reason"),
   createdByEmployeeId: uuid("created_by_employee_id").references(() => employees.id, { onDelete: "set null" }),
-}, (t) => [uniqueIndex("invoices_number_unique").on(t.invoiceNumber), uniqueIndex("invoices_order_unique").on(t.orderId), index("invoices_status_idx").on(t.status), index("invoices_year_sequence_idx").on(t.fiscalYear, t.sequenceNumber)]);
+}, (t) => [uniqueIndex("invoices_number_unique").on(t.invoiceNumber), uniqueIndex("invoices_order_unique").on(t.orderId), index("invoices_status_idx").on(t.status), index("invoices_year_sequence_idx").on(t.fiscalYear, t.sequenceNumber), index("invoices_created_by_employee_id_idx").on(t.createdByEmployeeId)]);
 
 export const creditNotes = pgTable("credit_notes", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -1064,7 +1075,7 @@ export const creditNotes = pgTable("credit_notes", {
   sequenceNumber: integer("sequence_number"),
   fiscalYear: integer("fiscal_year"),
   createdByEmployeeId: uuid("created_by_employee_id").references(() => employees.id, { onDelete: "set null" }),
-}, (t) => [uniqueIndex("credit_notes_number_unique").on(t.creditNoteNumber), index("credit_notes_order_idx").on(t.orderId), index("credit_notes_year_sequence_idx").on(t.fiscalYear, t.sequenceNumber)]);
+}, (t) => [uniqueIndex("credit_notes_number_unique").on(t.creditNoteNumber), index("credit_notes_order_idx").on(t.orderId), index("credit_notes_year_sequence_idx").on(t.fiscalYear, t.sequenceNumber), index("credit_notes_created_by_employee_id_idx").on(t.createdByEmployeeId), index("credit_notes_invoice_id_idx").on(t.invoiceId)]);
 
 export const paymentMethodConfigs = pgTable("payment_methods", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -1168,7 +1179,7 @@ export const shippingRates = pgTable("shipping_rates", {
   isActive: boolean("is_active").notNull().default(true),
   deletedAt: timestamp("deleted_at", { withTimezone: true }),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
-}, (t) => [index("shipping_rates_lookup_idx").on(t.shippingMethodId, t.shippingZoneId, t.sortOrder)]);
+}, (t) => [index("shipping_rates_lookup_idx").on(t.shippingMethodId, t.shippingZoneId, t.sortOrder), index("shipping_rates_shipping_zone_id_idx").on(t.shippingZoneId)]);
 
 export const shippingRules = pgTable("shipping_rules", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -1179,7 +1190,7 @@ export const shippingRules = pgTable("shipping_rules", {
   configuration: jsonb("configuration").$type<Record<string, string | number | boolean>>().notNull().default({}),
   isEnabled: boolean("is_enabled").notNull().default(true),
   priority: integer("priority").notNull().default(0),
-}, (t) => [uniqueIndex("shipping_rules_global_method_code_unique").on(t.shippingMethodId, t.code).where(sql`${t.shippingZoneId} IS NULL`), uniqueIndex("shipping_rules_zoned_method_code_unique").on(t.shippingMethodId, t.shippingZoneId, t.code).where(sql`${t.shippingZoneId} IS NOT NULL`), index("shipping_rules_method_priority_idx").on(t.shippingMethodId, t.isEnabled, t.priority)]);
+}, (t) => [uniqueIndex("shipping_rules_global_method_code_unique").on(t.shippingMethodId, t.code).where(sql`${t.shippingZoneId} IS NULL`), uniqueIndex("shipping_rules_zoned_method_code_unique").on(t.shippingMethodId, t.shippingZoneId, t.code).where(sql`${t.shippingZoneId} IS NOT NULL`), index("shipping_rules_method_priority_idx").on(t.shippingMethodId, t.isEnabled, t.priority), index("shipping_rules_shipping_zone_id_idx").on(t.shippingZoneId)]);
 
 /**
  * Devis de transport : trace chaque estimation servie au storefront.
@@ -1215,7 +1226,7 @@ export const shippingDiscountTiers = pgTable("shipping_discount_tiers", {
   label: varchar("label", { length: 120 }).notNull().default(""),
   isActive: boolean("is_active").notNull().default(true),
   sortOrder: integer("sort_order").notNull().default(0),
-}, (t) => [index("shipping_discount_tiers_lookup_idx").on(t.shippingMethodId, t.shippingZoneId, t.sortOrder)]);
+}, (t) => [index("shipping_discount_tiers_lookup_idx").on(t.shippingMethodId, t.shippingZoneId, t.sortOrder), index("shipping_discount_tiers_shipping_zone_id_idx").on(t.shippingZoneId)]);
 
 export const shipmentOrders = pgTable("shipment_orders", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -1228,7 +1239,7 @@ export const shipmentOrders = pgTable("shipment_orders", {
   trackingUrl: text("tracking_url"),
   dispatchedAt: timestamp("dispatched_at", { withTimezone: true }),
   deliveredAt: timestamp("delivered_at", { withTimezone: true }),
-}, (t) => [uniqueIndex("shipment_orders_order_unique").on(t.orderId), index("shipment_orders_shipment_idx").on(t.shipmentId)]);
+}, (t) => [uniqueIndex("shipment_orders_order_unique").on(t.orderId), index("shipment_orders_shipment_idx").on(t.shipmentId), index("shipment_orders_shipping_method_id_idx").on(t.shippingMethodId)]);
 
 export const promoCodes = pgTable("promo_codes", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -1265,7 +1276,7 @@ export const promoCodes = pgTable("promo_codes", {
   priority: integer("priority").notNull().default(0),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   deletedAt: timestamp("deleted_at", { withTimezone: true }),
-}, (t) => [uniqueIndex("promo_codes_code_unique").on(t.code), index("promo_codes_active_period_idx").on(t.isActive, t.startsAt, t.endsAt)]);
+}, (t) => [uniqueIndex("promo_codes_code_unique").on(t.code), index("promo_codes_active_period_idx").on(t.isActive, t.startsAt, t.endsAt), index("promo_codes_customer_group_id_idx").on(t.customerGroupId), index("promo_codes_customer_id_idx").on(t.customerId), index("promo_codes_shop_id_idx").on(t.shopId), index("promo_codes_created_at_idx").on(t.createdAt), index("promo_codes_discount_type_idx").on(t.discountType), index("promo_codes_free_shipping_created_at_idx").on(t.freeShipping, t.createdAt), index("promo_codes_usage_count_idx").on(t.usageCount)]);
 
 export const cmsPages = pgTable("cms_pages", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -1283,7 +1294,7 @@ export const cmsPages = pgTable("cms_pages", {
   blocks: jsonb("blocks").$type<Array<Record<string, unknown>>>().notNull().default([]),
   excerpt: text("excerpt").notNull().default(""),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-}, (t) => [uniqueIndex("cms_pages_slug_unique").on(t.slug), index("cms_pages_status_idx").on(t.status)]);
+}, (t) => [uniqueIndex("cms_pages_slug_unique").on(t.slug), index("cms_pages_status_idx").on(t.status), index("cms_pages_updated_by_employee_id_idx").on(t.updatedByEmployeeId), index("cms_pages_published_at_idx").on(t.publishedAt), index("cms_pages_title_idx").on(t.title), index("cms_pages_updated_at_idx").on(t.updatedAt)]);
 
 /** Menus de la boutique (en-tête, pied de page) et leurs entrées, sur deux niveaux. */
 export const menus = pgTable("menus", {
@@ -1306,7 +1317,7 @@ export const menuItems = pgTable("menu_items", {
   isActive: boolean("is_active").notNull().default(true),
   opensNewTab: boolean("opens_new_tab").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-}, (t) => [index("menu_items_menu_idx").on(t.menuId, t.parentId, t.position)]);
+}, (t) => [index("menu_items_menu_idx").on(t.menuId, t.parentId, t.position), index("menu_items_parent_id_idx").on(t.parentId)]);
 
 /** Formulaires publics (contact, demande de devis…) : champs déclarés, réponses conservées. */
 export const forms = pgTable("forms", {
@@ -1334,7 +1345,7 @@ export const formSubmissions = pgTable("form_submissions", {
   ipHash: varchar("ip_hash", { length: 64 }),
   status: varchar("status", { length: 20 }).notNull().default("new"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-}, (t) => [index("form_submissions_form_idx").on(t.formId, t.createdAt), index("form_submissions_status_idx").on(t.status, t.createdAt)]);
+}, (t) => [index("form_submissions_form_idx").on(t.formId, t.createdAt), index("form_submissions_status_idx").on(t.status, t.createdAt), index("form_submissions_user_id_idx").on(t.userId)]);
 
 export const banners = pgTable("banners", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -1372,7 +1383,7 @@ export const exchangeRates = pgTable("exchange_rates", {
   isIndicative: boolean("is_indicative").notNull().default(true),
   updatedByEmployeeId: uuid("updated_by_employee_id").references(() => employees.id, { onDelete: "set null" }),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
-}, (t) => [uniqueIndex("exchange_rates_currency_pair_unique").on(t.baseCurrency, t.quoteCurrency), index("exchange_rates_updated_idx").on(t.updatedAt)]);
+}, (t) => [uniqueIndex("exchange_rates_currency_pair_unique").on(t.baseCurrency, t.quoteCurrency), index("exchange_rates_updated_idx").on(t.updatedAt), index("exchange_rates_updated_by_employee_id_idx").on(t.updatedByEmployeeId)]);
 
 export const taxRules = pgTable("tax_rules", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -1396,7 +1407,7 @@ export const settings = pgTable("settings", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   /** Paramètres par boutique (multi-boutique). Les valeurs existantes appartiennent à la boutique par défaut. */
   shopId: uuid("shop_id").notNull().default(sql`'00000000-0000-4000-8000-000000000001'::uuid`).references((): AnyPgColumn => shops.id, { onDelete: "cascade" }),
-}, (t) => [uniqueIndex("settings_shop_key_unique").on(t.shopId, t.key)]);
+}, (t) => [uniqueIndex("settings_shop_key_unique").on(t.shopId, t.key), index("settings_updated_by_employee_id_idx").on(t.updatedByEmployeeId)]);
 
 export const slugRedirects = pgTable("slug_redirects", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -1410,7 +1421,7 @@ export const slugRedirects = pgTable("slug_redirects", {
   lastHitAt: timestamp("last_hit_at", { withTimezone: true }),
   note: varchar("note", { length: 240 }).notNull().default(""),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
-}, (t) => [uniqueIndex("slug_redirects_old_path_unique").on(t.oldPath), index("slug_redirects_product_idx").on(t.productId)]);
+}, (t) => [uniqueIndex("slug_redirects_old_path_unique").on(t.oldPath), index("slug_redirects_product_idx").on(t.productId), index("slug_redirects_created_at_idx").on(t.createdAt), index("slug_redirects_hits_idx").on(t.hits), index("slug_redirects_status_code_idx").on(t.statusCode)]);
 
 export const usersRelations = relations(users, ({ many, one }) => ({
   products: many(products), orders: many(orders), sellerProfile: one(sellerProfiles), wallet: one(wallets),
@@ -1478,7 +1489,7 @@ export const productFeatureValues = pgTable("product_feature_values", {
   featureId: uuid("feature_id").notNull().references(() => features.id, { onDelete: "cascade" }),
   featureValueId: uuid("feature_value_id").references(() => featureValues.id, { onDelete: "set null" }),
   customValue: varchar("custom_value", { length: 190 }),
-}, (t) => [uniqueIndex("product_feature_values_unique").on(t.productId, t.featureId), index("product_feature_values_feature_idx").on(t.featureId, t.featureValueId)]);
+}, (t) => [uniqueIndex("product_feature_values_unique").on(t.productId, t.featureId), index("product_feature_values_feature_idx").on(t.featureId, t.featureValueId), index("product_feature_values_feature_value_id_idx").on(t.featureValueId)]);
 
 export const productCombinationAttributes = pgTable("product_combination_attributes", {
   id: serial("id").primaryKey(),
@@ -1541,7 +1552,7 @@ export const apiKeys = pgTable("api_keys", {
   expiresAt: timestamp("expires_at", { withTimezone: true }),
   revokedAt: timestamp("revoked_at", { withTimezone: true }),
   shopId: uuid("shop_id").references((): AnyPgColumn => shops.id, { onDelete: "cascade" }),
-}, (t) => [uniqueIndex("api_keys_hash_unique").on(t.keyHash), index("api_keys_prefix_idx").on(t.keyPrefix), index("api_keys_active_idx").on(t.isActive)]);
+}, (t) => [uniqueIndex("api_keys_hash_unique").on(t.keyHash), index("api_keys_prefix_idx").on(t.keyPrefix), index("api_keys_active_idx").on(t.isActive), index("api_keys_created_by_employee_id_idx").on(t.createdByEmployeeId), index("api_keys_shop_id_idx").on(t.shopId)]);
 
 export const translations = pgTable("translations", {
   id: serial("id").primaryKey(),
@@ -1584,7 +1595,7 @@ export const states = pgTable("states", {
   isoCode: varchar("iso_code", { length: 8 }),
   shippingZoneId: uuid("shipping_zone_id").references(() => shippingZones.id, { onDelete: "set null" }),
   isActive: boolean("is_active").notNull().default(true),
-}, (t) => [uniqueIndex("states_country_name_unique").on(t.countryId, t.name), index("states_country_active_idx").on(t.countryId, t.isActive)]);
+}, (t) => [uniqueIndex("states_country_name_unique").on(t.countryId, t.name), index("states_country_active_idx").on(t.countryId, t.isActive), index("states_shipping_zone_id_idx").on(t.shippingZoneId)]);
 
 export const currencies = pgTable("currencies", {
   id: serial("id").primaryKey(),
@@ -1641,7 +1652,7 @@ export const emailTemplates = pgTable("email_templates", {
   isActive: boolean("is_active").notNull().default(true),
   updatedByEmployeeId: uuid("updated_by_employee_id").references(() => employees.id, { onDelete: "set null" }),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
-}, (t) => [uniqueIndex("email_templates_code_locale_unique").on(t.code, t.locale), index("email_templates_active_idx").on(t.isActive, t.code)]);
+}, (t) => [uniqueIndex("email_templates_code_locale_unique").on(t.code, t.locale), index("email_templates_active_idx").on(t.isActive, t.code), index("email_templates_updated_by_employee_id_idx").on(t.updatedByEmployeeId)]);
 
 export const emailQueue = pgTable("email_queue", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -1659,7 +1670,7 @@ export const emailQueue = pgTable("email_queue", {
   /** Clé d'unicité (étape 6) : un même événement ne met jamais deux fois le même e-mail en file. */
   dedupeKey: varchar("dedupe_key", { length: 190 }),
   locale: varchar("locale", { length: 5 }).notNull().default("fr"),
-}, (t) => [index("email_queue_status_schedule_idx").on(t.status, t.scheduledAt), index("email_queue_created_idx").on(t.createdAt), uniqueIndex("email_queue_dedupe_unique").on(t.dedupeKey)]);
+}, (t) => [index("email_queue_status_schedule_idx").on(t.status, t.scheduledAt), index("email_queue_created_idx").on(t.createdAt), uniqueIndex("email_queue_dedupe_unique").on(t.dedupeKey), index("email_queue_template_code_idx").on(t.templateCode)]);
 
 /** Messages sortants hors e-mail (WhatsApp), envoyés par file comme les e-mails. */
 export const outboundMessages = pgTable("outbound_messages", {
@@ -1692,7 +1703,7 @@ export const emailLog = pgTable("email_log", {
   error: text("error"),
   employeeId: uuid("employee_id").references(() => employees.id, { onDelete: "set null" }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-}, (t) => [index("email_log_created_idx").on(t.createdAt), index("email_log_status_idx").on(t.status)]);
+}, (t) => [index("email_log_created_idx").on(t.createdAt), index("email_log_status_idx").on(t.status), index("email_log_employee_id_idx").on(t.employeeId), index("email_log_queue_id_idx").on(t.queueId)]);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Étape 3 — catalogue produits : champs produit complets, catégories multiples,
@@ -1722,7 +1733,7 @@ export const productCarriers = pgTable("product_carriers", {
   id: serial("id").primaryKey(),
   productId: uuid("product_id").notNull().references(() => products.id, { onDelete: "cascade" }),
   shippingMethodId: uuid("shipping_method_id").notNull().references(() => shippingMethods.id, { onDelete: "cascade" }),
-}, (t) => [uniqueIndex("product_carriers_unique").on(t.productId, t.shippingMethodId)]);
+}, (t) => [uniqueIndex("product_carriers_unique").on(t.productId, t.shippingMethodId), index("product_carriers_shipping_method_id_idx").on(t.shippingMethodId)]);
 
 export const packItems = pgTable("pack_items", {
   id: serial("id").primaryKey(),
@@ -1730,7 +1741,7 @@ export const packItems = pgTable("pack_items", {
   componentProductId: uuid("component_product_id").notNull().references(() => products.id, { onDelete: "restrict" }),
   componentVariantId: integer("component_variant_id").references(() => productVariants.id, { onDelete: "set null" }),
   quantity: integer("quantity").notNull().default(1),
-}, (t) => [uniqueIndex("pack_items_unique").on(t.packProductId, t.componentProductId, t.componentVariantId), index("pack_items_pack_idx").on(t.packProductId)]);
+}, (t) => [uniqueIndex("pack_items_unique").on(t.packProductId, t.componentProductId, t.componentVariantId), index("pack_items_pack_idx").on(t.packProductId), index("pack_items_component_product_id_idx").on(t.componentProductId), index("pack_items_component_variant_id_idx").on(t.componentVariantId)]);
 
 export const productCustomizations = pgTable("product_customizations", {
   id: serial("id").primaryKey(),
@@ -1766,7 +1777,7 @@ export const stockMovements = pgTable("stock_movements", {
   reservationId: uuid("reservation_id").references((): AnyPgColumn => stockReservations.id, { onDelete: "set null" }),
   /** Référence libre : bon de réception, inventaire, fichier d'import… */
   reference: varchar("reference", { length: 120 }),
-}, (t) => [index("stock_movements_product_time_idx").on(t.productId, t.createdAt), index("stock_movements_variant_idx").on(t.variantId), index("stock_movements_reason_idx").on(t.reason, t.createdAt), index("stock_movements_warehouse_time_idx").on(t.warehouseId, t.createdAt), index("stock_movements_order_idx").on(t.orderId)]);
+}, (t) => [index("stock_movements_product_time_idx").on(t.productId, t.createdAt), index("stock_movements_variant_idx").on(t.variantId), index("stock_movements_reason_idx").on(t.reason, t.createdAt), index("stock_movements_warehouse_time_idx").on(t.warehouseId, t.createdAt), index("stock_movements_order_idx").on(t.orderId), index("stock_movements_employee_id_idx").on(t.employeeId), index("stock_movements_reservation_id_idx").on(t.reservationId), index("stock_movements_quantity_delta_idx").on(t.quantityDelta), index("stock_movements_reference_idx").on(t.reference)]);
 
 // ---------------------------------------------------------------------------
 // Fondations backend (étape 2) : boutiques, événements, limites, idempotence
@@ -1806,7 +1817,7 @@ export const domainEvents = pgTable("domain_events", {
   occurredAt: timestamp("occurred_at", { withTimezone: true }).notNull().defaultNow(),
   availableAt: timestamp("available_at", { withTimezone: true }).notNull().defaultNow(),
   dispatchedAt: timestamp("dispatched_at", { withTimezone: true }),
-}, (t) => [index("domain_events_queue_idx").on(t.status, t.availableAt), index("domain_events_name_time_idx").on(t.name, t.occurredAt), index("domain_events_aggregate_idx").on(t.aggregateType, t.aggregateId)]);
+}, (t) => [index("domain_events_queue_idx").on(t.status, t.availableAt), index("domain_events_name_time_idx").on(t.name, t.occurredAt), index("domain_events_aggregate_idx").on(t.aggregateType, t.aggregateId), index("domain_events_shop_id_idx").on(t.shopId), index("domain_events_attempts_idx").on(t.attempts)]);
 
 /** Compteurs de limitation de débit (fenêtre fixe) quand Redis n'est pas configuré. */
 export const rateLimitBuckets = pgTable("rate_limit_buckets", {
@@ -1857,7 +1868,7 @@ export const warehouses = pgTable("warehouses", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   deletedAt: timestamp("deleted_at", { withTimezone: true }),
-}, (t) => [uniqueIndex("warehouses_shop_code_unique").on(t.shopId, t.code), uniqueIndex("warehouses_one_default").on(t.shopId).where(sql`${t.isDefault} = true AND ${t.deletedAt} IS NULL`), index("warehouses_active_idx").on(t.shopId, t.isActive, t.position)]);
+}, (t) => [uniqueIndex("warehouses_shop_code_unique").on(t.shopId, t.code), uniqueIndex("warehouses_one_default").on(t.shopId).where(sql`${t.isDefault} = true AND ${t.deletedAt} IS NULL`), index("warehouses_active_idx").on(t.shopId, t.isActive, t.position), index("warehouses_manager_employee_id_idx").on(t.managerEmployeeId)]);
 
 /**
  * Stock par entrepôt. Disponible = physique − réservé.
@@ -1876,7 +1887,7 @@ export const stockLevels = pgTable("stock_levels", {
   /** Emplacement physique (allée, rayon, case). */
   location: varchar("location", { length: 60 }),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
-}, (t) => [uniqueIndex("stock_levels_product_unique").on(t.warehouseId, t.productId).where(sql`${t.variantId} IS NULL`), uniqueIndex("stock_levels_variant_unique").on(t.warehouseId, t.productId, t.variantId).where(sql`${t.variantId} IS NOT NULL`), index("stock_levels_product_idx").on(t.productId, t.variantId)]);
+}, (t) => [uniqueIndex("stock_levels_product_unique").on(t.warehouseId, t.productId).where(sql`${t.variantId} IS NULL`), uniqueIndex("stock_levels_variant_unique").on(t.warehouseId, t.productId, t.variantId).where(sql`${t.variantId} IS NOT NULL`), index("stock_levels_product_idx").on(t.productId, t.variantId), index("stock_levels_variant_id_idx").on(t.variantId), index("stock_levels_physical_quantity_idx").on(t.physicalQuantity), index("stock_levels_reserved_quantity_idx").on(t.reservedQuantity), index("stock_levels_updated_at_idx").on(t.updatedAt)]);
 
 /** Réservation de stock : une commande (ou un panier) bloque des unités sans les sortir physiquement. */
 export const stockReservations = pgTable("stock_reservations", {
@@ -1892,7 +1903,7 @@ export const stockReservations = pgTable("stock_reservations", {
   expiresAt: timestamp("expires_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   closedAt: timestamp("closed_at", { withTimezone: true }),
-}, (t) => [index("stock_reservations_order_idx").on(t.orderId, t.status), index("stock_reservations_product_idx").on(t.productId, t.status), index("stock_reservations_expiry_idx").on(t.status, t.expiresAt)]);
+}, (t) => [index("stock_reservations_order_idx").on(t.orderId, t.status), index("stock_reservations_product_idx").on(t.productId, t.status), index("stock_reservations_expiry_idx").on(t.status, t.expiresAt), index("stock_reservations_cart_id_idx").on(t.cartId), index("stock_reservations_variant_id_idx").on(t.variantId), index("stock_reservations_warehouse_id_idx").on(t.warehouseId), index("stock_reservations_created_at_idx").on(t.createdAt), index("stock_reservations_quantity_idx").on(t.quantity)]);
 
 /**
  * Prix spécifique d'un produit : prix fixe ou remise, ciblé par client, groupe, pays, devise,
@@ -1917,7 +1928,7 @@ export const specificPrices = pgTable("specific_prices", {
   createdByEmployeeId: uuid("created_by_employee_id").references(() => employees.id, { onDelete: "set null" }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
-}, (t) => [index("specific_prices_product_idx").on(t.productId, t.variantId), index("specific_prices_period_idx").on(t.dateFrom, t.dateTo), index("specific_prices_customer_idx").on(t.customerId), index("specific_prices_group_idx").on(t.customerGroupId)]);
+}, (t) => [index("specific_prices_product_idx").on(t.productId, t.variantId), index("specific_prices_period_idx").on(t.dateFrom, t.dateTo), index("specific_prices_customer_idx").on(t.customerId), index("specific_prices_group_idx").on(t.customerGroupId), index("specific_prices_created_by_employee_id_idx").on(t.createdByEmployeeId), index("specific_prices_shop_id_idx").on(t.shopId), index("specific_prices_variant_id_idx").on(t.variantId)]);
 
 export type CatalogPriceRuleConditions = { categoryIds?: number[]; brandIds?: number[]; supplierIds?: string[]; productIds?: string[]; excludeProductIds?: string[] };
 
@@ -1941,7 +1952,7 @@ export const catalogPriceRules = pgTable("catalog_price_rules", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   deletedAt: timestamp("deleted_at", { withTimezone: true }),
-}, (t) => [index("catalog_price_rules_active_idx").on(t.shopId, t.isActive, t.dateFrom, t.dateTo)]);
+}, (t) => [index("catalog_price_rules_active_idx").on(t.shopId, t.isActive, t.dateFrom, t.dateTo), index("catalog_price_rules_created_by_employee_id_idx").on(t.createdByEmployeeId), index("catalog_price_rules_customer_group_id_idx").on(t.customerGroupId), index("catalog_price_rules_created_at_idx").on(t.createdAt), index("catalog_price_rules_name_idx").on(t.name), index("catalog_price_rules_priority_idx").on(t.priority), index("catalog_price_rules_reduction_type_idx").on(t.reductionType)]);
 
 /** Utilisations d'un bon de réduction (limite globale et par client). */
 export const promoCodeRedemptions = pgTable("promo_code_redemptions", {
@@ -1951,7 +1962,7 @@ export const promoCodeRedemptions = pgTable("promo_code_redemptions", {
   orderId: uuid("order_id").references(() => orders.id, { onDelete: "set null" }),
   amountXof: integer("amount_xof").notNull().default(0),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-}, (t) => [index("promo_code_redemptions_code_customer_idx").on(t.promoCodeId, t.customerId), uniqueIndex("promo_code_redemptions_code_order_unique").on(t.promoCodeId, t.orderId)]);
+}, (t) => [index("promo_code_redemptions_code_customer_idx").on(t.promoCodeId, t.customerId), uniqueIndex("promo_code_redemptions_code_order_unique").on(t.promoCodeId, t.orderId), index("promo_code_redemptions_customer_id_idx").on(t.customerId), index("promo_code_redemptions_order_id_idx").on(t.orderId)]);
 
 /** Images associées à une déclinaison (choisies parmi celles du produit). */
 export const productVariantImages = pgTable("product_variant_images", {
@@ -2009,7 +2020,7 @@ export const importJobs = pgTable("import_jobs", {
   startedAt: timestamp("started_at", { withTimezone: true }),
   finishedAt: timestamp("finished_at", { withTimezone: true }),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
-}, (t) => [index("import_jobs_shop_created_idx").on(t.shopId, t.createdAt), index("import_jobs_status_idx").on(t.status)]);
+}, (t) => [index("import_jobs_shop_created_idx").on(t.shopId, t.createdAt), index("import_jobs_status_idx").on(t.status), index("import_jobs_created_by_employee_id_idx").on(t.createdByEmployeeId), index("import_jobs_entity_idx").on(t.entity)]);
 
 /** Ligne d'un import : valeurs lues, action prévue (simulation) puis résultat. */
 export const importJobRows = pgTable("import_job_rows", {
@@ -2049,7 +2060,7 @@ export const errorLogs = pgTable("error_logs", {
   context: jsonb("context").$type<Record<string, unknown>>().notNull().default({}),
   resolvedAt: timestamp("resolved_at", { withTimezone: true }),
   resolvedByEmployeeId: uuid("resolved_by_employee_id").references(() => employees.id, { onDelete: "set null" }),
-}, (t) => [index("error_logs_time_idx").on(t.occurredAt), index("error_logs_fingerprint_idx").on(t.fingerprint, t.occurredAt), index("error_logs_open_idx").on(t.resolvedAt, t.occurredAt)]);
+}, (t) => [index("error_logs_time_idx").on(t.occurredAt), index("error_logs_fingerprint_idx").on(t.fingerprint, t.occurredAt), index("error_logs_open_idx").on(t.resolvedAt, t.occurredAt), index("error_logs_resolved_by_employee_id_idx").on(t.resolvedByEmployeeId), index("error_logs_shop_id_idx").on(t.shopId), index("error_logs_code_idx").on(t.code), index("error_logs_level_idx").on(t.level), index("error_logs_request_id_idx").on(t.requestId), index("error_logs_route_idx").on(t.route), index("error_logs_source_idx").on(t.source), index("error_logs_status_idx").on(t.status)]);
 
 /** Statistiques quotidiennes pré-calculées (jour UTC, heure d'Abidjan). Recalculables à tout moment. */
 export const statsDaily = pgTable("stats_daily", {
@@ -2080,7 +2091,7 @@ export const statsDailyProducts = pgTable("stats_daily_products", {
   units: integer("units").notNull().default(0),
   revenueXof: bigint("revenue_xof", { mode: "number" }).notNull().default(0),
   ordersCount: integer("orders_count").notNull().default(0),
-}, (t) => [uniqueIndex("stats_daily_products_unique").on(t.shopId, t.day, t.productId), index("stats_daily_products_product_idx").on(t.productId, t.day)]);
+}, (t) => [uniqueIndex("stats_daily_products_unique").on(t.shopId, t.day, t.productId), index("stats_daily_products_product_idx").on(t.productId, t.day), index("stats_daily_products_category_id_idx").on(t.categoryId), index("stats_daily_products_seller_id_idx").on(t.sellerId)]);
 
 /** Tâches planifiées : activation, verrou anti-chevauchement, dernier passage. */
 export const scheduledTasks = pgTable("scheduled_tasks", {
@@ -2108,7 +2119,7 @@ export const scheduledTaskRuns = pgTable("scheduled_task_runs", {
   result: jsonb("result").$type<Record<string, unknown>>(),
   error: text("error"),
   triggeredByEmployeeId: uuid("triggered_by_employee_id").references(() => employees.id, { onDelete: "set null" }),
-}, (t) => [index("scheduled_task_runs_task_time_idx").on(t.taskCode, t.startedAt)]);
+}, (t) => [index("scheduled_task_runs_task_time_idx").on(t.taskCode, t.startedAt), index("scheduled_task_runs_triggered_by_employee_id_idx").on(t.triggeredByEmployeeId)]);
 
 // ---------------------------------------------------------------------------
 // Service client, assistant IA et multi-boutique (étape 8)
@@ -2159,6 +2170,14 @@ export const supportTickets = pgTable("support_tickets", {
   index("support_tickets_assignee_idx").on(t.assignedEmployeeId, t.status),
   index("support_tickets_user_idx").on(t.userId, t.lastMessageAt),
   index("support_tickets_email_idx").on(t.email),
+  index("support_tickets_customer_id_idx").on(t.customerId),
+  index("support_tickets_order_id_idx").on(t.orderId),
+  index("support_tickets_product_id_idx").on(t.productId),
+  index("support_tickets_category_idx").on(t.category),
+  index("support_tickets_channel_idx").on(t.channel),
+  index("support_tickets_created_at_idx").on(t.createdAt),
+  index("support_tickets_first_response_due_at_idx").on(t.firstResponseDueAt),
+  index("support_tickets_priority_idx").on(t.priority),
 ]);
 
 /** Message d'un ticket : client, employé (réponse ou note interne invisible du client) ou système. */
@@ -2174,7 +2193,7 @@ export const supportTicketMessages = pgTable("support_ticket_messages", {
   /** Réponse issue d'une proposition de l'assistant IA, validée par l'employé. */
   aiProposalId: uuid("ai_proposal_id"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-}, (t) => [index("support_ticket_messages_ticket_idx").on(t.ticketId, t.createdAt)]);
+}, (t) => [index("support_ticket_messages_ticket_idx").on(t.ticketId, t.createdAt), index("support_ticket_messages_employee_id_idx").on(t.employeeId), index("support_ticket_messages_user_id_idx").on(t.userId)]);
 
 /** Modèle de réponse du service client, avec variables ({{customerName}}, {{ticketReference}}…). */
 export const supportReplyTemplates = pgTable("support_reply_templates", {
@@ -2219,7 +2238,7 @@ export const aiProposals = pgTable("ai_proposals", {
   decisionNote: text("decision_note"),
   expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-}, (t) => [index("ai_proposals_queue_idx").on(t.shopId, t.status, t.createdAt), index("ai_proposals_target_idx").on(t.targetType, t.targetId), index("ai_proposals_requester_idx").on(t.requestedByEmployeeId, t.createdAt)]);
+}, (t) => [index("ai_proposals_queue_idx").on(t.shopId, t.status, t.createdAt), index("ai_proposals_target_idx").on(t.targetType, t.targetId), index("ai_proposals_requester_idx").on(t.requestedByEmployeeId, t.createdAt), index("ai_proposals_decided_by_employee_id_idx").on(t.decidedByEmployeeId), index("ai_proposals_kind_idx").on(t.kind)]);
 
 /** Journal de consommation de l'assistant IA (quotas par employé et budget mensuel par boutique). */
 export const aiUsage = pgTable("ai_usage", {
@@ -2234,7 +2253,7 @@ export const aiUsage = pgTable("ai_usage", {
   /** succeeded, failed, refused, quota_exceeded. */
   status: varchar("status", { length: 16 }).notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-}, (t) => [index("ai_usage_employee_time_idx").on(t.employeeId, t.createdAt), index("ai_usage_shop_time_idx").on(t.shopId, t.createdAt)]);
+}, (t) => [index("ai_usage_employee_time_idx").on(t.employeeId, t.createdAt), index("ai_usage_shop_time_idx").on(t.shopId, t.createdAt), index("ai_usage_proposal_id_idx").on(t.proposalId)]);
 
 /** Boutiques auxquelles un employé a accès (sans ligne : la boutique par défaut). */
 export const employeeShops = pgTable("employee_shops", {
