@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
-import { Activity, ArrowLeftRight, BadgePercent, Bell, Bot, Boxes, Calculator, ChevronRight, CircleHelp, ClipboardList, CreditCard, FileText, Globe2, Headset, History, Image, Inbox, LayoutDashboard, ListChecks, MapPin, Menu, MessageSquareQuote, PackageSearch, Percent, Plane, Ruler, Search, Settings2, Shield, Tags, Ticket, Trash2, TriangleAlert, Truck, Undo2, UserCog, Users, Warehouse, X } from "lucide-react";
+import { Activity, ArrowLeftRight, BadgePercent, Bell, Bot, Boxes, Calculator, Download, FileUp, Store, ChevronRight, CircleHelp, ClipboardList, CreditCard, FileText, Globe2, Headset, History, Image, Inbox, LayoutDashboard, ListChecks, MapPin, Menu, MessageSquareQuote, PackageSearch, Percent, Plane, Ruler, Search, Settings2, Shield, Tags, Ticket, Trash2, TriangleAlert, Truck, Undo2, UserCog, Users, Warehouse, X } from "lucide-react";
 import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { can, isPermissionCode } from "@/lib/permission-matrix";
@@ -69,10 +69,15 @@ const navGroups: NavGroup[] = [
     { label: "Bons de réduction", href: "/marketing/bons", permission: "pricing.read", icon: Ticket, implemented: true },
     { label: "Règles de prix", href: "/marketing/regles", permission: "pricing.read", icon: Percent, implemented: true },
     { label: "Statistiques", href: "/statistiques", permission: "analytics.read", icon: Activity, implemented: true },
+    { label: "Imports CSV", href: "/outils/imports", permission: "catalog.import", icon: FileUp, implemented: true },
+    { label: "Exports CSV", href: "/outils/exports", permission: "catalog.export", icon: Download, implemented: true },
   ] },
   { label: "Configuration", items: [
     { label: "Paramètres", href: "/parametres", permission: "settings.read", icon: Settings2, implemented: true },
     { label: "Employés et rôles", href: "/employes", permission: "employees.manage", icon: Shield, implemented: true },
+    { label: "Boutiques", href: "/systeme/boutiques", permission: "shops.read", icon: Store, implemented: true },
+    { label: "Tâches planifiées", href: "/systeme/taches", permission: "system.read", icon: History, implemented: true },
+    { label: "Journal d’erreurs", href: "/systeme/erreurs", permission: "logs.read", icon: TriangleAlert, implemented: true },
   ] },
   { label: "Mon compte", items: [
     { label: "Sécurité du compte", href: "/securite", permission: "dashboard.read", icon: Shield, implemented: true },
