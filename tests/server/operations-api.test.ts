@@ -153,7 +153,7 @@ describe("tâches planifiées", () => {
     const response = await GET(new Request("http://shop.test/api/cron/maintenance", { headers: { authorization: `Bearer ${process.env.CRON_SECRET}` } }));
     expect(response.status).toBe(200);
     const results = (await response.json()).data as Array<{ code: string; status: string; reason?: string }>;
-    expect(results.map((result) => [result.code, result.status])).toEqual([["stats.refresh", "succeeded"], ["imports.resume", "succeeded"], ["support.auto_close", "succeeded"], ["maintenance.purge", "skipped"]]);
+    expect(results.map((result) => [result.code, result.status])).toEqual([["stats.refresh", "succeeded"], ["imports.resume", "succeeded"], ["support.auto_close", "succeeded"], ["ai.expire_proposals", "succeeded"], ["maintenance.purge", "skipped"]]);
     // Exécution manuelle possible même désactivée.
     expect((await admin("POST", "/admin/tasks/maintenance.purge/run")).json.data.status).toBe("succeeded");
   });

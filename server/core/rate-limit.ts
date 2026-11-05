@@ -27,6 +27,7 @@ export const RATE_LIMIT_POLICIES = {
   "shop.forms": { limit: 10, windowSeconds: 60 * 60 },
   "admin.default": { limit: 600, windowSeconds: 60 },
   "admin.write": { limit: 120, windowSeconds: 60 },
+  "admin.ai": { limit: 10, windowSeconds: 60 },
   ai: { limit: 30, windowSeconds: 60 * 60 },
 } as const satisfies Record<string, RateLimitPolicy>;
 

@@ -9,5 +9,5 @@ export const dynamic = "force-dynamic";
  * imports interrompus, clôture des tickets résolus, nettoyage technique. Protégée par CRON_SECRET.
  */
 export function GET(request: Request) {
-  return runCronTasks(request, ["stats.refresh", "imports.resume", "support.auto_close", "maintenance.purge"]);
+  return runCronTasks(request, ["stats.refresh", "imports.resume", "support.auto_close", "ai.expire_proposals", "maintenance.purge"]);
 }
