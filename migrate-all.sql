@@ -1,4 +1,4 @@
--- Mybigmarket — application de toutes les migrations (18 fichiers)
+-- Mybigmarket — application de toutes les migrations (20 fichiers)
 -- Régénérer avec : npm run db:sql:all
 -- Appliquer avec : psql "$DATABASE_URL" -f migrate-all.sql
 --
@@ -2351,6 +2351,263 @@ ON CONFLICT ("code") DO NOTHING;
 $sql$;
     INSERT INTO drizzle.__drizzle_migrations (hash, created_at)
       VALUES ('0017_delivery_payments.sql:plain:01f1bd7c08', (EXTRACT(EPOCH FROM now()) * 1000)::bigint);
+  END IF;
+END
+$migration$;
+
+
+-- ============ 0018_content_search_messaging.sql ============
+DO $migration$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM drizzle.__drizzle_migrations WHERE hash IN ('0018_content_search_messaging.sql:plain:8b0659ca41', 'c110cdbac6dec108a0e75dcefd2843859744cc7d1b23b20f46b8a7312cc670f3')) THEN
+    EXECUTE $sql$
+CREATE TABLE "form_submissions" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"form_id" uuid NOT NULL,
+	"data" jsonb NOT NULL,
+	"email" varchar(190),
+	"user_id" uuid,
+	"ip_hash" varchar(64),
+	"status" varchar(20) DEFAULT 'new' NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+CREATE TABLE "forms" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"code" varchar(60) NOT NULL,
+	"title" varchar(160) NOT NULL,
+	"description" text DEFAULT '' NOT NULL,
+	"fields" jsonb DEFAULT '[]'::jsonb NOT NULL,
+	"notify_email" varchar(190),
+	"success_message" varchar(400) DEFAULT 'Merci, votre message a bien été envoyé.' NOT NULL,
+	"is_active" boolean DEFAULT true NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"deleted_at" timestamp with time zone
+);
+CREATE TABLE "menu_items" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"menu_id" integer NOT NULL,
+	"parent_id" integer,
+	"label" varchar(120) NOT NULL,
+	"link_type" varchar(20) NOT NULL,
+	"target" varchar(300) DEFAULT '' NOT NULL,
+	"position" integer DEFAULT 0 NOT NULL,
+	"is_active" boolean DEFAULT true NOT NULL,
+	"opens_new_tab" boolean DEFAULT false NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+CREATE TABLE "menus" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"code" varchar(40) NOT NULL,
+	"name" varchar(120) NOT NULL,
+	"is_active" boolean DEFAULT true NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+CREATE TABLE "outbound_messages" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"channel" varchar(20) NOT NULL,
+	"to_address" varchar(40) NOT NULL,
+	"template_code" varchar(60),
+	"locale" varchar(5) DEFAULT 'fr' NOT NULL,
+	"body" text DEFAULT '' NOT NULL,
+	"payload" jsonb DEFAULT '{}'::jsonb NOT NULL,
+	"status" varchar(20) DEFAULT 'pending' NOT NULL,
+	"attempts" integer DEFAULT 0 NOT NULL,
+	"last_error" text,
+	"provider_message_id" varchar(190),
+	"dedupe_key" varchar(190),
+	"scheduled_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"sent_at" timestamp with time zone,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+ALTER TABLE "banners" ADD COLUMN "placement" varchar(40) DEFAULT 'home' NOT NULL;
+ALTER TABLE "cms_pages" ADD COLUMN "blocks" jsonb DEFAULT '[]'::jsonb NOT NULL;
+ALTER TABLE "cms_pages" ADD COLUMN "excerpt" text DEFAULT '' NOT NULL;
+ALTER TABLE "cms_pages" ADD COLUMN "created_at" timestamp with time zone DEFAULT now() NOT NULL;
+ALTER TABLE "email_queue" ADD COLUMN "dedupe_key" varchar(190);
+ALTER TABLE "email_queue" ADD COLUMN "locale" varchar(5) DEFAULT 'fr' NOT NULL;
+ALTER TABLE "slug_redirects" ADD COLUMN "status_code" integer DEFAULT 301 NOT NULL;
+ALTER TABLE "slug_redirects" ADD COLUMN "hits" integer DEFAULT 0 NOT NULL;
+ALTER TABLE "slug_redirects" ADD COLUMN "last_hit_at" timestamp with time zone;
+ALTER TABLE "slug_redirects" ADD COLUMN "note" varchar(240) DEFAULT '' NOT NULL;
+ALTER TABLE "slug_redirects" ADD COLUMN "updated_at" timestamp with time zone DEFAULT now() NOT NULL;
+ALTER TABLE "form_submissions" ADD CONSTRAINT "form_submissions_form_id_forms_id_fk" FOREIGN KEY ("form_id") REFERENCES "public"."forms"("id") ON DELETE cascade ON UPDATE no action;
+ALTER TABLE "form_submissions" ADD CONSTRAINT "form_submissions_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action;
+ALTER TABLE "menu_items" ADD CONSTRAINT "menu_items_menu_id_menus_id_fk" FOREIGN KEY ("menu_id") REFERENCES "public"."menus"("id") ON DELETE cascade ON UPDATE no action;
+ALTER TABLE "menu_items" ADD CONSTRAINT "menu_items_parent_id_menu_items_id_fk" FOREIGN KEY ("parent_id") REFERENCES "public"."menu_items"("id") ON DELETE cascade ON UPDATE no action;
+CREATE INDEX "form_submissions_form_idx" ON "form_submissions" USING btree ("form_id","created_at");
+CREATE INDEX "form_submissions_status_idx" ON "form_submissions" USING btree ("status","created_at");
+CREATE UNIQUE INDEX "forms_code_unique" ON "forms" USING btree ("code");
+CREATE INDEX "menu_items_menu_idx" ON "menu_items" USING btree ("menu_id","parent_id","position");
+CREATE UNIQUE INDEX "menus_code_unique" ON "menus" USING btree ("code");
+CREATE INDEX "outbound_messages_status_idx" ON "outbound_messages" USING btree ("status","scheduled_at");
+CREATE UNIQUE INDEX "outbound_messages_dedupe_unique" ON "outbound_messages" USING btree ("dedupe_key");
+CREATE UNIQUE INDEX "email_queue_dedupe_unique" ON "email_queue" USING btree ("dedupe_key");
+-- Recherche (étape 6) : extensions « de confiance » de PostgreSQL, installables par le propriétaire de la base.
+CREATE EXTENSION IF NOT EXISTS unaccent;
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+-- unaccent() est STABLE ; cette enveloppe IMMUTABLE (dictionnaire fixé) permet de l'indexer.
+CREATE OR REPLACE FUNCTION public.mbm_unaccent(value text) RETURNS text
+  LANGUAGE sql IMMUTABLE PARALLEL SAFE STRICT
+  AS 'SELECT public.unaccent(''public.unaccent''::regdictionary, value)';
+-- Document de recherche d'un produit : titre et référence (poids A), résumé (B), description (C), en français sans accents.
+CREATE OR REPLACE FUNCTION public.mbm_product_document(title text, reference text, short_description text, description text) RETURNS tsvector
+  LANGUAGE sql IMMUTABLE PARALLEL SAFE
+  AS 'SELECT setweight(to_tsvector(''french'', public.mbm_unaccent(coalesce(title, ''''))), ''A'')
+          || setweight(to_tsvector(''simple'', public.mbm_unaccent(coalesce(reference, ''''))), ''A'')
+          || setweight(to_tsvector(''french'', public.mbm_unaccent(coalesce(short_description, ''''))), ''B'')
+          || setweight(to_tsvector(''french'', public.mbm_unaccent(left(coalesce(description, ''''), 20000))), ''C'')';
+CREATE INDEX IF NOT EXISTS "products_search_document_idx" ON "products" USING gin (public.mbm_product_document("title", "reference", "short_description", "description"));
+-- Tolérance aux fautes de frappe : trigrammes sur le titre sans accents.
+CREATE INDEX IF NOT EXISTS "products_title_trgm_idx" ON "products" USING gin (public.mbm_unaccent(lower("title")) gin_trgm_ops);
+-- Formulaire de contact livré prêt à l'emploi (modifiable dans l'administration).
+INSERT INTO "forms" ("code", "title", "description", "fields") VALUES ('contact', 'Nous contacter', 'Une question sur une commande, un fournisseur ou une livraison ? Écrivez-nous.',
+  '[{"name":"name","label":"Nom","type":"text","required":true,"maxLength":160},{"name":"email","label":"E-mail","type":"email","required":true,"maxLength":190},{"name":"phone","label":"Téléphone","type":"tel","required":false,"maxLength":32},{"name":"subject","label":"Sujet","type":"select","required":true,"options":["Commande","Paiement","Livraison","Devenir vendeur","Autre"]},{"name":"orderReference","label":"Référence de commande","type":"text","required":false,"maxLength":40},{"name":"message","label":"Message","type":"textarea","required":true,"maxLength":4000}]'::jsonb)
+ON CONFLICT ("code") DO NOTHING;
+-- Menu de pied de page reprenant les pages existantes de la boutique.
+INSERT INTO "menus" ("code", "name") VALUES ('footer', 'Pied de page'), ('header', 'En-tête') ON CONFLICT ("code") DO NOTHING;
+INSERT INTO "menu_items" ("menu_id", "label", "link_type", "target", "position")
+SELECT m.id, v.label, 'url', v.target, v.position FROM "menus" m
+CROSS JOIN (VALUES ('Comment ça marche', '/comment-ca-marche', 0), ('Demande de devis', '/demande-de-devis', 1), ('Conditions générales', '/conditions', 2), ('Confidentialité', '/confidentialite', 3)) AS v(label, target, position)
+WHERE m.code = 'footer' AND NOT EXISTS (SELECT 1 FROM "menu_items" i WHERE i.menu_id = m.id);
+$sql$;
+    INSERT INTO drizzle.__drizzle_migrations (hash, created_at)
+      VALUES ('0018_content_search_messaging.sql:plain:8b0659ca41', (EXTRACT(EPOCH FROM now()) * 1000)::bigint);
+  END IF;
+END
+$migration$;
+
+
+-- ============ 0019_operations_imports_stats.sql ============
+DO $migration$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM drizzle.__drizzle_migrations WHERE hash IN ('0019_operations_imports_stats.sql:plain:36c15e4725', '11d8d4c8b66625c9042ee88f22f437bb7e93ae7a0054861d80fac40013c12dab')) THEN
+    EXECUTE $sql$
+CREATE TABLE "error_logs" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"shop_id" uuid,
+	"occurred_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"level" varchar(10) DEFAULT 'error' NOT NULL,
+	"source" varchar(20) NOT NULL,
+	"code" varchar(60),
+	"message" text NOT NULL,
+	"stack" text,
+	"fingerprint" varchar(64) NOT NULL,
+	"request_id" varchar(80),
+	"method" varchar(10),
+	"path" varchar(500),
+	"route" varchar(120),
+	"status" integer,
+	"actor" varchar(120),
+	"context" jsonb DEFAULT '{}'::jsonb NOT NULL,
+	"resolved_at" timestamp with time zone,
+	"resolved_by_employee_id" uuid
+);
+CREATE TABLE "import_job_rows" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"job_id" uuid NOT NULL,
+	"line" integer NOT NULL,
+	"data" jsonb DEFAULT '{}'::jsonb NOT NULL,
+	"planned_action" varchar(10) NOT NULL,
+	"status" varchar(10) DEFAULT 'pending' NOT NULL,
+	"messages" jsonb DEFAULT '[]'::jsonb NOT NULL,
+	"entity_id" varchar(64),
+	"processed_at" timestamp with time zone
+);
+CREATE TABLE "import_jobs" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"shop_id" uuid DEFAULT '00000000-0000-4000-8000-000000000001'::uuid NOT NULL,
+	"entity" varchar(30) NOT NULL,
+	"status" varchar(16) DEFAULT 'simulated' NOT NULL,
+	"file_name" varchar(200),
+	"options" jsonb DEFAULT '{}'::jsonb NOT NULL,
+	"summary" jsonb DEFAULT '{}'::jsonb NOT NULL,
+	"total_rows" integer DEFAULT 0 NOT NULL,
+	"processed_rows" integer DEFAULT 0 NOT NULL,
+	"created_count" integer DEFAULT 0 NOT NULL,
+	"updated_count" integer DEFAULT 0 NOT NULL,
+	"skipped_count" integer DEFAULT 0 NOT NULL,
+	"error_count" integer DEFAULT 0 NOT NULL,
+	"created_by_employee_id" uuid,
+	"locked_until" timestamp with time zone,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"started_at" timestamp with time zone,
+	"finished_at" timestamp with time zone,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+CREATE TABLE "scheduled_task_runs" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"task_code" varchar(60) NOT NULL,
+	"trigger" varchar(12) NOT NULL,
+	"status" varchar(12) DEFAULT 'running' NOT NULL,
+	"started_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"finished_at" timestamp with time zone,
+	"duration_ms" integer,
+	"result" jsonb,
+	"error" text,
+	"triggered_by_employee_id" uuid
+);
+CREATE TABLE "scheduled_tasks" (
+	"code" varchar(60) PRIMARY KEY NOT NULL,
+	"is_enabled" boolean DEFAULT true NOT NULL,
+	"locked_until" timestamp with time zone,
+	"last_run_at" timestamp with time zone,
+	"last_status" varchar(12),
+	"last_duration_ms" integer,
+	"last_error" text,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+CREATE TABLE "stats_daily" (
+	"shop_id" uuid DEFAULT '00000000-0000-4000-8000-000000000001'::uuid NOT NULL,
+	"day" date NOT NULL,
+	"orders_count" integer DEFAULT 0 NOT NULL,
+	"valid_orders_count" integer DEFAULT 0 NOT NULL,
+	"revenue_xof" bigint DEFAULT 0 NOT NULL,
+	"shipping_xof" bigint DEFAULT 0 NOT NULL,
+	"items_sold" integer DEFAULT 0 NOT NULL,
+	"cancelled_count" integer DEFAULT 0 NOT NULL,
+	"refunded_xof" bigint DEFAULT 0 NOT NULL,
+	"new_customers" integer DEFAULT 0 NOT NULL,
+	"buyers_count" integer DEFAULT 0 NOT NULL,
+	"carts_created" integer DEFAULT 0 NOT NULL,
+	"computed_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+CREATE TABLE "stats_daily_products" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"shop_id" uuid DEFAULT '00000000-0000-4000-8000-000000000001'::uuid NOT NULL,
+	"day" date NOT NULL,
+	"product_id" uuid NOT NULL,
+	"seller_id" uuid,
+	"category_id" integer,
+	"units" integer DEFAULT 0 NOT NULL,
+	"revenue_xof" bigint DEFAULT 0 NOT NULL,
+	"orders_count" integer DEFAULT 0 NOT NULL
+);
+ALTER TABLE "error_logs" ADD CONSTRAINT "error_logs_shop_id_shops_id_fk" FOREIGN KEY ("shop_id") REFERENCES "public"."shops"("id") ON DELETE set null ON UPDATE no action;
+ALTER TABLE "error_logs" ADD CONSTRAINT "error_logs_resolved_by_employee_id_employees_id_fk" FOREIGN KEY ("resolved_by_employee_id") REFERENCES "public"."employees"("id") ON DELETE set null ON UPDATE no action;
+ALTER TABLE "import_job_rows" ADD CONSTRAINT "import_job_rows_job_id_import_jobs_id_fk" FOREIGN KEY ("job_id") REFERENCES "public"."import_jobs"("id") ON DELETE cascade ON UPDATE no action;
+ALTER TABLE "import_jobs" ADD CONSTRAINT "import_jobs_shop_id_shops_id_fk" FOREIGN KEY ("shop_id") REFERENCES "public"."shops"("id") ON DELETE cascade ON UPDATE no action;
+ALTER TABLE "import_jobs" ADD CONSTRAINT "import_jobs_created_by_employee_id_employees_id_fk" FOREIGN KEY ("created_by_employee_id") REFERENCES "public"."employees"("id") ON DELETE set null ON UPDATE no action;
+ALTER TABLE "scheduled_task_runs" ADD CONSTRAINT "scheduled_task_runs_triggered_by_employee_id_employees_id_fk" FOREIGN KEY ("triggered_by_employee_id") REFERENCES "public"."employees"("id") ON DELETE set null ON UPDATE no action;
+ALTER TABLE "stats_daily" ADD CONSTRAINT "stats_daily_shop_id_shops_id_fk" FOREIGN KEY ("shop_id") REFERENCES "public"."shops"("id") ON DELETE cascade ON UPDATE no action;
+ALTER TABLE "stats_daily_products" ADD CONSTRAINT "stats_daily_products_shop_id_shops_id_fk" FOREIGN KEY ("shop_id") REFERENCES "public"."shops"("id") ON DELETE cascade ON UPDATE no action;
+ALTER TABLE "stats_daily_products" ADD CONSTRAINT "stats_daily_products_product_id_products_id_fk" FOREIGN KEY ("product_id") REFERENCES "public"."products"("id") ON DELETE cascade ON UPDATE no action;
+ALTER TABLE "stats_daily_products" ADD CONSTRAINT "stats_daily_products_seller_id_users_id_fk" FOREIGN KEY ("seller_id") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action;
+ALTER TABLE "stats_daily_products" ADD CONSTRAINT "stats_daily_products_category_id_categories_id_fk" FOREIGN KEY ("category_id") REFERENCES "public"."categories"("id") ON DELETE set null ON UPDATE no action;
+CREATE INDEX "error_logs_time_idx" ON "error_logs" USING btree ("occurred_at");
+CREATE INDEX "error_logs_fingerprint_idx" ON "error_logs" USING btree ("fingerprint","occurred_at");
+CREATE INDEX "error_logs_open_idx" ON "error_logs" USING btree ("resolved_at","occurred_at");
+CREATE UNIQUE INDEX "import_job_rows_job_line_unique" ON "import_job_rows" USING btree ("job_id","line");
+CREATE INDEX "import_job_rows_job_status_idx" ON "import_job_rows" USING btree ("job_id","status");
+CREATE INDEX "import_jobs_shop_created_idx" ON "import_jobs" USING btree ("shop_id","created_at");
+CREATE INDEX "import_jobs_status_idx" ON "import_jobs" USING btree ("status");
+CREATE INDEX "scheduled_task_runs_task_time_idx" ON "scheduled_task_runs" USING btree ("task_code","started_at");
+CREATE UNIQUE INDEX "stats_daily_shop_day_unique" ON "stats_daily" USING btree ("shop_id","day");
+CREATE UNIQUE INDEX "stats_daily_products_unique" ON "stats_daily_products" USING btree ("shop_id","day","product_id");
+CREATE INDEX "stats_daily_products_product_idx" ON "stats_daily_products" USING btree ("product_id","day");
+$sql$;
+    INSERT INTO drizzle.__drizzle_migrations (hash, created_at)
+      VALUES ('0019_operations_imports_stats.sql:plain:36c15e4725', (EXTRACT(EPOCH FROM now()) * 1000)::bigint);
   END IF;
 END
 $migration$;

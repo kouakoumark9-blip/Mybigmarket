@@ -1,6 +1,7 @@
 import {
   bigint,
   boolean,
+  date,
   decimal,
   index,
   integer,
@@ -1278,7 +1279,62 @@ export const cmsPages = pgTable("cms_pages", {
   updatedByEmployeeId: uuid("updated_by_employee_id").references(() => employees.id, { onDelete: "set null" }),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   deletedAt: timestamp("deleted_at", { withTimezone: true }),
+  /** Contenu structuré (étape 6) : blocs texte, image, appel à l'action, FAQ, produits… jamais de HTML libre. */
+  blocks: jsonb("blocks").$type<Array<Record<string, unknown>>>().notNull().default([]),
+  excerpt: text("excerpt").notNull().default(""),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [uniqueIndex("cms_pages_slug_unique").on(t.slug), index("cms_pages_status_idx").on(t.status)]);
+
+/** Menus de la boutique (en-tête, pied de page) et leurs entrées, sur deux niveaux. */
+export const menus = pgTable("menus", {
+  id: serial("id").primaryKey(),
+  code: varchar("code", { length: 40 }).notNull(),
+  name: varchar("name", { length: 120 }).notNull(),
+  isActive: boolean("is_active").notNull().default(true),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [uniqueIndex("menus_code_unique").on(t.code)]);
+
+export const menuItems = pgTable("menu_items", {
+  id: serial("id").primaryKey(),
+  menuId: integer("menu_id").notNull().references(() => menus.id, { onDelete: "cascade" }),
+  parentId: integer("parent_id").references((): AnyPgColumn => menuItems.id, { onDelete: "cascade" }),
+  label: varchar("label", { length: 120 }).notNull(),
+  /** url | page | category | product | brand */
+  linkType: varchar("link_type", { length: 20 }).notNull(),
+  target: varchar("target", { length: 300 }).notNull().default(""),
+  position: integer("position").notNull().default(0),
+  isActive: boolean("is_active").notNull().default(true),
+  opensNewTab: boolean("opens_new_tab").notNull().default(false),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [index("menu_items_menu_idx").on(t.menuId, t.parentId, t.position)]);
+
+/** Formulaires publics (contact, demande de devis…) : champs déclarés, réponses conservées. */
+export const forms = pgTable("forms", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  code: varchar("code", { length: 60 }).notNull(),
+  title: varchar("title", { length: 160 }).notNull(),
+  description: text("description").notNull().default(""),
+  fields: jsonb("fields").$type<Array<Record<string, unknown>>>().notNull().default([]),
+  /** Adresse prévenue à chaque réponse (sinon la notification interne de la boutique). */
+  notifyEmail: varchar("notify_email", { length: 190 }),
+  successMessage: varchar("success_message", { length: 400 }).notNull().default("Merci, votre message a bien été envoyé."),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  deletedAt: timestamp("deleted_at", { withTimezone: true }),
+}, (t) => [uniqueIndex("forms_code_unique").on(t.code)]);
+
+export const formSubmissions = pgTable("form_submissions", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  formId: uuid("form_id").notNull().references(() => forms.id, { onDelete: "cascade" }),
+  data: jsonb("data").$type<Record<string, unknown>>().notNull(),
+  email: varchar("email", { length: 190 }),
+  userId: uuid("user_id").references(() => users.id, { onDelete: "set null" }),
+  /** Empreinte de l'adresse IP (jamais l'adresse elle-même). */
+  ipHash: varchar("ip_hash", { length: 64 }),
+  status: varchar("status", { length: 20 }).notNull().default("new"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [index("form_submissions_form_idx").on(t.formId, t.createdAt), index("form_submissions_status_idx").on(t.status, t.createdAt)]);
 
 export const banners = pgTable("banners", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -1291,6 +1347,8 @@ export const banners = pgTable("banners", {
   sortOrder: integer("sort_order").notNull().default(0),
   isActive: boolean("is_active").notNull().default(false),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  /** Emplacement d'affichage (étape 6) : home, home_secondary, catalog… */
+  placement: varchar("placement", { length: 40 }).notNull().default("home"),
 }, (t) => [index("banners_active_order_idx").on(t.isActive, t.sortOrder)]);
 
 export const activityLogs = pgTable("activity_logs", {
@@ -1346,6 +1404,12 @@ export const slugRedirects = pgTable("slug_redirects", {
   newPath: varchar("new_path", { length: 300 }).notNull(),
   productId: uuid("product_id").references(() => products.id, { onDelete: "set null" }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  /** Redirections gérées (étape 6) : 301 permanente ou 302 temporaire, compteur d'utilisation. */
+  statusCode: integer("status_code").notNull().default(301),
+  hits: integer("hits").notNull().default(0),
+  lastHitAt: timestamp("last_hit_at", { withTimezone: true }),
+  note: varchar("note", { length: 240 }).notNull().default(""),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [uniqueIndex("slug_redirects_old_path_unique").on(t.oldPath), index("slug_redirects_product_idx").on(t.productId)]);
 
 export const usersRelations = relations(users, ({ many, one }) => ({
@@ -1592,7 +1656,31 @@ export const emailQueue = pgTable("email_queue", {
   scheduledAt: timestamp("scheduled_at", { withTimezone: true }).notNull().defaultNow(),
   sentAt: timestamp("sent_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-}, (t) => [index("email_queue_status_schedule_idx").on(t.status, t.scheduledAt), index("email_queue_created_idx").on(t.createdAt)]);
+  /** Clé d'unicité (étape 6) : un même événement ne met jamais deux fois le même e-mail en file. */
+  dedupeKey: varchar("dedupe_key", { length: 190 }),
+  locale: varchar("locale", { length: 5 }).notNull().default("fr"),
+}, (t) => [index("email_queue_status_schedule_idx").on(t.status, t.scheduledAt), index("email_queue_created_idx").on(t.createdAt), uniqueIndex("email_queue_dedupe_unique").on(t.dedupeKey)]);
+
+/** Messages sortants hors e-mail (WhatsApp), envoyés par file comme les e-mails. */
+export const outboundMessages = pgTable("outbound_messages", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  channel: varchar("channel", { length: 20 }).notNull(),
+  toAddress: varchar("to_address", { length: 40 }).notNull(),
+  templateCode: varchar("template_code", { length: 60 }),
+  locale: varchar("locale", { length: 5 }).notNull().default("fr"),
+  /** Aperçu lisible du message, pour l'administration. */
+  body: text("body").notNull().default(""),
+  /** Modèle et paramètres transmis au prestataire. */
+  payload: jsonb("payload").$type<Record<string, unknown>>().notNull().default({}),
+  status: varchar("status", { length: 20 }).notNull().default("pending"),
+  attempts: integer("attempts").notNull().default(0),
+  lastError: text("last_error"),
+  providerMessageId: varchar("provider_message_id", { length: 190 }),
+  dedupeKey: varchar("dedupe_key", { length: 190 }),
+  scheduledAt: timestamp("scheduled_at", { withTimezone: true }).notNull().defaultNow(),
+  sentAt: timestamp("sent_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [index("outbound_messages_status_idx").on(t.status, t.scheduledAt), uniqueIndex("outbound_messages_dedupe_unique").on(t.dedupeKey)]);
 
 export const emailLog = pgTable("email_log", {
   id: serial("id").primaryKey(),
@@ -1888,3 +1976,136 @@ export const productDownloads = pgTable("product_downloads", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [uniqueIndex("product_downloads_product_unique").on(t.productId)]);
+
+// ---------------------------------------------------------------------------
+// Import/export, statistiques, journaux et tâches planifiées (étape 7)
+// ---------------------------------------------------------------------------
+
+/**
+ * Import CSV : un fichier analysé puis traité ligne par ligne, par lots. Une simulation n'écrit
+ * que ce rapport ; l'import réel reprend où il s'est arrêté (lots successifs, reprise après coupure).
+ */
+export const importJobs = pgTable("import_jobs", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  shopId: uuid("shop_id").notNull().default(sql`'00000000-0000-4000-8000-000000000001'::uuid`).references(() => shops.id, { onDelete: "cascade" }),
+  /** products, categories, brands. */
+  entity: varchar("entity", { length: 30 }).notNull(),
+  /** simulated, queued, running, completed, failed, cancelled. */
+  status: varchar("status", { length: 16 }).notNull().default("simulated"),
+  fileName: varchar("file_name", { length: 200 }),
+  options: jsonb("options").$type<Record<string, unknown>>().notNull().default({}),
+  /** Colonnes reconnues, colonnes ignorées, avertissements de l'analyse. */
+  summary: jsonb("summary").$type<Record<string, unknown>>().notNull().default({}),
+  totalRows: integer("total_rows").notNull().default(0),
+  processedRows: integer("processed_rows").notNull().default(0),
+  createdCount: integer("created_count").notNull().default(0),
+  updatedCount: integer("updated_count").notNull().default(0),
+  skippedCount: integer("skipped_count").notNull().default(0),
+  errorCount: integer("error_count").notNull().default(0),
+  createdByEmployeeId: uuid("created_by_employee_id").references(() => employees.id, { onDelete: "set null" }),
+  /** Verrou de traitement : un seul lot à la fois. */
+  lockedUntil: timestamp("locked_until", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  startedAt: timestamp("started_at", { withTimezone: true }),
+  finishedAt: timestamp("finished_at", { withTimezone: true }),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [index("import_jobs_shop_created_idx").on(t.shopId, t.createdAt), index("import_jobs_status_idx").on(t.status)]);
+
+/** Ligne d'un import : valeurs lues, action prévue (simulation) puis résultat. */
+export const importJobRows = pgTable("import_job_rows", {
+  id: serial("id").primaryKey(),
+  jobId: uuid("job_id").notNull().references(() => importJobs.id, { onDelete: "cascade" }),
+  /** Numéro de ligne dans le fichier (l'en-tête est la ligne 1). */
+  line: integer("line").notNull(),
+  data: jsonb("data").$type<Record<string, string>>().notNull().default({}),
+  /** create, update, skip ou error (prévu à l'analyse). */
+  plannedAction: varchar("planned_action", { length: 10 }).notNull(),
+  /** pending, created, updated, skipped, error. */
+  status: varchar("status", { length: 10 }).notNull().default("pending"),
+  messages: jsonb("messages").$type<Array<{ field?: string; message: string; level: "error" | "warning" }>>().notNull().default([]),
+  entityId: varchar("entity_id", { length: 64 }),
+  processedAt: timestamp("processed_at", { withTimezone: true }),
+}, (t) => [uniqueIndex("import_job_rows_job_line_unique").on(t.jobId, t.line), index("import_job_rows_job_status_idx").on(t.jobId, t.status)]);
+
+/** Journal des erreurs serveur (API, tâches planifiées, événements), regroupées par empreinte. */
+export const errorLogs = pgTable("error_logs", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  shopId: uuid("shop_id").references(() => shops.id, { onDelete: "set null" }),
+  occurredAt: timestamp("occurred_at", { withTimezone: true }).notNull().defaultNow(),
+  level: varchar("level", { length: 10 }).notNull().default("error"),
+  /** api, task, event, page. */
+  source: varchar("source", { length: 20 }).notNull(),
+  code: varchar("code", { length: 60 }),
+  message: text("message").notNull(),
+  stack: text("stack"),
+  /** Empreinte stable (source, code, message normalisé) pour regrouper les répétitions. */
+  fingerprint: varchar("fingerprint", { length: 64 }).notNull(),
+  requestId: varchar("request_id", { length: 80 }),
+  method: varchar("method", { length: 10 }),
+  path: varchar("path", { length: 500 }),
+  route: varchar("route", { length: 120 }),
+  status: integer("status"),
+  actor: varchar("actor", { length: 120 }),
+  context: jsonb("context").$type<Record<string, unknown>>().notNull().default({}),
+  resolvedAt: timestamp("resolved_at", { withTimezone: true }),
+  resolvedByEmployeeId: uuid("resolved_by_employee_id").references(() => employees.id, { onDelete: "set null" }),
+}, (t) => [index("error_logs_time_idx").on(t.occurredAt), index("error_logs_fingerprint_idx").on(t.fingerprint, t.occurredAt), index("error_logs_open_idx").on(t.resolvedAt, t.occurredAt)]);
+
+/** Statistiques quotidiennes pré-calculées (jour UTC, heure d'Abidjan). Recalculables à tout moment. */
+export const statsDaily = pgTable("stats_daily", {
+  shopId: uuid("shop_id").notNull().default(sql`'00000000-0000-4000-8000-000000000001'::uuid`).references(() => shops.id, { onDelete: "cascade" }),
+  day: date("day", { mode: "string" }).notNull(),
+  ordersCount: integer("orders_count").notNull().default(0),
+  /** Commandes payées ou confirmées (paiement à la livraison), hors annulées et remboursées. */
+  validOrdersCount: integer("valid_orders_count").notNull().default(0),
+  revenueXof: bigint("revenue_xof", { mode: "number" }).notNull().default(0),
+  shippingXof: bigint("shipping_xof", { mode: "number" }).notNull().default(0),
+  itemsSold: integer("items_sold").notNull().default(0),
+  cancelledCount: integer("cancelled_count").notNull().default(0),
+  refundedXof: bigint("refunded_xof", { mode: "number" }).notNull().default(0),
+  newCustomers: integer("new_customers").notNull().default(0),
+  buyersCount: integer("buyers_count").notNull().default(0),
+  cartsCreated: integer("carts_created").notNull().default(0),
+  computedAt: timestamp("computed_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [uniqueIndex("stats_daily_shop_day_unique").on(t.shopId, t.day)]);
+
+/** Ventes quotidiennes par produit (meilleures ventes, catégories, vendeurs). */
+export const statsDailyProducts = pgTable("stats_daily_products", {
+  id: serial("id").primaryKey(),
+  shopId: uuid("shop_id").notNull().default(sql`'00000000-0000-4000-8000-000000000001'::uuid`).references(() => shops.id, { onDelete: "cascade" }),
+  day: date("day", { mode: "string" }).notNull(),
+  productId: uuid("product_id").notNull().references(() => products.id, { onDelete: "cascade" }),
+  sellerId: uuid("seller_id").references(() => users.id, { onDelete: "set null" }),
+  categoryId: integer("category_id").references(() => categories.id, { onDelete: "set null" }),
+  units: integer("units").notNull().default(0),
+  revenueXof: bigint("revenue_xof", { mode: "number" }).notNull().default(0),
+  ordersCount: integer("orders_count").notNull().default(0),
+}, (t) => [uniqueIndex("stats_daily_products_unique").on(t.shopId, t.day, t.productId), index("stats_daily_products_product_idx").on(t.productId, t.day)]);
+
+/** Tâches planifiées : activation, verrou anti-chevauchement, dernier passage. */
+export const scheduledTasks = pgTable("scheduled_tasks", {
+  code: varchar("code", { length: 60 }).primaryKey(),
+  isEnabled: boolean("is_enabled").notNull().default(true),
+  lockedUntil: timestamp("locked_until", { withTimezone: true }),
+  lastRunAt: timestamp("last_run_at", { withTimezone: true }),
+  lastStatus: varchar("last_status", { length: 12 }),
+  lastDurationMs: integer("last_duration_ms"),
+  lastError: text("last_error"),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+/** Historique des exécutions de tâches planifiées. */
+export const scheduledTaskRuns = pgTable("scheduled_task_runs", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  taskCode: varchar("task_code", { length: 60 }).notNull(),
+  /** cron, manual. */
+  trigger: varchar("trigger", { length: 12 }).notNull(),
+  /** running, succeeded, failed, skipped. */
+  status: varchar("status", { length: 12 }).notNull().default("running"),
+  startedAt: timestamp("started_at", { withTimezone: true }).notNull().defaultNow(),
+  finishedAt: timestamp("finished_at", { withTimezone: true }),
+  durationMs: integer("duration_ms"),
+  result: jsonb("result").$type<Record<string, unknown>>(),
+  error: text("error"),
+  triggeredByEmployeeId: uuid("triggered_by_employee_id").references(() => employees.id, { onDelete: "set null" }),
+}, (t) => [index("scheduled_task_runs_task_time_idx").on(t.taskCode, t.startedAt)]);

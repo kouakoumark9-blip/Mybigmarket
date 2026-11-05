@@ -13,6 +13,13 @@ import { authRoutes } from "@/server/modules/auth/routes";
 import { teamRoutes } from "@/server/modules/team/routes";
 import { systemRoutes } from "@/server/modules/system/routes";
 import { webhooksModule } from "@/server/modules/webhooks/module";
+import { notificationsModule } from "@/server/modules/notifications/module";
+import { notificationRoutes } from "@/server/modules/notifications/routes";
+import { cmsRoutes } from "@/server/modules/cms/routes";
+import { exportRoutes } from "@/server/modules/exports/routes";
+import { importRoutes } from "@/server/modules/imports/routes";
+import { maintenanceRoutes } from "@/server/modules/maintenance/routes";
+import { statsRoutes } from "@/server/modules/stats/routes";
 import { taxonomyRoutes } from "@/server/modules/catalog/taxonomy/routes";
 import { productRoutes } from "@/server/modules/catalog/products/routes";
 import { pricingRoutes } from "@/server/modules/pricing/routes";
@@ -25,7 +32,7 @@ import { localizationRoutes } from "@/server/modules/localization/routes";
 import { paymentRoutes } from "@/server/modules/payments/routes";
 import { shippingRoutes } from "@/server/modules/shipping/routes";
 
-export const MODULES: ModuleDefinition[] = [webhooksModule];
+export const MODULES: ModuleDefinition[] = [webhooksModule, notificationsModule];
 registerModules(MODULES);
 
 const openApiRoute = defineRoute({
@@ -49,6 +56,12 @@ export const ALL_ROUTES: AnyRoute[] = [
   ...localizationRoutes,
   ...paymentRoutes,
   ...shippingRoutes,
+  ...notificationRoutes,
+  ...cmsRoutes,
+  ...importRoutes,
+  ...exportRoutes,
+  ...statsRoutes,
+  ...maintenanceRoutes,
   ...MODULES.flatMap((module) => module.routes ?? []),
   openApiRoute,
 ];

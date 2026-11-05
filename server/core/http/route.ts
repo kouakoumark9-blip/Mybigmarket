@@ -18,6 +18,7 @@ import { enforceRateLimit, type RateLimitPolicyName } from "@/server/core/rate-l
 import { beginIdempotent, completeIdempotent, readIdempotencyKey, releaseIdempotent } from "@/server/core/idempotency";
 import { resolveShop, type ShopContext } from "@/server/core/shop";
 import { scheduleDispatch } from "@/server/core/events";
+import { recordError } from "@/server/core/error-log";
 import { DEFAULT_SHOP_ID } from "@/lib/db/schema";
 
 export type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
@@ -61,6 +62,8 @@ export type RouteDefinition<PS extends ZodType | undefined = ZodType | undefined
   list?: ListSpec;
   rateLimit?: RateLimitPolicyName;
   idempotency?: "required" | "optional";
+  /** Taille maximale du corps JSON (1 Mo par défaut ; imports CSV : davantage). */
+  maxBodyBytes?: number;
   status?: number;
   /** Schéma de la réponse (documentation OpenAPI). */
   response?: ZodType;
@@ -85,11 +88,12 @@ export function isListResult(value: unknown): value is { data: unknown[]; meta: 
 
 const MAX_BODY_BYTES = 1_000_000;
 
-async function readJsonBody(request: Request): Promise<{ raw: string; value: unknown }> {
+async function readJsonBody(request: Request, maxBytes = MAX_BODY_BYTES): Promise<{ raw: string; value: unknown }> {
+  const tooLarge = () => errors.badRequest(`Corps de requête trop volumineux (${Math.round(maxBytes / 100_000) / 10} Mo maximum).`);
   const length = Number(request.headers.get("content-length") || 0);
-  if (length > MAX_BODY_BYTES) throw errors.badRequest("Corps de requête trop volumineux (1 Mo maximum).");
+  if (length > maxBytes) throw tooLarge();
   const raw = await request.text();
-  if (raw.length > MAX_BODY_BYTES) throw errors.badRequest("Corps de requête trop volumineux (1 Mo maximum).");
+  if (Buffer.byteLength(raw, "utf8") > maxBytes) throw tooLarge();
   if (!raw.trim()) return { raw: "", value: undefined };
   const type = request.headers.get("content-type") || "";
   if (!type.includes("application/json")) throw errors.badRequest("Content-Type attendu : application/json.");
@@ -172,7 +176,7 @@ export async function executeRoute(route: AnyRoute, request: Request, options: E
     const query = parseWith(route.query, queryObject(url.searchParams), "query");
     const list = route.list ? parseListQuery(url.searchParams, route.list) : { page: 1, limit: 20, offset: 0, sort: [], filters: [] };
     const needsBody = route.method !== "GET" && route.method !== "DELETE";
-    const bodyInput = needsBody ? await readJsonBody(request) : { raw: "", value: undefined };
+    const bodyInput = needsBody ? await readJsonBody(request, route.maxBodyBytes) : { raw: "", value: undefined };
     const body = parseWith(route.body, bodyInput.value, "body");
 
     if (route.idempotency && route.method !== "GET") {
@@ -202,10 +206,14 @@ export async function executeRoute(route: AnyRoute, request: Request, options: E
     if (idempotency && database) await releaseIdempotent(database, idempotency.scope, idempotency.key).catch(() => undefined);
     const appError = error instanceof AppError ? error : fromDatabaseError(error);
     if (appError) {
-      if (appError.status >= 500) logger.error("api.error", { requestId: meta.requestId, route: route.id, code: appError.code, ...errorContext(error) });
+      if (appError.status >= 500) {
+        logger.error("api.error", { requestId: meta.requestId, route: route.id, code: appError.code, ...errorContext(error) });
+        if (database && appError.code !== "SERVICE_UNAVAILABLE") await recordError(database, { source: "api", error, code: appError.code, status: appError.status, requestId: meta.requestId, method: request.method, path: new URL(request.url).pathname, route: route.id });
+      }
       return Response.json(toErrorBody(appError, meta.requestId), { status: appError.status, headers: { ...baseHeaders, ...appError.headers } });
     }
     logger.error("api.unhandled", { requestId: meta.requestId, route: route.id, ...errorContext(error) });
+    if (database) await recordError(database, { source: "api", error, code: "INTERNAL", status: 500, requestId: meta.requestId, method: request.method, path: new URL(request.url).pathname, route: route.id });
     return Response.json(toErrorBody(new AppError("INTERNAL", "Erreur interne. Communiquez l'identifiant de requête au support."), meta.requestId), { status: 500, headers: baseHeaders });
   }
 }

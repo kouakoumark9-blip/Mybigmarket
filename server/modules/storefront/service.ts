@@ -8,8 +8,9 @@
  */
 import { and, asc, count, desc, eq, gte, ilike, inArray, isNull, lte, ne, or, sql, type SQL } from "drizzle-orm";
 import { canSell, isValidEan13 } from "@/lib/catalog-rules";
+import { foldText, prefixTsQuery, searchTokens } from "@/lib/search";
 import {
-  brands, categories, productAttachments, productFeatureValues, productImages, productTags, products, relatedProducts, sellerProfiles, slugRedirects, users,
+  brands, categories, orderItems, orders, productAttachments, productFeatureValues, productImages, productTags, products, relatedProducts, sellerProfiles, slugRedirects, users,
   features, featureValues,
 } from "@/lib/db/schema";
 import type { Db, Executor } from "@/server/core/db";
@@ -79,8 +80,76 @@ export async function publicBrands(database: Db) {
 
 export type ProductSearch = {
   page: number; limit?: number; q?: string; category?: string; brand?: string; minPrice?: number; maxPrice?: number; inStock?: boolean; featured?: boolean;
-  sort: "relevance" | "newest" | "price_asc" | "price_desc" | "name";
+  sort: "relevance" | "newest" | "price_asc" | "price_desc" | "name" | "best_selling";
+  /** Sélection explicite (blocs de pages CMS). */
+  ids?: string[];
+  /** Valeurs de caractéristiques cochées : « ou » au sein d'une caractéristique, « et » entre caractéristiques. */
+  features?: string[];
+  /** Ajoute les facettes (catégories, marques, prix, stock, caractéristiques) à `meta`. */
+  facets?: boolean;
 };
+
+/* Recherche plein texte : document indexé (titre, référence, résumé, description) en français sans accents,
+   préfixes (« chaus » trouve « chaussures »), sous-chaîne du titre, référence, étiquettes et EAN.
+   Si rien ne correspond, une seconde passe tolère les fautes de frappe (trigrammes sur le titre). */
+const SEARCH_DOCUMENT = sql`public.mbm_product_document(${products.title}, ${products.reference}, ${products.shortDescription}, ${products.description})`;
+const FOLDED_TITLE = sql`public.mbm_unaccent(lower(${products.title}))`;
+
+type TextQuery = { raw: string; folded: string; tsQuery: string; contains: string; prefix: string };
+
+function textQuery(q: string): TextQuery | null {
+  const tokens = searchTokens(q);
+  const folded = foldText(q);
+  if (!folded) return null;
+  const escaped = folded.replace(/[\\%_]/g, (character) => `\\${character}`);
+  return { raw: q, folded, tsQuery: prefixTsQuery(tokens), contains: `%${escaped}%`, prefix: `${escaped}%` };
+}
+
+function strictTextCondition(text: TextQuery): SQL {
+  const pattern = likePattern(text.raw);
+  return or(
+    text.tsQuery ? sql`${SEARCH_DOCUMENT} @@ to_tsquery('french', ${text.tsQuery})` : undefined,
+    sql`${FOLDED_TITLE} like ${text.contains}`,
+    ilike(products.reference, pattern),
+    sql`exists (select 1 from ${productTags} t where t.product_id = ${products.id} and public.mbm_unaccent(lower(t.tag)) like ${text.contains})`,
+    isValidEan13(text.raw) ? eq(products.ean13, text.raw) : undefined,
+  )!;
+}
+
+/** Fautes de frappe : similarité de mots (pg_trgm, seuil 0,6) entre la requête et le titre. */
+function fuzzyTextCondition(text: TextQuery): SQL {
+  return sql`${text.folded} <% ${FOLDED_TITLE}`;
+}
+
+function relevanceScore(text: TextQuery): SQL {
+  const parts = [
+    sql`word_similarity(${text.folded}, ${FOLDED_TITLE})`,
+    sql`(case when ${FOLDED_TITLE} like ${text.prefix} then 1 else 0 end)`,
+    sql`(case when lower(${products.reference}) = ${text.folded} then 2 else 0 end)`,
+  ];
+  if (text.tsQuery) parts.push(sql`ts_rank_cd(${SEARCH_DOCUMENT}, to_tsquery('french', ${text.tsQuery}))`);
+  return sql.join(parts, sql` + `);
+}
+
+/** Commandes comptées comme ventes : payées ou confirmées (paiement à la livraison), jusqu'au versement au vendeur. */
+const SOLD_STATUSES = ["paid_escrow", "seller_confirmed", "received_collection_point", "shipped", "arrived_abidjan", "out_for_delivery", "delivered", "seller_paid"] as const;
+const UNITS_SOLD = sql`(select coalesce(sum(oi.quantity - oi.returned_quantity), 0) from ${orderItems} oi join ${orders} o on o.id = oi.order_id
+  where oi.product_id = ${products.id} and o.deleted_at is null and o.status in (${sql.join(SOLD_STATUSES.map((status) => sql`${status}`), sql`, `)}))`;
+
+/** Tranches de prix (XOF, prix catalogue HT) proposées en facette. */
+const PRICE_RANGES: Array<[number, number | null]> = [[0, 5_000], [5_000, 10_000], [10_000, 25_000], [25_000, 50_000], [50_000, 100_000], [100_000, 250_000], [250_000, null]];
+
+type FacetKey = "category" | "brand" | "price" | "stock";
+type Filters = { base: SQL[]; text?: SQL; parts: Partial<Record<FacetKey, SQL>>; features: Map<string, SQL> };
+
+/** Conditions combinées ; une facette ignore son propre filtre pour afficher les autres choix possibles. */
+function whereOf(filters: Filters, options: { except?: FacetKey; exceptFeature?: string | "all" } = {}): SQL {
+  const conditions = [...filters.base];
+  if (filters.text) conditions.push(filters.text);
+  for (const [key, condition] of Object.entries(filters.parts) as Array<[FacetKey, SQL]>) if (key !== options.except) conditions.push(condition);
+  for (const [featureId, condition] of filters.features) if (options.exceptFeature !== "all" && options.exceptFeature !== featureId) conditions.push(condition);
+  return and(...conditions)!;
+}
 
 async function covers(executor: Executor, ids: string[]) {
   if (!ids.length) return new Map<string, { url: string; alt: string | null }>();
@@ -103,43 +172,72 @@ function availability(product: { quantity: number; availableForOrder: boolean; o
   };
 }
 
-export async function searchProducts(database: Db, search: ProductSearch, pricing: PricingContext) {
-  const perPage = search.limit ?? (await getSetting(database, "00000000-0000-4000-8000-000000000001", "catalog.products_per_page"));
-  const conditions: SQL[] = [publicProductCondition(search.q ? "search" : "catalog")];
+async function buildFilters(database: Db, search: ProductSearch, text: TextQuery | null): Promise<Filters> {
+  const filters: Filters = { base: [publicProductCondition(search.q ? "search" : "catalog")], parts: {}, features: new Map() };
   if (search.category) {
     const [category] = await database.select({ id: categories.id }).from(categories).where(and(eq(categories.slug, search.category), eq(categories.isActive, true), isNull(categories.deletedAt))).limit(1);
     if (!category) throw errors.notFound("Catégorie", search.category);
     const ids = await categoryWithDescendants(database, category.id);
-    conditions.push(or(inArray(products.categoryId, ids), sql`exists (select 1 from product_categories pc where pc.product_id = ${products.id} and pc.category_id in (${sql.join(ids.map((id) => sql`${id}`), sql`, `)}))`)!);
+    filters.parts.category = or(inArray(products.categoryId, ids), sql`exists (select 1 from product_categories pc where pc.product_id = ${products.id} and pc.category_id in (${sql.join(ids.map((id) => sql`${id}`), sql`, `)}))`)!;
   }
   if (search.brand) {
     const [brand] = await database.select({ id: brands.id }).from(brands).where(and(eq(brands.slug, search.brand), eq(brands.isActive, true), isNull(brands.deletedAt))).limit(1);
     if (!brand) throw errors.notFound("Marque", search.brand);
-    conditions.push(eq(products.brandId, brand.id));
+    filters.parts.brand = eq(products.brandId, brand.id);
   }
-  if (search.q) {
-    const pattern = likePattern(search.q);
-    const tagMatch = sql`exists (select 1 from ${productTags} t where t.product_id = ${products.id} and t.tag ilike ${pattern})`;
-    conditions.push(or(ilike(products.title, pattern), ilike(products.reference, pattern), ilike(products.shortDescription, pattern), tagMatch, isValidEan13(search.q) ? eq(products.ean13, search.q) : undefined)!);
+  if (text) filters.text = strictTextCondition(text);
+  else if (search.q) filters.text = sql`false`;
+  if (search.minPrice != null || search.maxPrice != null) {
+    filters.parts.price = and(search.minPrice != null ? gte(products.priceXof, search.minPrice) : undefined, search.maxPrice != null ? lte(products.priceXof, search.maxPrice) : undefined)!;
   }
-  if (search.minPrice != null) conditions.push(gte(products.priceXof, search.minPrice));
-  if (search.maxPrice != null) conditions.push(lte(products.priceXof, search.maxPrice));
-  if (search.inStock) conditions.push(or(sql`${products.quantity} > 0`, eq(products.productType, "virtual"))!);
-  if (search.featured) conditions.push(eq(products.isFeatured, true));
-  const where = and(...conditions);
-  const order = search.sort === "price_asc" ? [asc(products.priceXof)] : search.sort === "price_desc" ? [desc(products.priceXof)] : search.sort === "name" ? [asc(products.title)]
-    : search.sort === "relevance" && search.q ? [desc(sql`(${products.title} ilike ${likePattern(search.q)})`), desc(products.isFeatured), desc(products.publishedAt)]
-    : [desc(products.isFeatured), desc(products.publishedAt), desc(products.createdAt)];
-  const [rows, [total]] = await Promise.all([
-    database.select().from(products).where(where).orderBy(...order, asc(products.id)).limit(perPage).offset((search.page - 1) * perPage),
-    database.select({ value: count() }).from(products).where(where),
-  ]);
-  const [coverMap, prices, allowBackorders] = await Promise.all([
+  if (search.inStock) filters.parts.stock = or(sql`${products.quantity} > 0`, eq(products.productType, "virtual"))!;
+  if (search.featured) filters.base.push(eq(products.isFeatured, true));
+  if (search.ids) filters.base.push(search.ids.length ? inArray(products.id, search.ids) : sql`false`);
+  if (search.features?.length) {
+    // Valeurs inconnues ou désactivées ignorées (ancien lien) ; regroupées par caractéristique.
+    const values = await database.select({ id: featureValues.id, featureId: featureValues.featureId }).from(featureValues)
+      .innerJoin(features, and(eq(features.id, featureValues.featureId), eq(features.isActive, true))).where(inArray(featureValues.id, search.features));
+    const byFeature = new Map<string, string[]>();
+    for (const value of values) byFeature.set(value.featureId, [...(byFeature.get(value.featureId) ?? []), value.id]);
+    for (const [featureId, valueIds] of byFeature) {
+      filters.features.set(featureId, sql`exists (select 1 from ${productFeatureValues} pfv where pfv.product_id = ${products.id} and pfv.feature_value_id in (${sql.join(valueIds.map((id) => sql`${id}`), sql`, `)}))`);
+    }
+  }
+  return filters;
+}
+
+function orderOf(sort: ProductSearch["sort"], text: TextQuery | null): SQL[] {
+  switch (sort) {
+    case "price_asc": return [asc(products.priceXof)];
+    case "price_desc": return [desc(products.priceXof)];
+    case "name": return [asc(products.title)];
+    case "best_selling": return [desc(UNITS_SOLD), desc(products.isFeatured), desc(products.publishedAt)];
+    case "relevance": if (text) return [desc(relevanceScore(text)), desc(products.isFeatured), desc(products.publishedAt)];
+  }
+  return [desc(products.isFeatured), desc(products.publishedAt), desc(products.createdAt)];
+}
+
+export async function searchProducts(database: Db, search: ProductSearch, pricing: PricingContext) {
+  const perPage = search.limit ?? (await getSetting(database, "00000000-0000-4000-8000-000000000001", "catalog.products_per_page"));
+  const text = search.q ? textQuery(search.q) : null;
+  let filters = await buildFilters(database, search, text);
+  let [{ value: total }] = await database.select({ value: count() }).from(products).where(whereOf(filters));
+  let fuzzy = false;
+  if (text && Number(total) === 0) {
+    // Aucun résultat exact : seconde passe tolérante aux fautes de frappe sur le titre.
+    filters = { ...filters, text: fuzzyTextCondition(text) };
+    [{ value: total }] = await database.select({ value: count() }).from(products).where(whereOf(filters));
+    fuzzy = Number(total) > 0;
+  }
+  const where = whereOf(filters);
+  const rows = await database.select().from(products).where(where).orderBy(...orderOf(search.sort, text), asc(products.id)).limit(perPage).offset((search.page - 1) * perPage);
+  const [coverMap, prices, allowBackorders, facets] = await Promise.all([
     covers(database, rows.map((row) => row.id)),
     priceProducts(database, rows.map((row) => ({ productId: row.id, quantity: 1 })), pricing),
     getSetting(database, "00000000-0000-4000-8000-000000000001", "catalog.allow_out_of_stock_orders"),
+    search.facets ? productFacets(database, filters, search) : Promise.resolve(undefined),
   ]);
-  const totalCount = Number(total?.value ?? 0);
+  const totalCount = Number(total ?? 0);
   return {
     data: rows.map((row, index) => ({
       id: row.id, title: row.title, slug: row.slug, shortDescription: row.shortDescription, reference: row.reference, productType: row.productType, condition: row.condition,
@@ -147,7 +245,93 @@ export async function searchProducts(database: Db, search: ProductSearch, pricin
       price: row.showPrice ? publicPrice(prices[index]) : null,
       availability: availability(row, allowBackorders, null),
     })),
-    meta: { page: search.page, limit: perPage, total: totalCount, totalPages: Math.max(1, Math.ceil(totalCount / perPage)), sort: search.sort, filters: { q: search.q ?? null, category: search.category ?? null, brand: search.brand ?? null } },
+    meta: {
+      page: search.page, limit: perPage, total: totalCount, totalPages: Math.max(1, Math.ceil(totalCount / perPage)), sort: search.sort,
+      filters: {
+        q: search.q ?? null, category: search.category ?? null, brand: search.brand ?? null, minPrice: search.minPrice ?? null, maxPrice: search.maxPrice ?? null,
+        inStock: search.inStock ?? false, features: search.features ?? [],
+      },
+      /** Vrai si les résultats viennent de la passe tolérante aux fautes de frappe. */
+      fuzzy,
+      ...(facets ? { facets } : {}),
+    },
+  };
+}
+
+/* ─────────────────────────────  Facettes  ───────────────────────────── */
+
+async function productFacets(database: Db, filters: Filters, search: ProductSearch) {
+  const priceColumns = Object.fromEntries(PRICE_RANGES.map(([min, max], index) => [`r${index}`,
+    sql<number>`(count(*) filter (where ${products.priceXof} >= ${min}${max == null ? sql`` : sql` and ${products.priceXof} < ${max}`}))::int`])) as Record<string, SQL<number>>;
+  const selected = new Set(search.features ?? []);
+  const featureQuery = (where: SQL, onlyFeature?: string) => database
+    .select({ featureId: features.id, code: features.code, name: features.name, featurePosition: features.position, valueId: featureValues.id, value: featureValues.value, valuePosition: featureValues.position, count: sql<number>`count(distinct ${products.id})::int` })
+    .from(products)
+    .innerJoin(productFeatureValues, eq(productFeatureValues.productId, products.id))
+    .innerJoin(features, and(eq(features.id, productFeatureValues.featureId), eq(features.isActive, true)))
+    .innerJoin(featureValues, eq(featureValues.id, productFeatureValues.featureValueId))
+    .where(and(where, onlyFeature ? eq(features.id, onlyFeature) : filters.features.size ? sql`${features.id} not in (${sql.join([...filters.features.keys()].map((id) => sql`${id}`), sql`, `)})` : undefined))
+    .groupBy(features.id, featureValues.id);
+  const [categoryRows, brandRows, [priceRow], [stockRow], ...featureGroups] = await Promise.all([
+    database.select({ id: categories.id, name: categories.name, slug: categories.slug, count: sql<number>`count(*)::int` }).from(products)
+      .innerJoin(categories, and(eq(categories.id, products.categoryId), eq(categories.isActive, true), isNull(categories.deletedAt)))
+      .where(whereOf(filters, { except: "category" })).groupBy(categories.id).orderBy(desc(sql`count(*)`), asc(categories.name)).limit(30),
+    database.select({ id: brands.id, name: brands.name, slug: brands.slug, count: sql<number>`count(*)::int` }).from(products)
+      .innerJoin(brands, and(eq(brands.id, products.brandId), eq(brands.isActive, true), isNull(brands.deletedAt)))
+      .where(whereOf(filters, { except: "brand" })).groupBy(brands.id).orderBy(desc(sql`count(*)`), asc(brands.name)).limit(30),
+    database.select({ min: sql<number | null>`min(${products.priceXof})`, max: sql<number | null>`max(${products.priceXof})`, ...priceColumns }).from(products).where(whereOf(filters, { except: "price" })),
+    database.select({ total: sql<number>`count(*)::int`, inStock: sql<number>`(count(*) filter (where ${products.quantity} > 0 or ${products.productType} = 'virtual'))::int` }).from(products).where(whereOf(filters, { except: "stock" })),
+    // Caractéristiques sans valeur cochée : tous les filtres ; caractéristique cochée : tous sauf elle-même.
+    featureQuery(whereOf(filters)),
+    ...[...filters.features.keys()].map((featureId) => featureQuery(whereOf(filters, { exceptFeature: featureId }), featureId)),
+  ]);
+  const featureMap = new Map<string, { id: string; code: string; name: string; position: number; values: Array<{ id: string; value: string; position: number; count: number; selected: boolean }> }>();
+  for (const row of featureGroups.flat()) {
+    const entry = featureMap.get(row.featureId) ?? { id: row.featureId, code: row.code, name: row.name, position: row.featurePosition, values: [] };
+    entry.values.push({ id: row.valueId, value: row.value, position: row.valuePosition, count: Number(row.count), selected: selected.has(row.valueId) });
+    featureMap.set(row.featureId, entry);
+  }
+  return {
+    categories: categoryRows.map((row) => ({ ...row, count: Number(row.count), selected: row.slug === search.category })),
+    brands: brandRows.map((row) => ({ ...row, count: Number(row.count), selected: row.slug === search.brand })),
+    price: {
+      min: priceRow?.min == null ? null : Number(priceRow.min), max: priceRow?.max == null ? null : Number(priceRow.max),
+      ranges: PRICE_RANGES.map(([min, max], index) => ({ min, max, count: Number((priceRow as Record<string, unknown> | undefined)?.[`r${index}`] ?? 0) })).filter((range) => range.count > 0),
+    },
+    availability: { total: Number(stockRow?.total ?? 0), inStock: Number(stockRow?.inStock ?? 0), selected: search.inStock ?? false },
+    features: [...featureMap.values()]
+      .sort((a, b) => a.position - b.position || a.name.localeCompare(b.name, "fr"))
+      .slice(0, 15)
+      .map((feature) => ({
+        id: feature.id, code: feature.code, name: feature.name,
+        values: feature.values.sort((a, b) => a.position - b.position || a.value.localeCompare(b.value, "fr")).slice(0, 30).map((value) => ({ id: value.id, value: value.value, count: value.count, selected: value.selected })),
+      })),
+  };
+}
+
+/* ─────────────────────────────  Suggestions  ───────────────────────────── */
+
+/** Suggestions pendant la saisie : quelques produits (même règle que la recherche), catégories et marques. */
+export async function searchSuggestions(database: Db, q: string) {
+  const text = textQuery(q);
+  if (!text) return { query: q, fuzzy: false, products: [], categories: [], brands: [] };
+  const visible = publicProductCondition("search");
+  const productQuery = (condition: SQL) => database.select({ id: products.id, title: products.title, slug: products.slug }).from(products)
+    .where(and(visible, condition)).orderBy(desc(relevanceScore(text)), desc(products.isFeatured), asc(products.id)).limit(6);
+  let productRows = await productQuery(strictTextCondition(text));
+  let fuzzy = false;
+  if (!productRows.length) { productRows = await productQuery(fuzzyTextCondition(text)); fuzzy = productRows.length > 0; }
+  const [coverMap, categoryRows, brandRows] = await Promise.all([
+    covers(database, productRows.map((row) => row.id)),
+    database.select({ name: categories.name, slug: categories.slug }).from(categories)
+      .where(and(eq(categories.isActive, true), isNull(categories.deletedAt), sql`public.mbm_unaccent(lower(${categories.name})) like ${text.contains}`)).orderBy(asc(categories.name)).limit(4),
+    database.select({ name: brands.name, slug: brands.slug }).from(brands)
+      .where(and(eq(brands.isActive, true), isNull(brands.deletedAt), sql`public.mbm_unaccent(lower(${brands.name})) like ${text.contains}`)).orderBy(asc(brands.name)).limit(4),
+  ]);
+  return {
+    query: q, fuzzy,
+    products: productRows.map((row) => ({ title: row.title, slug: row.slug, cover: coverMap.get(row.id) ?? null })),
+    categories: categoryRows, brands: brandRows,
   };
 }
 

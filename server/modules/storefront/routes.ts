@@ -17,9 +17,15 @@ const searchQuery = z.object({
   maxPrice: z.coerce.number().int().min(0).optional(),
   inStock: queryBoolean.optional(),
   featured: queryBoolean.optional(),
-  sort: z.enum(["relevance", "newest", "price_asc", "price_desc", "name"]).default("relevance"),
+  /** Valeurs de caractéristiques, séparées par des virgules. */
+  features: z.string().trim().max(800).transform((value) => value.split(",").map((part) => part.trim()).filter(Boolean))
+    .pipe(z.array(z.string().uuid("Valeur de caractéristique invalide.")).max(20)).optional(),
+  facets: queryBoolean.optional(),
+  sort: z.enum(["relevance", "newest", "price_asc", "price_desc", "name", "best_selling"]).default("relevance"),
   country: countryCode.optional(),
 }).strict();
+
+const suggestQuery = z.object({ q: z.string().trim().min(2).max(120) }).strict();
 
 const slugParams = z.object({ slug: z.string().trim().min(1).max(210) });
 const productQuery = z.object({ quantity: z.coerce.number().int().min(1).max(100_000).optional(), country: countryCode.optional() }).strict();
@@ -42,12 +48,19 @@ export const storefrontRoutes: AnyRoute[] = [
   }),
   defineRoute({
     id: "shop.products.list", method: "GET", path: "/shop/products", surface: "shop", tags, rateLimit: "shop.search",
-    summary: "Produits visibles (recherche, catégorie avec sous-catégories, marque, prix, stock, tri)",
-    description: "Prix du client connecté. `minPrice`/`maxPrice` portent sur le prix catalogue HT.", query: searchQuery,
+    summary: "Produits visibles (recherche, catégorie avec sous-catégories, marque, prix, stock, caractéristiques, tri, facettes)",
+    description: "Recherche plein texte insensible aux accents et à la casse, préfixes et fautes de frappe (`meta.fuzzy`). Prix du client connecté. `minPrice`/`maxPrice` portent sur le prix catalogue HT. `features` : identifiants de valeurs séparés par des virgules. `facets=1` ajoute `meta.facets`. Tri `best_selling` : unités vendues (commandes payées ou confirmées, retours déduits).",
+    query: searchQuery,
     handler: async ({ db, query, customer }) => {
       const { country, ...search } = query;
       return service.searchProducts(db, search, { customerId: await customerIdFor(db, customer?.userId), countryCode: country });
     },
+  }),
+  defineRoute({
+    id: "shop.search.suggest", method: "GET", path: "/shop/search/suggest", surface: "shop", auth: "none", tags, rateLimit: "shop.search",
+    summary: "Suggestions pendant la saisie (produits, catégories, marques)", description: "Insensible aux accents ; tolère les fautes de frappe si rien ne correspond exactement.",
+    query: suggestQuery,
+    handler: ({ db, query }) => service.searchSuggestions(db, query.q),
   }),
   defineRoute({
     id: "shop.products.get", method: "GET", path: "/shop/products/:slug", surface: "shop", tags,

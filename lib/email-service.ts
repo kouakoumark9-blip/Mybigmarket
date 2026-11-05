@@ -13,32 +13,10 @@ import { renderEmail, type EmailVariables } from "@/lib/email-render";
  * ou indisponible ne doit jamais faire échouer une commande.
  */
 
-export type SmtpConfig = {
-  host: string;
-  port: number;
-  secure?: boolean;
-  user?: string;
-  password?: string;
-  fromAddress: string;
-  fromName?: string;
-};
+export { smtpConfigFromEnv, type SmtpConfig } from "@/lib/email-service-config";
+import { smtpConfigFromEnv, type SmtpConfig } from "@/lib/email-service-config";
 
 const MAX_ATTEMPTS = 3;
-
-export function smtpConfigFromEnv(): SmtpConfig | null {
-  const host = process.env.SMTP_HOST?.trim();
-  const fromAddress = process.env.SMTP_FROM?.trim();
-  if (!host || !fromAddress) return null;
-  return {
-    host,
-    port: Number(process.env.SMTP_PORT ?? 587),
-    secure: process.env.SMTP_SECURE === "true",
-    user: process.env.SMTP_USER?.trim() || undefined,
-    password: process.env.SMTP_PASSWORD || undefined,
-    fromAddress,
-    fromName: process.env.SMTP_FROM_NAME?.trim() || "mybigmarket",
-  };
-}
 
 let cachedTransporter: { key: string; transporter: Transporter } | null = null;
 
