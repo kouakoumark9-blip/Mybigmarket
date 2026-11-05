@@ -12,11 +12,13 @@
     "db:seed": "tsx lib/db/seed-admin.ts",
     "payment:mock-webhook": "tsx scripts/mock-payment-webhook.ts",
     "db:seed:admin": "tsx lib/db/seed-admin.ts",
-    "db:seed:demo": "tsx lib/db/seed.ts",
+    "db:seed:demo": "tsx --tsconfig tsconfig.scripts.json lib/db/seed.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "db:sql:all": "node scripts/build-migrate-all.mjs"
+    "db:sql:all": "node scripts/build-migrate-all.mjs",
+    "test:e2e": "playwright test",
+    "docs:db": "tsx scripts/db-diagram.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.5.0",
@@ -29,7 +31,7 @@
     "lucide-react": "^0.468.0",
     "next": "^16.3.6",
     "next-auth": "5.0.0-beta.32",
-    "nodemailer": "^7.0.13",
+    "nodemailer": "^10.3.1",
     "postgres": "^3.4.7",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
@@ -37,6 +39,7 @@
   },
   "devDependencies": {
     "@electric-sql/pglite": "0.5.10",
+    "@playwright/test": "1.63.0",
     "@tailwindcss/postcss": "^4.3.3",
     "@types/bcryptjs": "^2.4.6",
     "@types/node": "^22.19.0",
@@ -52,5 +55,9 @@
     "tsx": "^4.20.6",
     "typescript": "^5.9.3",
     "vitest": "^3.2.7"
+  },
+  "overrides": {
+    "nodemailer": "$nodemailer",
+    "zod": "$zod"
   }
 }

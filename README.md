@@ -10,7 +10,8 @@
 
 - Next.js 16 App Router, React 19, TypeScript, Tailwind CSS 4
 - Neon PostgreSQL + Drizzle ORM, schéma et migrations dans `lib/db/schema.ts` et `drizzle/`
-- Auth.js Credentials, mots de passe hachés avec bcrypt, rôles `buyer`, `seller`, `admin`
+- Auth.js Credentials (boutique) et jetons employés à rotation (API d'administration) ; mots de passe hachés avec argon2id (anciens hachages bcrypt ré-hachés à la connexion) ; rôles et permissions par module
+- Tests : Vitest + PostgreSQL embarqué (PGlite) pour l'unitaire et l'intégration, Playwright sur builds de production et PostgreSQL 16 pour le bout en bout
 - Vercel Blob : images produit publiques, justificatifs vendeurs en stockage privé
 - Interface française, FCFA/XOF, responsive/mobile-first; association typographique Inter (texte) + Manrope (titres), auto-hébergées sous licence SIL OFL; aucune favicon
 
@@ -30,6 +31,8 @@ Le backend est organisé par domaine dans `server/` (route → service → repos
 - `06-communication-cms-seo-recherche.md` : notifications (file d'e-mails sans doublon reliée aux événements, modèles personnalisables, WhatsApp), CMS (pages à blocs sans HTML libre, menus, formulaires, bannières), redirections 301/302 et recherche (plein texte sans accents, fautes de frappe, facettes, meilleures ventes, suggestions).
 - `07-import-export-stats-journaux.md` : imports CSV ligne par ligne (simulation sans écriture, rapport par ligne, lots reprenables), exports réimportables, statistiques pré-calculées, journal des erreurs et tâches planifiées.
 - `08-service-client-ia-multiboutique.md` : service client (tickets, notes internes, modèles de réponse, lien de suivi sans compte), assistant IA (propositions jamais appliquées sans confirmation, journalisées, avec quotas) et multi-boutique (accès des employés par boutique).
+- `09-durcissement-et-audit.md` : en-têtes de sécurité, CSRF et CORS, limites de débit, revue des index, données de démonstration, tests de bout en bout, compléments de l'assistant IA et **audit de sécurité point par point**.
+- `schema-base-de-donnees.md` : diagramme de la base (136 tables, un diagramme Mermaid par domaine), généré par `npm run docs:db`.
 
 Toute variation de stock passe par `lib/stock-ledger.ts` (réservations tracées, mouvements avant/après, sans survente).
 
@@ -57,14 +60,22 @@ Sans `DATABASE_URL`, le catalogue, panier, commandes simulées et demandes de de
 
 ```text
 mybigmarket/
-├── actions/                 # actions serveur auth, commandes, vendeur, admin et demandes de devis
-├── app/                     # routes App Router, API, sitemap et robots
-├── components/              # header, catalogue, panier, dashboard, formulaires
-├── drizzle/                 # migrations PostgreSQL générées
-├── lib/db/schema.ts         # enums, 23 tables et relations Drizzle
-├── lib/db/seed.ts           # admin + 3 vendeurs + 3 catégories + 20 produits
-├── lib/payments/provider.ts # PaymentProvider et implémentation Mock
-└── .env.example
+├── actions/                 # actions serveur de la boutique (connexion, commande, vendeur, support…)
+├── app/                     # pages App Router, API v1 (/api/v1/[...path]), webhooks, tâches planifiées
+├── components/              # composants de la boutique
+├── server/
+│   ├── core/                # HTTP (routes, erreurs, listes, OpenAPI, CORS), auth, permissions, audit,
+│   │                        # événements, paramètres, limites de débit, idempotence, boutique, tâches
+│   ├── modules/             # un dossier par domaine : routes → service (catalogue, stock, commandes,
+│   │                        # paiements, livraison, CMS, recherche, support, IA, boutiques, démo…)
+│   └── api/registry.ts      # toutes les routes de l'API v1
+├── lib/db/schema.ts         # schéma Drizzle (source unique) ; drizzle/ : migrations
+├── adminnew/                # back-office (application Next.js séparée, consomme /api/v1/admin)
+├── tests/                   # Vitest : unitaire et intégration sur PostgreSQL embarqué
+├── e2e/                     # Playwright : parcours dans un navigateur
+├── scripts/                 # migrate-all.sql, diagramme de la base, préparation des tests e2e
+├── docs/backend/            # documentation par étape, audit, diagramme
+└── .env.example             # toutes les variables d'environnement, sans aucun secret
 ```
 
 ## Démarrer en local
@@ -93,9 +104,43 @@ npm run db:seed         # bootstrap du back office; exige SEED_SUPERADMIN_EMAIL 
 npm run dev
 ```
 
-Le seed principal crée les rôles/permissions et un SuperAdmin avec mot de passe haché bcrypt. Le mot de passe doit être unique et comporter au moins 16 caractères; il n’est ni affiché ni réinitialisé lors d’une seconde exécution. Il ajoute quatre produits en **brouillon**, sans stock, et des tarifs avion/bateau d’exemple qui restent **désactivés**. Les métriques non vérifiées ne sont pas seedées comme des avis réels. N’exécutez pas une migration ou un seed sur la base de production sans sauvegarde, contrôle de `DATABASE_URL` et validation explicite.
+Le seed principal crée les rôles/permissions et un SuperAdmin avec mot de passe haché (argon2id). Le mot de passe doit être unique et comporter au moins 16 caractères; il n’est ni affiché ni réinitialisé lors d’une seconde exécution. Il ajoute quatre produits en **brouillon**, sans stock, et des tarifs avion/bateau d’exemple qui restent **désactivés**. Les métriques non vérifiées ne sont pas seedées comme des avis réels. N’exécutez pas une migration ou un seed sur la base de production sans sauvegarde, contrôle de `DATABASE_URL` et validation explicite.
 
-L’ancien jeu de données marketplace est isolé derrière `npm run db:seed:demo`, sandbox seulement. Il utilise un mot de passe démo partagé et ne doit pas servir à créer ou sécuriser un compte d’administration.
+`npm run db:seed:demo` (sandbox seulement, bloqué en production sans `ALLOW_DEMO_SEED=true`) ajoute l'ancien jeu marketplace et un **commerce de démonstration complet** créé par les services : arbre de catégories, produit à déclinaisons, pack, promotion, bon `BIENVENUE10`, 3 clients, 4 commandes à différents stades et un ticket. Il est idempotent et utilise un mot de passe démo partagé (`SEED_DEMO_PASSWORD`) : il ne doit pas servir à créer ou sécuriser un compte d’administration.
+
+Une base PostgreSQL locale convient aussi : `DATABASE_URL=postgres://utilisateur@localhost:5432/mybigmarket`, puis `npx drizzle-kit migrate`.
+
+## Tests
+
+| Commande | Contenu |
+| --- | --- |
+| `npm test` | Vitest : règles métier, intégration de l'API v1 sur PostgreSQL embarqué (PGlite), sécurité, index, OpenAPI, diagramme, secrets |
+| `npm run test:e2e` | Playwright : parcours client et back-office dans un navigateur |
+| `npm run lint` · `npx tsc --noEmit` | qualité et types |
+
+Pour lancer les tests de bout en bout en local, préparez une base dédiée, puis les deux applications :
+
+```bash
+npx drizzle-kit migrate && npm run db:seed:admin && npm run db:seed:demo
+psql "$DATABASE_URL" -f scripts/e2e-prepare.sql
+npm run build && npx next start -p 3000
+```
+
+Dans un autre terminal, construisez et lancez le back-office (sur le port 3002), puis les tests :
+
+```bash
+(cd adminnew && npm run build && ADMIN_API_BASE_URL=http://localhost:3000 npx next start -p 3002)
+```
+
+```bash
+E2E_ADMIN_EMAIL=… E2E_ADMIN_PASSWORD=… npm run test:e2e
+```
+
+La CI GitHub exécute trois tâches à chaque PR :
+
+- boutique (lint, types, `drizzle-kit check`, tests, build) ;
+- back-office (lint, types, build) ;
+- bout en bout (PostgreSQL 16, seeds, builds de production, Playwright).
 
 ## Tester le webhook mock
 
@@ -143,18 +188,18 @@ La commission par défaut est `800` points de base (**8 %**) et peut être ajust
 
 Le module `MockPaymentProvider` n’accepte aucune carte réelle, n’appelle pas Orange/MTN/Wave et ne retient ni ne transfère des fonds. Un webhook signé ne donne pas à la plateforme la capacité légale de séquestre. N’annoncez pas cette fonctionnalité comme active avant l’accord du prestataire, les callbacks de transfert/remboursement et une validation juridique en Côte d’Ivoire.
 
-## Vérifications effectuées dans ce workspace
+## Vérifications effectuées
 
-- `npm run lint` : OK
-- `npm run build` : OK (Next.js 16.3.6)
-- Pages publiques de preview testées en HTTP : accueil, catalogue, fiche produit, vendeurs, guide — toutes répondent 200.
-- Neon et Blob non configurés ici : les migrations distantes, uploads privés/publics et flux PSP devront être testés sur un projet de staging.
+- `npm test` : 46 fichiers, 581 tests, tous verts. Ils couvrent les règles métier et l'intégration de l'API sur PostgreSQL embarqué, ainsi que la sécurité, les index, OpenAPI, le diagramme de la base et l'absence de secrets.
+- `npm run test:e2e` : 4 scénarios verts. Ils tournent sur les builds de production des deux applications et PostgreSQL 16, avec la même séquence que la CI.
+- `npm run lint`, `npx tsc --noEmit`, `npx drizzle-kit check`, builds de production : OK.
+- `npm audit --omit=dev` : 0 vulnérabilité, pour la boutique comme pour le back-office.
+- Base de production Neon : migrations appliquées après une branche de sauvegarde, et empreinte du schéma identique à la référence.
 
 ## À terminer avant lancement commercial
 
-- Intégration contractuelle CinetPay/PayDunya (ou autre PSP), mobile money et carte; vérification webhook/fraude, remboursement et paiement vendeur.
-- Calcul des frais transitaire/douane, lots réels Chine–Abidjan, assurance et preuves de livraison.
-- Réservation/restauration de stock lors des commandes en attente/échec de paiement, politiques d’expiration et réconciliation.
-- Téléversement de preuves de litige, avis après livraison, notifications email/SMS/WhatsApp, CGV et politique de confidentialité validées localement.
-- Formulaire vendeur demande l’université/ville/WhatsApp et justificatifs privés; compléter les procédures légales KYC, rétention/suppression et accès interne.
-- Tests E2E, rate limiting, anti-bruteforce, sauvegardes, alertes, monitoring et audit sécurité avant d’accepter de vrais clients.
+- **Paiement réel.** Contrat avec le prestataire (CinetPay ou équivalent), clés de production, tests des webhooks réels en préproduction, versement aux vendeurs.
+- **E-mails.** Renseigner `SMTP_*` sur Vercel ; la file d'e-mails est prête. Ajouter `ANTHROPIC_API_KEY` pour activer l'assistant IA.
+- **Logistique.** Frais de transitaire et de douane réels, assurance, preuves de livraison.
+- **Juridique.** Validation en Côte d'Ivoire des CGV, de la confidentialité, du KYC vendeur et du séquestre. Le grand livre ne vaut pas séquestre bancaire.
+- **Exploitation.** Alertes externes (erreurs, disponibilité), vérification de la restauration Neon, montée de version des outils de test (voir l'audit, §11).

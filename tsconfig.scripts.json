@@ -1,0 +1,10 @@
+{
+  "//": "Scripts en ligne de commande (tsx) : `server-only` n'a de sens que dans un composant serveur Next.js ; il est neutralisé ici comme dans les tests.",
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "paths": {
+      "@/*": ["./*"],
+      "server-only": ["./tests/helpers/server-only.ts"]
+    }
+  }
+}

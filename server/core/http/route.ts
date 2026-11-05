@@ -126,7 +126,7 @@ function queryObject(params: URLSearchParams): Record<string, string> {
   return out;
 }
 
-/** Vérification CSRF des écritures authentifiées par cookie (boutique) : même origine exigée. */
+/** Vérification CSRF des écritures de la boutique (cookies de session et de panier) : même origine exigée. */
 function assertSameOrigin(request: Request) {
   const origin = request.headers.get("origin");
   if (!origin) return; // Clients non navigateurs : pas de cookie tiers envoyé automatiquement.
@@ -176,8 +176,10 @@ export async function executeRoute(route: AnyRoute, request: Request, options: E
     } else if (route.surface === "shop" && authMode !== "none") {
       customer = await resolveCustomerPrincipal();
       if (authMode === "required" && !customer) throw errors.unauthenticated("Connectez-vous pour accéder à cette ressource.");
-      if (route.method !== "GET" && customer) assertSameOrigin(request);
     }
+    // CSRF : toute écriture navigateur vers l'API boutique doit venir de notre origine
+    // (ou d'une origine listée), qu'un client soit connecté ou non.
+    if (route.surface === "shop" && route.method !== "GET") assertSameOrigin(request);
 
     const policy = route.rateLimit ?? (route.surface === "admin" ? (route.method === "GET" ? "admin.default" : "admin.write") : "shop.default");
     const subject = admin?.actorId ?? customer?.userId ?? meta.ip ?? "anonymous";

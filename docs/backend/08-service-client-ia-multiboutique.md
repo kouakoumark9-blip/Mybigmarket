@@ -161,6 +161,10 @@ L'assistant appelle Claude (API Anthropic). **La clé ne vit que dans `ANTHROPIC
 | `GET /admin/ai/proposals`, `GET /admin/ai/proposals/:id` | propositions (valeurs actuelles et proposées) |
 | `POST /admin/ai/proposals/:id/apply`, `/reject` | décision |
 | `GET /admin/ai/usage` | consommation du mois (toute l'équipe avec `ai.manage`, sinon la mienne) |
+| `POST /admin/ai/proposals/product-content/bulk` | génération en masse (étape 9) : une proposition par produit, 20 au plus |
+| `POST /admin/ai/proposals/apply-bulk` | validation groupée (étape 9) : `confirm: true`, mêmes contrôles qu'une par une |
+| `POST /admin/ai/sales-summary` | résumé des ventes d'une période (étape 9, lecture seule, `analytics.read`) |
+| `POST /admin/ai/search` | recherche en langage naturel (étape 9, lecture seule) dans les produits, commandes, clients et tickets permis |
 
 ## 4. Multi-boutique
 
