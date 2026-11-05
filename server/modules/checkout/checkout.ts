@@ -41,10 +41,14 @@ export type PlaceOrderInput = { userId: string; lines: QuoteLineInput[]; voucher
 
 let schemaReady = false;
 
-/** Le schéma de l'étape 4 (migration 0016) est-il en place ? Mémorisé une fois vrai. */
+/**
+ * Les schémas des étapes 4 et 5 (migrations 0016 et 0017) sont-ils en place ? Mémorisé une fois vrai.
+ * Sinon la boutique garde son parcours historique : un déploiement avant migration ne casse rien.
+ */
 export async function checkoutSchemaReady(executor: Executor): Promise<boolean> {
   if (schemaReady) return true;
-  const result = await executor.execute(sql`select exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'orders' and column_name = 'checkout_group_id') as ready`);
+  const result = await executor.execute(sql`select exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'orders' and column_name = 'checkout_group_id')
+    and exists (select 1 from information_schema.tables where table_schema = 'public' and table_name = 'payment_intents') as ready`);
   const rows = (Array.isArray(result) ? result : (result as { rows: unknown[] }).rows) as Array<{ ready: boolean }>;
   schemaReady = Boolean(rows[0]?.ready);
   return schemaReady;
