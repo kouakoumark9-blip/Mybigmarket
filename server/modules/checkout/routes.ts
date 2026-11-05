@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { cartItems } from "@/lib/db/schema";
+import { PAYMENT_METHOD_CODES } from "@/lib/payments/types";
 import { defineRoute, type AnyRoute } from "@/server/core/http/route";
 import { errors } from "@/server/core/errors";
 import { countryCode } from "@/server/modules/catalog/shared";
@@ -23,8 +24,9 @@ const checkoutBody = z.object({
     addressId: z.string().uuid().nullable().optional(),
     address: z.object({ name: z.string().trim().min(2).max(160), phone: z.string().trim().min(6).max(32), address: z.string().trim().min(4).max(400), city: z.string().trim().min(2).max(120) }).strict().nullable().optional(),
     pickupPointId: z.number().int().positive().nullable().optional(),
+    shippingMethodCode: z.string().trim().min(2).max(30).nullable().optional(),
   }).strict(),
-  paymentMethod: z.enum(["orange_money", "mtn_momo", "wave", "card"]),
+  paymentMethod: z.enum(PAYMENT_METHOD_CODES),
 }).strict();
 
 const addressBody = z.object({

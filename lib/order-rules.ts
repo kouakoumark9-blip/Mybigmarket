@@ -88,8 +88,22 @@ export type TransitionCheck =
   | { allowed: true }
   | { allowed: false; reason: "unknown_status" | "terminal" | "not_allowed"; message: string };
 
+/**
+ * Contexte facultatif d'une transition. Paiement à la livraison : la commande est préparée et
+ * expédiée avant d'être payée, elle peut donc passer d'« en attente de paiement » à « confirmée
+ * par le vendeur » ; l'encaissement est confirmé à la livraison.
+ */
+export type TransitionContext = { paymentMethod?: string | null };
+
+const isCashOnDelivery = (context?: TransitionContext) => context?.paymentMethod === "cash_on_delivery";
+
+/** Transitions propres au paiement à la livraison, en plus des transitions standard. */
+const CASH_ON_DELIVERY_TRANSITIONS: Partial<Record<OrderStatus, OrderStatus[]>> = {
+  awaiting_payment: ["seller_confirmed"],
+};
+
 /** Vérifie une transition avant de la proposer, puis de l'appliquer. */
-export function canTransition(from: string, to: string): TransitionCheck {
+export function canTransition(from: string, to: string, context?: TransitionContext): TransitionCheck {
   if (!ORDER_STATUSES.includes(from as OrderStatus)) {
     return { allowed: false, reason: "unknown_status", message: `Statut de départ inconnu : ${from}` };
   }
@@ -102,7 +116,7 @@ export function canTransition(from: string, to: string): TransitionCheck {
   if (TERMINAL_ORDER_STATUSES.includes(source)) {
     return { allowed: false, reason: "terminal", message: `Une commande « ${ORDER_STATUS_LABELS[source]} » ne change plus de statut.` };
   }
-  if (!ORDER_TRANSITIONS[source].includes(target)) {
+  if (!ORDER_TRANSITIONS[source].includes(target) && !(isCashOnDelivery(context) && CASH_ON_DELIVERY_TRANSITIONS[source]?.includes(target))) {
     return {
       allowed: false,
       reason: "not_allowed",
@@ -113,11 +127,12 @@ export function canTransition(from: string, to: string): TransitionCheck {
 }
 
 /** Transitions proposables depuis un statut, pour n'afficher que le possible. */
-export function nextStatuses(from: string): OrderStatus[] {
+export function nextStatuses(from: string, context?: TransitionContext): OrderStatus[] {
   if (!ORDER_STATUSES.includes(from as OrderStatus)) return [];
   const source = from as OrderStatus;
   if (TERMINAL_ORDER_STATUSES.includes(source)) return [];
-  return ORDER_TRANSITIONS[source];
+  const extra = isCashOnDelivery(context) ? CASH_ON_DELIVERY_TRANSITIONS[source] ?? [] : [];
+  return [...ORDER_TRANSITIONS[source], ...extra.filter((status) => !ORDER_TRANSITIONS[source].includes(status))];
 }
 
 /**

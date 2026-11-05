@@ -120,6 +120,13 @@
       "when": 1793825038132,
       "tag": "0016_checkout_customers",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1793851864602,
+      "tag": "0017_delivery_payments",
+      "breakpoints": true
     }
   ]
 }

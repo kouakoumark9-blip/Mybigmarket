@@ -22,6 +22,8 @@ import { checkoutRoutes } from "@/server/modules/checkout/routes";
 import { orderRoutes } from "@/server/modules/orders/routes";
 import { customerRoutes } from "@/server/modules/customers/routes";
 import { localizationRoutes } from "@/server/modules/localization/routes";
+import { paymentRoutes } from "@/server/modules/payments/routes";
+import { shippingRoutes } from "@/server/modules/shipping/routes";
 
 export const MODULES: ModuleDefinition[] = [webhooksModule];
 registerModules(MODULES);
@@ -45,6 +47,8 @@ export const ALL_ROUTES: AnyRoute[] = [
   ...orderRoutes,
   ...customerRoutes,
   ...localizationRoutes,
+  ...paymentRoutes,
+  ...shippingRoutes,
   ...MODULES.flatMap((module) => module.routes ?? []),
   openApiRoute,
 ];

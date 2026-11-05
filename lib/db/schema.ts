@@ -26,7 +26,9 @@ export const orderStatusEnum = pgEnum("order_status", [
   "shipped", "arrived_abidjan", "out_for_delivery", "delivered", "seller_paid",
   "cancelled", "dispute", "refunded",
 ]);
-export const paymentMethodEnum = pgEnum("payment_method", ["orange_money", "mtn_momo", "wave", "card", "bank_transfer", "mock"]);
+export const paymentMethodEnum = pgEnum("payment_method", ["orange_money", "mtn_momo", "wave", "card", "bank_transfer", "moov_money", "cash_on_delivery", "mock"]);
+/** Intention de paiement : un paiement client, qui peut couvrir plusieurs commandes (une par vendeur). */
+export const paymentIntentStatusEnum = pgEnum("payment_intent_status", ["pending", "succeeded", "failed", "cancelled", "expired"]);
 export const paymentStatusEnum = pgEnum("payment_status", ["pending", "succeeded", "failed", "refunded", "cancelled"]);
 export const escrowStatusEnum = pgEnum("escrow_status", ["blocked", "eligible", "release_pending", "released", "refund_pending", "refunded", "cancelled"]);
 export const shipmentStatusEnum = pgEnum("shipment_status", ["draft", "collecting", "shipped", "arrived_abidjan", "closed", "cancelled"]);
@@ -363,6 +365,15 @@ export const shipments = pgTable("shipments", {
   departedAt: timestamp("departed_at", { withTimezone: true }),
   arrivedAt: timestamp("arrived_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  /** Mode du lot (avion ou bateau) et transporteur de la ligne principale. */
+  mode: shippingModeEnum("mode"),
+  carrierName: varchar("carrier_name", { length: 120 }),
+  /** Numéro de suivi du lot (LTA, connaissement, conteneur) et lien de suivi transporteur. */
+  trackingNumber: varchar("tracking_number", { length: 120 }),
+  trackingUrl: text("tracking_url"),
+  expectedArrivalAt: timestamp("expected_arrival_at", { withTimezone: true }),
+  note: text("note").notNull().default(""),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [uniqueIndex("shipments_batch_ref_unique").on(t.batchRef), index("shipments_status_idx").on(t.status)]);
 
 export const orders = pgTable("orders", {
@@ -407,6 +418,9 @@ export const orders = pgTable("orders", {
   checkoutGroupId: uuid("checkout_group_id"),
   /** Bons appliqués à la commande : code et part de remise TTC. */
   appliedVouchers: jsonb("applied_vouchers").$type<Array<{ code: string; discountXof: number }>>().notNull().default([]),
+  /** Transporteur choisi (étape 5) et lien de suivi du colis. */
+  shippingMethodId: uuid("shipping_method_id").references((): AnyPgColumn => shippingMethods.id, { onDelete: "set null" }),
+  trackingUrl: text("tracking_url"),
 }, (t) => [index("orders_checkout_group_idx").on(t.checkoutGroupId), index("orders_customer_idx").on(t.customerId, t.createdAt), index("orders_buyer_idx").on(t.buyerId, t.createdAt), index("orders_status_idx").on(t.status), index("orders_shipment_idx").on(t.shipmentId), uniqueIndex("orders_reference_unique").on(t.reference), index("orders_created_status_idx").on(t.createdAt, t.status)]);
 
 export const conversations = pgTable("conversations", {
@@ -491,7 +505,108 @@ export const payments = pgTable("payments", {
   metadata: jsonb("metadata").$type<Record<string, unknown>>().notNull().default({}),
   externalReference: varchar("external_reference", { length: 190 }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-}, (t) => [index("payments_order_idx").on(t.orderId), uniqueIndex("payments_reference_unique").on(t.externalReference)]);
+  /** Intention de paiement qui règle cette commande (étape 5). */
+  intentId: uuid("intent_id").references((): AnyPgColumn => paymentIntents.id, { onDelete: "set null" }),
+  paidAt: timestamp("paid_at", { withTimezone: true }),
+  /** Montant déjà remboursé (remboursements aboutis), jamais supérieur au montant payé. */
+  refundedAmountXof: integer("refunded_amount_xof").notNull().default(0),
+  failureReason: varchar("failure_reason", { length: 240 }),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [index("payments_order_idx").on(t.orderId), uniqueIndex("payments_reference_unique").on(t.externalReference), index("payments_intent_idx").on(t.intentId)]);
+
+/**
+ * Intention de paiement : ce que le client règle en une fois (une ou plusieurs commandes d'un même
+ * passage en caisse). Sa référence est l'identifiant de transaction transmis au prestataire.
+ */
+export const paymentIntents = pgTable("payment_intents", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  reference: varchar("reference", { length: 40 }).notNull(),
+  checkoutGroupId: uuid("checkout_group_id"),
+  userId: uuid("user_id").references(() => users.id, { onDelete: "set null" }),
+  customerId: uuid("customer_id").references((): AnyPgColumn => customers.id, { onDelete: "set null" }),
+  method: paymentMethodEnum("method").notNull(),
+  provider: varchar("provider", { length: 40 }).notNull(),
+  amountXof: integer("amount_xof").notNull(),
+  currency: varchar("currency", { length: 3 }).notNull().default("XOF"),
+  status: paymentIntentStatusEnum("status").notNull().default("pending"),
+  /** Identifiant chez le prestataire (jeton de paiement, identifiant d'opération). */
+  providerReference: varchar("provider_reference", { length: 190 }),
+  /** Page de paiement hébergée chez le prestataire : aucune donnée de carte ne passe par nos serveurs. */
+  checkoutUrl: text("checkout_url"),
+  /** Consignes affichées au client (virement : banque, IBAN, référence à rappeler). */
+  instructions: jsonb("instructions").$type<Record<string, unknown>>().notNull().default({}),
+  countryCode: varchar("country_code", { length: 2 }),
+  expiresAt: timestamp("expires_at", { withTimezone: true }),
+  paidAt: timestamp("paid_at", { withTimezone: true }),
+  failedAt: timestamp("failed_at", { withTimezone: true }),
+  cancelledAt: timestamp("cancelled_at", { withTimezone: true }),
+  failureReason: varchar("failure_reason", { length: 240 }),
+  /** Nombre d'appels d'initialisation au prestataire. */
+  attempts: integer("attempts").notNull().default(0),
+  lastCheckedAt: timestamp("last_checked_at", { withTimezone: true }),
+  metadata: jsonb("metadata").$type<Record<string, unknown>>().notNull().default({}),
+  version: integer("version").notNull().default(0),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [
+  uniqueIndex("payment_intents_reference_unique").on(t.reference),
+  index("payment_intents_status_idx").on(t.status, t.createdAt),
+  index("payment_intents_group_idx").on(t.checkoutGroupId),
+  index("payment_intents_provider_ref_idx").on(t.provider, t.providerReference),
+  index("payment_intents_user_idx").on(t.userId, t.createdAt),
+]);
+
+/**
+ * Journal des transactions de paiement : chaque échange avec le prestataire et chaque décision
+ * (initialisation, notification, vérification, confirmation manuelle, remboursement, expiration).
+ * Table en ajout seul ; les données sensibles sont retirées avant écriture.
+ */
+export const paymentTransactions = pgTable("payment_transactions", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  intentId: uuid("intent_id").references(() => paymentIntents.id, { onDelete: "set null" }),
+  paymentId: uuid("payment_id").references(() => payments.id, { onDelete: "set null" }),
+  orderId: uuid("order_id").references(() => orders.id, { onDelete: "set null" }),
+  refundId: uuid("refund_id").references((): AnyPgColumn => refunds.id, { onDelete: "set null" }),
+  kind: varchar("kind", { length: 32 }).notNull(),
+  status: varchar("status", { length: 24 }).notNull(),
+  provider: varchar("provider", { length: 40 }).notNull(),
+  providerReference: varchar("provider_reference", { length: 190 }),
+  amountXof: integer("amount_xof"),
+  request: jsonb("request").$type<Record<string, unknown>>().notNull().default({}),
+  response: jsonb("response").$type<Record<string, unknown>>().notNull().default({}),
+  error: text("error"),
+  actorType: varchar("actor_type", { length: 20 }).notNull().default("system"),
+  actorId: varchar("actor_id", { length: 64 }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [
+  index("payment_transactions_intent_idx").on(t.intentId, t.createdAt),
+  index("payment_transactions_order_idx").on(t.orderId, t.createdAt),
+  index("payment_transactions_kind_idx").on(t.kind, t.createdAt),
+]);
+
+/**
+ * Boîte de réception des notifications de paiement (webhooks). Une notification est identifiée par
+ * (prestataire, clé d'événement) : rejouée, elle n'est jamais retraitée et renvoie le résultat initial.
+ */
+export const paymentWebhookEvents = pgTable("payment_webhook_events", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  provider: varchar("provider", { length: 40 }).notNull(),
+  eventKey: varchar("event_key", { length: 190 }).notNull(),
+  intentId: uuid("intent_id").references(() => paymentIntents.id, { onDelete: "set null" }),
+  signatureValid: boolean("signature_valid").notNull(),
+  status: varchar("status", { length: 20 }).notNull().default("received"),
+  outcome: varchar("outcome", { length: 60 }),
+  payloadSha256: varchar("payload_sha256", { length: 64 }).notNull(),
+  payload: jsonb("payload").$type<Record<string, unknown>>().notNull().default({}),
+  error: text("error"),
+  attempts: integer("attempts").notNull().default(1),
+  receivedAt: timestamp("received_at", { withTimezone: true }).notNull().defaultNow(),
+  processedAt: timestamp("processed_at", { withTimezone: true }),
+}, (t) => [
+  uniqueIndex("payment_webhook_events_key_unique").on(t.provider, t.eventKey),
+  index("payment_webhook_events_status_idx").on(t.status, t.receivedAt),
+  index("payment_webhook_events_intent_idx").on(t.intentId),
+]);
 
 export const escrowEntries = pgTable("escrow_entries", {
   id: uuid("id").defaultRandom().primaryKey(),

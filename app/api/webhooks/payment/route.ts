@@ -19,6 +19,8 @@ export async function POST(request: Request) {
     const result = await db.transaction(async (tx) => {
       const [payment] = await tx.select().from(payments).where(eq(payments.externalReference, payload.reference!)).limit(1);
       if (!payment) return "unknown" as const;
+      // Paiements créés depuis l'étape 5 : réglés par /api/webhooks/payments/{prestataire} (intention, journal, idempotence).
+      if (payment.intentId) return "use_payment_intents" as const;
       if (payment.amountXof !== payload.amountXof) return "amount_mismatch" as const;
       if (payment.status === "succeeded") return "already_paid" as const;
       if (payload.status === "pending") return "pending" as const;
@@ -61,6 +63,7 @@ export async function POST(request: Request) {
       return "paid" as const;
     });
     if (result === "unknown") return Response.json({ error: "Référence inconnue" }, { status: 404 });
+    if (result === "use_payment_intents") return Response.json({ error: "Paiement géré par /api/webhooks/payments/mock" }, { status: 409 });
     if (result === "amount_mismatch") return Response.json({ error: "Montant ne correspondant pas à la commande" }, { status: 409 });
     if (result === "order_state_conflict") return Response.json({ error: "État de commande incompatible" }, { status: 409 });
     return Response.json({ ok: true, result });

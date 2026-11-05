@@ -14,7 +14,7 @@ import { recordAudit, type AuditActor } from "@/server/core/audit";
 import { emitEvent } from "@/server/core/events";
 import type { RequestMeta } from "@/server/core/http/request-context";
 
-export type SettingGroup = "store" | "orders" | "catalog" | "customers" | "email" | "seo" | "security";
+export type SettingGroup = "store" | "orders" | "catalog" | "customers" | "email" | "seo" | "security" | "payments" | "shipping";
 
 export type SettingDefinition<T = unknown> = {
   group: SettingGroup;
@@ -50,6 +50,18 @@ export const SETTING_DEFINITIONS = {
   "orders.reference_prefix": define({ group: "orders", label: "Préfixe des références de commande", schema: z.string().regex(/^[A-Z]{2,6}$/), defaultValue: "MBM" }),
   "orders.return_window_days": define({ group: "orders", label: "Délai de retour (jours)", schema: z.number().int().min(0).max(365), defaultValue: 14, public: true }),
   "orders.free_shipping_threshold_xof": define({ group: "orders", label: "Livraison gratuite à partir de (FCFA, 0 = jamais)", schema: z.number().int().min(0), defaultValue: 0, public: true }),
+  // Paiement (étape 5). Les coordonnées bancaires ne sont pas des secrets : elles sont communiquées au client.
+  "payments.bank_transfer.account_holder": define({ group: "payments", label: "Virement : titulaire du compte", schema: text(160), defaultValue: "" }),
+  "payments.bank_transfer.bank_name": define({ group: "payments", label: "Virement : banque", schema: text(160), defaultValue: "" }),
+  "payments.bank_transfer.iban": define({ group: "payments", label: "Virement : IBAN ou RIB", schema: text(64), defaultValue: "" }),
+  "payments.bank_transfer.bic": define({ group: "payments", label: "Virement : code BIC/SWIFT", schema: text(20), defaultValue: "" }),
+  "payments.bank_transfer.instructions": define({ group: "payments", label: "Virement : consignes complémentaires", schema: text(600), defaultValue: "Indiquez la référence du paiement dans le libellé du virement." }),
+  "payments.bank_transfer.expiry_hours": define({ group: "payments", label: "Virement : délai de réception avant annulation (heures)", schema: z.number().int().min(1).max(720), defaultValue: 72 }),
+  "payments.cash_on_delivery.max_amount_xof": define({ group: "payments", label: "Paiement à la livraison : montant maximum (FCFA)", schema: z.number().int().min(0).max(100_000_000), defaultValue: 300_000 }),
+  "payments.cash_on_delivery.countries": define({ group: "payments", label: "Paiement à la livraison : pays autorisés", schema: z.array(z.string().regex(/^[A-Z]{2}$/)).max(30), defaultValue: ["CI"] }),
+  // Livraison (étape 5)
+  "shipping.require_billable_method": define({ group: "shipping", label: "Exiger un transporteur facturable quand il en existe un", schema: z.boolean(), defaultValue: true }),
+  "shipping.tracking_lookup_enabled": define({ group: "shipping", label: "Suivi de commande sans compte (référence + e-mail)", schema: z.boolean(), defaultValue: true, public: true }),
   // Catalogue
   "catalog.default_status": define({ group: "catalog", label: "Statut par défaut d'un nouveau produit", schema: z.enum(["draft", "pending_review"]), defaultValue: "draft" }),
   "catalog.low_stock_threshold": define({ group: "catalog", label: "Seuil d'alerte stock bas par défaut", schema: z.number().int().min(0).max(1_000_000), defaultValue: 5 }),

@@ -12,15 +12,17 @@ import { randomUUID } from "node:crypto";
 import { and, eq, inArray, isNull, lt, or, sql } from "drizzle-orm";
 import { reserveOrderStock, StockLedgerError, type StockLine } from "@/lib/stock-ledger";
 import { nextDocumentNumber } from "@/lib/document-numbers";
-import { getPaymentProvider, type PayMethod } from "@/lib/payments/provider";
+import type { PaymentMethodCode } from "@/lib/payments/types";
 import { countryName, destinationByCode, destinationCountries } from "@/lib/west-africa";
 import {
-  carts, customerAddresses, orderEvents, orderItems, orderStatusHistory, orders, packItems, payments, pickupPoints, products, promoCodeRedemptions, promoCodes, DEFAULT_SHOP_ID,
+  carts, customerAddresses, orderEvents, orderItems, orderStatusHistory, orders, packItems, pickupPoints, products, promoCodeRedemptions, promoCodes, DEFAULT_SHOP_ID,
 } from "@/lib/db/schema";
 import type { Db, Executor } from "@/server/core/db";
 import { AppError, errors } from "@/server/core/errors";
 import { emitEvent } from "@/server/core/events";
 import { getSetting } from "@/server/core/settings";
+import { createIntent, initiateIntent, loadPaymentSettings, paymentDeadline, paymentMethodAvailability } from "@/server/modules/payments/service";
+import { planShipping } from "@/server/modules/shipping/service";
 import { ensureCustomer, type CustomerContext } from "@/server/modules/checkout/customers";
 import { publicLine, quoteCart, type QuoteLineInput, type QuotedLine } from "@/server/modules/checkout/quote";
 
@@ -31,16 +33,22 @@ export type DeliveryInput = {
   addressId?: string | null;
   address?: { name: string; phone: string; address: string; city: string } | null;
   pickupPointId?: number | null;
+  /** Transporteur choisi (code). Sans choix : transport à confirmer, sauf si un transporteur facturable est exigé. */
+  shippingMethodCode?: string | null;
 };
 
-export type PlaceOrderInput = { userId: string; lines: QuoteLineInput[]; voucherCodes?: string[]; delivery: DeliveryInput; paymentMethod: PayMethod; cartId?: string | null; requireVariant?: boolean };
+export type PlaceOrderInput = { userId: string; lines: QuoteLineInput[]; voucherCodes?: string[]; delivery: DeliveryInput; paymentMethod: PaymentMethodCode; cartId?: string | null; requireVariant?: boolean };
 
 let schemaReady = false;
 
-/** Le schéma de l'étape 4 (migration 0016) est-il en place ? Mémorisé une fois vrai. */
+/**
+ * Les schémas des étapes 4 et 5 (migrations 0016 et 0017) sont-ils en place ? Mémorisé une fois vrai.
+ * Sinon la boutique garde son parcours historique : un déploiement avant migration ne casse rien.
+ */
 export async function checkoutSchemaReady(executor: Executor): Promise<boolean> {
   if (schemaReady) return true;
-  const result = await executor.execute(sql`select exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'orders' and column_name = 'checkout_group_id') as ready`);
+  const result = await executor.execute(sql`select exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'orders' and column_name = 'checkout_group_id')
+    and exists (select 1 from information_schema.tables where table_schema = 'public' and table_name = 'payment_intents') as ready`);
   const rows = (Array.isArray(result) ? result : (result as { rows: unknown[] }).rows) as Array<{ ready: boolean }>;
   schemaReady = Boolean(rows[0]?.ready);
   return schemaReady;
@@ -54,9 +62,9 @@ async function deliverySnapshot(executor: Executor, customer: CustomerContext, d
   if (delivery.method === "pickup") {
     if (delivery.countryCode !== "CI") throw errors.validation([{ path: "delivery.method", message: "Le point relais est proposé uniquement en Côte d'Ivoire." }]);
     if (!delivery.pickupPointId) throw errors.validation([{ path: "delivery.pickupPointId", message: "Choisissez un point relais." }]);
-    const [point] = await executor.select({ id: pickupPoints.id }).from(pickupPoints).where(and(eq(pickupPoints.id, delivery.pickupPointId), eq(pickupPoints.isActive, true))).limit(1);
+    const [point] = await executor.select({ id: pickupPoints.id, city: pickupPoints.city, name: pickupPoints.name }).from(pickupPoints).where(and(eq(pickupPoints.id, delivery.pickupPointId), eq(pickupPoints.isActive, true))).limit(1);
     if (!point) throw errors.validation([{ path: "delivery.pickupPointId", message: "Ce point relais n'est plus disponible." }]);
-    return { address: common, pickupPointId: point.id };
+    return { address: { ...common, city: point.city, pickupPointName: point.name }, pickupPointId: point.id };
   }
   if (delivery.addressId) {
     const [address] = await executor.select().from(customerAddresses).where(and(eq(customerAddresses.id, delivery.addressId), eq(customerAddresses.customerId, customer.customerId), isNull(customerAddresses.deletedAt))).limit(1);
@@ -93,8 +101,8 @@ async function stockLinesFor(executor: Executor, lines: QuotedLine[]): Promise<S
 export async function placeOrder(database: Db, input: PlaceOrderInput) {
   const customer = await ensureCustomer(database, input.userId);
   const delivery = await deliverySnapshot(database, customer, input.delivery);
-  const expiryMinutes = await getSetting(database, DEFAULT_SHOP_ID, "orders.payment_expiry_minutes");
-  const provider = getPaymentProvider();
+  const paymentSettings = await loadPaymentSettings(database);
+  const requireBillableShipping = await getSetting(database, DEFAULT_SHOP_ID, "shipping.require_billable_method");
 
   const result = await database.transaction(async (tx) => {
     const quote = await quoteCart(tx, { lines: input.lines, customer, countryCode: input.delivery.countryCode, voucherCodes: input.voucherCodes, requireVariant: input.requireVariant });
@@ -103,6 +111,20 @@ export async function placeOrder(database: Db, input: PlaceOrderInput) {
     if (issues.length) throw errors.rule("Certains articles ne peuvent pas être commandés en l'état : mettez le panier à jour.", { issues });
     const rejected = quote.vouchers.rejected.filter((entry) => entry.reason !== "not_combinable");
     if (rejected.length) throw errors.rule(rejected[0].message, { vouchers: rejected });
+
+    // Transport : un coût par commande (vendeur), transporteur facturable choisi ou « à confirmer ».
+    const shipping = await planShipping(tx, {
+      groups: quote.sellers.map((group) => ({ sellerId: group.sellerId, lines: group.lines.map((line) => ({ productId: line.productId, quantity: line.quantity })), totalXof: group.totalXof })),
+      countryCode: input.delivery.countryCode, city: delivery.address.city ?? null, methodCode: input.delivery.shippingMethodCode ?? null,
+      freeShipping: quote.freeShipping, requireBillable: requireBillableShipping,
+    });
+    const shippingXof = shipping.reduce((sum, plan) => sum + plan.costXof, 0);
+    const grandTotalXof = quote.totals.totalXof + shippingXof;
+
+    // Moyen de paiement : disponible pour ce pays, ce montant et les groupes du client.
+    const availability = await paymentMethodAvailability(tx, paymentSettings, { countryCode: input.delivery.countryCode, amountXof: grandTotalXof, customerGroupIds: customer.groupIds });
+    const choice = availability.find((entry) => entry.code === input.paymentMethod);
+    if (!choice?.available || !choice.provider) throw errors.rule(choice?.reason ? `Moyen de paiement indisponible : ${choice.reason}` : "Moyen de paiement indisponible.", { method: input.paymentMethod, available: availability.filter((entry) => entry.available).map((entry) => entry.code) });
 
     // Bons : la limite globale est revérifiée et consommée de façon atomique.
     for (const voucher of quote.vouchers.applied) {
@@ -113,15 +135,18 @@ export async function placeOrder(database: Db, input: PlaceOrderInput) {
 
     const checkoutGroupId = randomUUID();
     const year = new Date().getFullYear();
-    const paymentExpiresAt = new Date(Date.now() + expiryMinutes * 60_000);
-    const created: Array<{ id: string; reference: string; sellerId: string; totalXof: number; payment: { provider: string; reference: string; status: string; checkoutUrl?: string } }> = [];
+    const paymentExpiresAt = paymentDeadline(input.paymentMethod, paymentSettings);
+    const created: Array<{ id: string; reference: string; sellerId: string; totalXof: number; payment: { provider: string; reference: string; status: string; checkoutUrl?: string | null } }> = [];
 
-    for (const group of quote.sellers) {
+    for (const [groupIndex, group] of quote.sellers.entries()) {
+      const plan = shipping[groupIndex];
+      const orderTotalXof = group.totalXof + plan.costXof;
       const reference = await nextDocumentNumber(tx, "order", year);
       const appliedVouchers = quote.vouchers.applied.map((voucher) => ({ code: voucher.code, discountXof: 0 }));
       const [order] = await tx.insert(orders).values({
         buyerId: input.userId, customerId: customer.customerId, reference, checkoutGroupId, status: "awaiting_payment",
-        subtotalXof: group.subtotalExclTaxXof, discountXof: group.discountXof, taxXof: group.taxXof, totalXof: group.totalXof, shippingCostXof: 0,
+        subtotalXof: group.subtotalExclTaxXof, discountXof: group.discountXof, taxXof: group.taxXof, totalXof: orderTotalXof, shippingCostXof: plan.costXof,
+        shippingMethodId: plan.methodId, shippingMode: plan.mode, shippingQuoteSnapshot: plan.snapshot,
         deliveryMethod: input.delivery.method, pickupPointId: delivery.pickupPointId, deliveryAddress: delivery.address, paymentExpiresAt, locale: input.delivery.language,
         appliedVouchers: group.discountXof > 0 ? appliedVouchers.map((voucher) => ({ ...voucher, discountXof: group.discountXof })) : [],
       }).returning();
@@ -140,14 +165,19 @@ export async function placeOrder(database: Db, input: PlaceOrderInput) {
         }
         throw error;
       }
-      if (group.totalXof < 1) throw errors.rule("Le montant de la commande doit être d'au moins 1 FCFA.");
-      const payment = await provider.createPayment(order.id, group.totalXof, input.paymentMethod);
-      await tx.insert(payments).values({ orderId: order.id, method: input.paymentMethod, amountXof: group.totalXof, status: "pending", provider: payment.provider, externalReference: payment.reference, countryCode: input.delivery.countryCode });
-      await tx.insert(orderEvents).values({ orderId: order.id, status: "awaiting_payment", actorUserId: input.userId, note: "Commande créée ; en attente de confirmation du paiement." });
+      if (orderTotalXof < 1) throw errors.rule("Le montant de la commande doit être d'au moins 1 FCFA.");
+      await tx.insert(orderEvents).values({ orderId: order.id, status: "awaiting_payment", actorUserId: input.userId, note: input.paymentMethod === "cash_on_delivery" ? "Commande créée ; paiement à la livraison." : "Commande créée ; en attente de confirmation du paiement." });
       await tx.insert(orderStatusHistory).values({ orderId: order.id, fromStatus: null, toStatus: "awaiting_payment", note: "Commande passée par le client." });
-      await emitEvent(tx, "order.created", { orderId: order.id, reference, totalXof: group.totalXof }, { aggregateId: order.id, shopId: DEFAULT_SHOP_ID });
-      created.push({ id: order.id, reference, sellerId: group.sellerId, totalXof: group.totalXof, payment: { provider: payment.provider, reference: payment.reference, status: payment.status, checkoutUrl: payment.checkoutUrl } });
+      await emitEvent(tx, "order.created", { orderId: order.id, reference, totalXof: orderTotalXof }, { aggregateId: order.id, shopId: DEFAULT_SHOP_ID });
+      created.push({ id: order.id, reference, sellerId: group.sellerId, totalXof: orderTotalXof, payment: { provider: choice.provider, reference: "", status: "pending" } });
     }
+
+    // Un seul paiement pour toutes les commandes du passage en caisse.
+    const { intent, payments: paymentRows } = await createIntent(tx, {
+      checkoutGroupId, userId: input.userId, customerId: customer.customerId, method: input.paymentMethod, gatewayKey: choice.provider,
+      countryCode: input.delivery.countryCode, expiresAt: paymentExpiresAt, orders: created.map((order) => ({ id: order.id, totalXof: order.totalXof })),
+    });
+    for (const order of created) order.payment.reference = paymentRows.find((row) => row.orderId === order.id)?.externalReference ?? intent.reference;
 
     // Une utilisation par bon et par passage de commande, rattachée à la première commande.
     for (const voucher of quote.vouchers.applied) {
@@ -157,11 +187,17 @@ export async function placeOrder(database: Db, input: PlaceOrderInput) {
 
     return {
       checkoutGroupId,
+      intentId: intent.id,
       orders: created,
-      totals: quote.totals,
+      totals: { ...quote.totals, shippingXof, totalXof: grandTotalXof },
+      shipping: shipping.map((plan, index) => ({ sellerId: quote.sellers[index].sellerId, costXof: plan.costXof, methodCode: (plan.snapshot as { methodCode?: string } | null)?.methodCode ?? null, mode: plan.mode, toConfirm: plan.methodId === null })),
       vouchers: quote.vouchers.applied.map((voucher) => ({ code: voucher.code, discountXof: voucher.discountXof })),
       lines: quote.lines.map(publicLine),
     };
   });
-  return result;
+  // Initialisation chez le prestataire, hors transaction : un échec laisse la commande payable (nouvelle tentative).
+  const payment = await initiateIntent(database, result.intentId, { language: input.delivery.language === "en" ? "en" : "fr" });
+  const { intentId: _intentId, ...rest } = result;
+  void _intentId;
+  return { ...rest, orders: rest.orders.map((order) => ({ ...order, payment: { ...order.payment, checkoutUrl: payment.checkoutUrl } })), payment };
 }
