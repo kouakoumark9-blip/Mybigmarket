@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
-import { Activity, ArrowLeftRight, BadgePercent, Bell, Boxes, Calculator, ChevronRight, CircleHelp, ClipboardList, CreditCard, FileText, Globe2, Headset, History, Image, LayoutDashboard, ListChecks, MapPin, Menu, PackageSearch, Percent, Plane, Ruler, Search, Settings2, Shield, Tags, Ticket, Trash2, TriangleAlert, Truck, Undo2, UserCog, Users, Warehouse, X } from "lucide-react";
+import { Activity, ArrowLeftRight, BadgePercent, Bell, Bot, Boxes, Calculator, ChevronRight, CircleHelp, ClipboardList, CreditCard, FileText, Globe2, Headset, History, Image, Inbox, LayoutDashboard, ListChecks, MapPin, Menu, MessageSquareQuote, PackageSearch, Percent, Plane, Ruler, Search, Settings2, Shield, Tags, Ticket, Trash2, TriangleAlert, Truck, Undo2, UserCog, Users, Warehouse, X } from "lucide-react";
 import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { can, isPermissionCode } from "@/lib/permission-matrix";
@@ -13,7 +13,10 @@ type NavItem = { label: string; href: string; permission: string; icon?: typeof 
 type NavGroup = { label: string; items: NavItem[] };
 
 const navGroups: NavGroup[] = [
-  { label: "Pilotage", items: [{ label: "Tableau de bord", href: "/", permission: "dashboard.read", icon: LayoutDashboard, implemented: true }] },
+  { label: "Pilotage", items: [
+    { label: "Tableau de bord", href: "/", permission: "dashboard.read", icon: LayoutDashboard, implemented: true },
+    { label: "Assistant IA", href: "/assistant-ia", permission: "ai.use", icon: Bot, implemented: true },
+  ] },
   { label: "Ventes", items: [
     { label: "Commandes", href: "/commandes", permission: "orders.read", icon: ClipboardList, implemented: true },
     { label: "Retours produits", href: "/commandes/retours", permission: "support.disputes.manage", icon: Undo2, implemented: true },
@@ -37,7 +40,9 @@ const navGroups: NavGroup[] = [
     { label: "Clients et adresses", href: "/clients", permission: "customers.read", icon: Users, implemented: true },
     { label: "Groupes de clients", href: "/clients/groupes", permission: "customers.manage", icon: UserCog, implemented: true },
     { label: "Corbeille clients", href: "/clients/corbeille", permission: "customers.manage", icon: Trash2, implemented: true },
-    { label: "Service client", href: "/service-client", permission: "support.messages.read", icon: Headset, implemented: true },
+    { label: "Tickets clients", href: "/service-client/tickets", permission: "support.read", icon: Inbox, implemented: true },
+    { label: "Modèles de réponse", href: "/service-client/modeles", permission: "support.read", icon: MessageSquareQuote, implemented: true },
+    { label: "Conversations", href: "/service-client", permission: "support.messages.read", icon: Headset, implemented: true },
   ] },
   { label: "Opérations", items: [
     { label: "Transport", href: "/transport", permission: "shipping.read", icon: Truck, implemented: true },
