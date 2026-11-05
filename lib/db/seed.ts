@@ -5,6 +5,8 @@ import { eq } from "drizzle-orm";
 import { getDb } from "@/lib/db";
 import { categories as categoryRows, sellerProfiles, users, products, pickupPoints } from "@/lib/db/schema";
 import { categories as demoCategories, getProductDescription, products as demoProducts, sellers as demoSellers } from "@/lib/demo-data";
+import type { Db } from "@/server/core/db";
+import { DEMO_CUSTOMERS, DEMO_SELLER_EMAIL, seedDemoCommerce } from "@/server/modules/demo/seed";
 
 async function main() {
   if (process.env.NODE_ENV === "production" && process.env.ALLOW_DEMO_SEED !== "true") throw new Error("Le seed démo est bloqué en production. ALLOW_DEMO_SEED=true pour l’autoriser explicitement.");
@@ -42,7 +44,11 @@ async function main() {
     { name: "Point mybigmarket Cocody (démo)", city: "Abidjan", address: "Cocody, Abidjan", phone: null, openingHours: "À confirmer", isActive: true },
   ]).onConflictDoNothing();
   console.log("Seed terminé : 1 admin, 3 vendeurs vérifiés, 3 catégories, 20 produits, 2 points relais de démonstration.");
-  console.log("Comptes de test : admin@mybigmarket.example et seller-slug@demo.mybigmarket.example. Même mot de passe de démonstration pour tous; changez-le immédiatement.");
+
+  // Jeu complet créé par les services : arbre de catégories, déclinaisons, pack, clients, commandes, ticket.
+  const summary = await seedDemoCommerce(db as unknown as Db, { passwordHash });
+  console.log(`Commerce de démonstration : ${summary.products} produits (${summary.variants} déclinaisons), ${summary.customers} clients, ${summary.orders} commandes ${JSON.stringify(summary.orderStatuses)}, ${summary.tickets} ticket.`);
+  console.log(`Comptes de test : admin@mybigmarket.example, seller-slug@demo.mybigmarket.example, ${DEMO_SELLER_EMAIL}, ${DEMO_CUSTOMERS.map((customer) => customer.email).join(", ")}. Même mot de passe de démonstration pour tous ; changez-le immédiatement.`);
 }
 
-main().catch((error) => { console.error(error); process.exit(1); });
+main().then(() => process.exit(0)).catch((error) => { console.error(error); process.exit(1); });

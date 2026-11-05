@@ -12,7 +12,7 @@
     "db:seed": "tsx lib/db/seed-admin.ts",
     "payment:mock-webhook": "tsx scripts/mock-payment-webhook.ts",
     "db:seed:admin": "tsx lib/db/seed-admin.ts",
-    "db:seed:demo": "tsx lib/db/seed.ts",
+    "db:seed:demo": "tsx --tsconfig tsconfig.scripts.json lib/db/seed.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
