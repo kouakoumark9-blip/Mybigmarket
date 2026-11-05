@@ -6,6 +6,8 @@ import { mkdtempSync, copyFileSync, mkdirSync, readFileSync, readdirSync, writeF
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { PGlite } from "@electric-sql/pglite";
+import { pg_trgm } from "@electric-sql/pglite/contrib/pg_trgm";
+import { unaccent } from "@electric-sql/pglite/contrib/unaccent";
 import { drizzle } from "drizzle-orm/pglite";
 import { migrate } from "drizzle-orm/pglite/migrator";
 import { describe, expect, it } from "vitest";
@@ -32,7 +34,7 @@ async function publicTableCount(client: PGlite) {
 
 describe("migrations sur PostgreSQL réel", () => {
   it("l'outil Drizzle applique tout l'historique", async () => {
-    const client = new PGlite();
+    const client = new PGlite({ extensions: { unaccent, pg_trgm } });
     await migrate(drizzle(client), { migrationsFolder: migrationsDir });
     expect(await publicTableCount(client)).toBeGreaterThanOrEqual(107);
     const shops = await client.query<{ code: string; is_default: boolean }>("select code, is_default from shops");
@@ -40,14 +42,14 @@ describe("migrations sur PostgreSQL réel", () => {
   });
 
   it("migrate-all.sql est idempotent sur une base neuve", async () => {
-    const client = new PGlite();
+    const client = new PGlite({ extensions: { unaccent, pg_trgm } });
     await client.exec(migrateAll);
     await client.exec(migrateAll);
     expect(await publicTableCount(client)).toBeGreaterThanOrEqual(107);
   });
 
   it("migrate-all.sql complète une base migrée par Drizzle sans rien rejouer et conserve les données", async () => {
-    const client = new PGlite();
+    const client = new PGlite({ extensions: { unaccent, pg_trgm } });
     await migrate(drizzle(client), { migrationsFolder: migrationsUpTo(12) });
     await client.exec(`insert into settings (key, value) values ('shop.name', '"Ma boutique"'::jsonb)`);
     await client.exec(migrateAll);
@@ -59,7 +61,7 @@ describe("migrations sur PostgreSQL réel", () => {
   });
 
   it("la migration 0015 reprend le stock existant dans l'entrepôt par défaut sans modifier les compteurs", async () => {
-    const client = new PGlite();
+    const client = new PGlite({ extensions: { unaccent, pg_trgm } });
     await migrate(drizzle(client), { migrationsFolder: migrationsUpTo(14) });
     await client.exec(`
       insert into users (id, name, email, password_hash, role) values ('10000000-0000-4000-8000-000000000001', 'Vendeur', 'vendeur@exemple.ci', 'x', 'seller');
@@ -81,7 +83,7 @@ describe("migrations sur PostgreSQL réel", () => {
   });
 
   it("l'outil Drizzle ne rejoue rien après migrate-all.sql", async () => {
-    const client = new PGlite();
+    const client = new PGlite({ extensions: { unaccent, pg_trgm } });
     await client.exec(migrateAll);
     await expect(migrate(drizzle(client), { migrationsFolder: migrationsDir })).resolves.toBeUndefined();
   });

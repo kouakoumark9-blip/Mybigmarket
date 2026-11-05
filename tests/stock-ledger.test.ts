@@ -6,6 +6,8 @@ import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, writeF
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { PGlite } from "@electric-sql/pglite";
+import { pg_trgm } from "@electric-sql/pglite/contrib/pg_trgm";
+import { unaccent } from "@electric-sql/pglite/contrib/unaccent";
 import { drizzle } from "drizzle-orm/pglite";
 import { migrate } from "drizzle-orm/pglite/migrator";
 import { sql } from "drizzle-orm";
@@ -49,7 +51,7 @@ describe("grand livre de stock", () => {
 
   beforeAll(async () => {
     resetLedgerReadiness();
-    const client = new PGlite();
+    const client = new PGlite({ extensions: { unaccent, pg_trgm } });
     database = drizzle(client);
     await migrate(database, { migrationsFolder: migrationsDir });
     await seed(database);
@@ -161,7 +163,7 @@ describe("grand livre de stock avant la migration 0015", () => {
     journal.entries = journal.entries.filter((entry: { idx: number }) => entry.idx <= 14);
     writeFileSync(join(dir, "meta", "_journal.json"), JSON.stringify(journal));
 
-    const database = drizzle(new PGlite());
+    const database = drizzle(new PGlite({ extensions: { unaccent, pg_trgm } }));
     await migrate(database, { migrationsFolder: dir });
     await seed(database);
     const orderId = await createOrder(database);

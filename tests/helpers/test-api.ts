@@ -4,6 +4,8 @@
  */
 import { join } from "node:path";
 import { PGlite } from "@electric-sql/pglite";
+import { pg_trgm } from "@electric-sql/pglite/contrib/pg_trgm";
+import { unaccent } from "@electric-sql/pglite/contrib/unaccent";
 import { drizzle } from "drizzle-orm/pglite";
 import { migrate } from "drizzle-orm/pglite/migrator";
 import { eq } from "drizzle-orm";
@@ -22,7 +24,7 @@ export const ADMIN_PASSWORD = "Super-Admin-Password-2026";
 export async function createTestDatabase(): Promise<{ db: Db; client: PGlite }> {
   process.env.ADMIN_API_JWT_SECRET = "test-secret-for-admin-api-tokens-0123456789";
   process.env.DATABASE_URL = "postgres://pglite.invalid/test";
-  const client = new PGlite();
+  const client = new PGlite({ extensions: { unaccent, pg_trgm } });
   const database = drizzle(client, { schema }) as unknown as Db;
   await migrate(drizzle(client), { migrationsFolder: join(process.cwd(), "drizzle") });
   setDbForTests(database);
