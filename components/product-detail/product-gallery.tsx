@@ -72,7 +72,7 @@ export function ProductGallery({ images, videoUrl, label, activeIndex, onSelect,
 
   if (!active) return null;
 
-  return <div className="pd-gallery">
+  return <div className="pd-gallery" id="photo">
     <div className="pd-thumbs" ref={thumbList} role="listbox" aria-label="Miniatures du produit" aria-orientation="vertical" onKeyDown={(event) => { onKey(event); requestAnimationFrame(() => thumbList.current?.querySelector<HTMLButtonElement>(".pd-thumb.is-active")?.focus()); }}>
       {thumbs.map((item, i) => <button key={`${item.src}-${i}`} type="button" role="option" aria-selected={i === index} tabIndex={i === index ? 0 : -1} className={`pd-thumb${i === index ? " is-active" : ""}`} onClick={() => onSelect(i)} onMouseEnter={() => onSelect(i)} aria-label={`${item.kind === "video" ? "Vidéo" : `Image ${i + 1}`} : ${item.alt}`}>
         <PdpImage src={item.kind === "video" ? poster || item.src : item.src} alt="" width={64} height={64} sizes="64px"/>

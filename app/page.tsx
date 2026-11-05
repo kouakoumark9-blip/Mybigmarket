@@ -1,8 +1,8 @@
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowRight, BadgeCheck, Boxes, House, MapPin, PackageCheck, Search, Shirt, Smartphone, SlidersHorizontal, Truck, type LucideIcon } from "lucide-react";
+import { ArrowRight, Boxes, House, PackageCheck, Shirt, Smartphone, SlidersHorizontal, Truck, type LucideIcon } from "lucide-react";
 import { categories } from "@/lib/demo-data";
-import { DestinationCountrySummary, DestinationPriceLabel, LocalizedCategoryName } from "@/components/destination-labels";
+import { LocalizedCategoryName } from "@/components/destination-labels";
 import { LocaleText } from "@/components/locale-text";
 import { getCatalogProducts } from "@/lib/catalog";
 import { ProductCarousel } from "@/components/product-carousel";
@@ -23,18 +23,6 @@ export default async function HomePage() {
   const categoryGroups = categories.map((category) => ({ category, items: products.filter((product) => product.categorySlug === category.slug) }));
 
   return <main className="shell marketplace-home marketplace-catalog-home">
-    <div className="marketplace-context-bar catalog-context">
-      <span><LocaleText messageKey="preorderRoute"/> <b>Chine <span>→</span> Afrique de l’Ouest</b></span>
-      <div className="market-context-links"><span className="country-context"><MapPin size={13}/> <DestinationCountrySummary/></span></div>
-    </div>
-
-    <section className="catalog-search-hero" aria-label="Rechercher et explorer">
-      <form action="/produits" className="catalog-search-bar" role="search">
-        <div className="catalog-search-input"><Search size={20}/><input name="q" aria-label="Rechercher dans le catalogue" placeholder="Que recherchez-vous ? Ex. sacs, téléphones, maison…"/></div>
-        <div className="catalog-search-submit-row"><span><PackageCheck size={15}/> <DestinationPriceLabel/> · Minimum de commande indiqué</span><button type="submit">Rechercher <ArrowRight size={16}/></button></div>
-      </form>
-    </section>
-
     <section className="catalog-image-banners" aria-label="Explorer les univers mybigmarket">
       <aside className="catalog-category-index catalog-home-rail">
         <div className="catalog-index-heading"><b><LocaleText messageKey="browseCategories"/></b><Link href="/produits" aria-label="Toutes les catégories"><ArrowRight size={15}/></Link></div>
@@ -64,7 +52,7 @@ export default async function HomePage() {
 
     <section id="catalogue" className="catalog-feed" aria-labelledby="catalog-feed-title">
       <div className="catalog-feed-heading">
-        <div><span className="eyebrow">CATALOGUE MYBIGMARKET</span><h2 id="catalog-feed-title"><LocaleText messageKey="productsByCategory"/></h2><p><LocaleText messageKey="exploreRays"/></p></div>
+        <div/>
         <Link className="catalog-more-link" href="/produits"><LocaleText messageKey="viewAllCatalog"/> <ArrowRight size={15}/></Link>
       </div>
       <div className="catalog-filter-strip">
@@ -76,6 +64,5 @@ export default async function HomePage() {
       <div className="catalog-bottom-note"><Truck size={16}/><span><LocaleText messageKey="demoProductsNote"/></span></div>
     </section>
 
-    <div className="demo-note"><BadgeCheck size={15}/> <LocaleText messageKey="demoDisclaimer"/></div>
   </main>;
 }

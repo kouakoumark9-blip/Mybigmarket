@@ -47,12 +47,6 @@ export const pdpConfig = {
 export const headerNav = {
   primary: [
     { label: "Toutes les catégories", href: "/produits", icon: "menu" },
-    { label: "Fabricants vérifiés", href: "/vendeurs", icon: "badge" },
-    { label: "Dropshipping", href: "/vendeur", icon: "truck" },
   ],
-  secondary: [
-    { label: "À propos", href: "/comment-ca-marche" },
-    { label: "Centre d'aide", href: "/comment-ca-marche#aide" },
-    { label: "Vendre sur la plateforme", href: "/vendeur" },
-  ],
+  secondary: [] as Array<{ label: string; href: string }>,
 } as const;
