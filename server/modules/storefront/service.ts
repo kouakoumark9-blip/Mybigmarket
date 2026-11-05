@@ -80,6 +80,8 @@ export async function publicBrands(database: Db) {
 export type ProductSearch = {
   page: number; limit?: number; q?: string; category?: string; brand?: string; minPrice?: number; maxPrice?: number; inStock?: boolean; featured?: boolean;
   sort: "relevance" | "newest" | "price_asc" | "price_desc" | "name";
+  /** Sélection explicite (blocs de pages CMS). */
+  ids?: string[];
 };
 
 async function covers(executor: Executor, ids: string[]) {
@@ -126,6 +128,7 @@ export async function searchProducts(database: Db, search: ProductSearch, pricin
   if (search.maxPrice != null) conditions.push(lte(products.priceXof, search.maxPrice));
   if (search.inStock) conditions.push(or(sql`${products.quantity} > 0`, eq(products.productType, "virtual"))!);
   if (search.featured) conditions.push(eq(products.isFeatured, true));
+  if (search.ids) conditions.push(search.ids.length ? inArray(products.id, search.ids) : sql`false`);
   const where = and(...conditions);
   const order = search.sort === "price_asc" ? [asc(products.priceXof)] : search.sort === "price_desc" ? [desc(products.priceXof)] : search.sort === "name" ? [asc(products.title)]
     : search.sort === "relevance" && search.q ? [desc(sql`(${products.title} ilike ${likePattern(search.q)})`), desc(products.isFeatured), desc(products.publishedAt)]
