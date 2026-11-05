@@ -17,6 +17,7 @@ import { notificationsModule } from "@/server/modules/notifications/module";
 import { supportModule } from "@/server/modules/support/module";
 import { supportRoutes } from "@/server/modules/support/routes";
 import { aiRoutes } from "@/server/modules/ai/routes";
+import { shopRoutes } from "@/server/modules/shops/routes";
 import { notificationRoutes } from "@/server/modules/notifications/routes";
 import { cmsRoutes } from "@/server/modules/cms/routes";
 import { exportRoutes } from "@/server/modules/exports/routes";
@@ -67,6 +68,7 @@ export const ALL_ROUTES: AnyRoute[] = [
   ...maintenanceRoutes,
   ...supportRoutes,
   ...aiRoutes,
+  ...shopRoutes,
   ...MODULES.flatMap((module) => module.routes ?? []),
   openApiRoute,
 ];

@@ -16,7 +16,7 @@ import { assertPermission, resolveAdminPrincipal, resolveCustomerPrincipal, type
 import type { PermissionCode } from "@/server/core/permissions";
 import { enforceRateLimit, type RateLimitPolicyName } from "@/server/core/rate-limit";
 import { beginIdempotent, completeIdempotent, readIdempotencyKey, releaseIdempotent } from "@/server/core/idempotency";
-import { resolveShop, type ShopContext } from "@/server/core/shop";
+import { canAccessShop, resolveShop, type ShopContext } from "@/server/core/shop";
 import { scheduleDispatch } from "@/server/core/events";
 import { recordError } from "@/server/core/error-log";
 import { DEFAULT_SHOP_ID } from "@/lib/db/schema";
@@ -166,7 +166,13 @@ export async function executeRoute(route: AnyRoute, request: Request, options: E
     if (route.surface === "admin" && authMode !== "none") {
       admin = await resolveAdminPrincipal(database!, request.headers, meta.ip);
       if (route.permission) assertPermission(admin, route.permission);
-      if (admin.shopId !== shop.id && admin.kind === "api_key") throw errors.forbidden();
+      // Contexte boutique : l'acteur n'agit que dans une boutique à laquelle il a accès.
+      if (admin.kind === "api_key") {
+        if (admin.shopId !== shop.id) throw errors.forbidden();
+      } else {
+        if (!(await canAccessShop(database!, admin, shop.id))) throw new AppError("FORBIDDEN", `Accès refusé à la boutique « ${shop.code} ».`, { shop: shop.code });
+        admin = { ...admin, shopId: shop.id };
+      }
     } else if (route.surface === "shop" && authMode !== "none") {
       customer = await resolveCustomerPrincipal();
       if (authMode === "required" && !customer) throw errors.unauthenticated("Connectez-vous pour accéder à cette ressource.");
