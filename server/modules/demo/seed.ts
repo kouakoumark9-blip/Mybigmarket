@@ -10,7 +10,7 @@
 import { and, eq, inArray, sql } from "drizzle-orm";
 import type { Db } from "@/server/core/db";
 import type { AdminPrincipal } from "@/server/core/auth/principal";
-import { attributeGroups, brands, categories, employees, adminRoles, orders, products, promoCodes, sellerProfiles, supportTickets, taxRuleGroups, taxRules, taxRuleGroupRules, users, DEFAULT_SHOP_ID } from "@/lib/db/schema";
+import { attributeGroups, brands, paymentCountryRules, paymentMethodConfigs, categories, employees, adminRoles, orders, products, promoCodes, sellerProfiles, supportTickets, taxRuleGroups, taxRules, taxRuleGroupRules, users, DEFAULT_SHOP_ID } from "@/lib/db/schema";
 import { createAttributeGroup, createBrand, createCategory } from "@/server/modules/catalog/taxonomy/service";
 import { createProduct } from "@/server/modules/catalog/products/service";
 import { generateProductCombinations, setPackItems } from "@/server/modules/catalog/products/relations";
@@ -150,7 +150,11 @@ export async function seedDemoCommerce(database: Db, options: { passwordHash: st
   }
   const existingOrders = await database.select({ id: orders.id }).from(orders).where(inArray(orders.buyerId, customerIds));
   if (!existingOrders.length) {
-    // Le virement exige des coordonnées bancaires : sur une base vierge, des valeurs signalées comme fictives.
+    // Commandes réglées par virement : moyen manuel (confirmation par l'équipe, aucun prestataire externe).
+    // Il est réactivé s'il a été désactivé, et ses coordonnées sont signalées comme fictives sur une base vierge.
+    await database.update(paymentMethodConfigs).set({ isActive: true }).where(and(eq(paymentMethodConfigs.code, "bank_transfer"), eq(paymentMethodConfigs.isActive, false)));
+    const [bankTransfer] = await database.select({ id: paymentMethodConfigs.id }).from(paymentMethodConfigs).where(eq(paymentMethodConfigs.code, "bank_transfer")).limit(1);
+    if (bankTransfer) await database.update(paymentCountryRules).set({ isAllowed: true }).where(and(eq(paymentCountryRules.paymentMethodId, bankTransfer.id), eq(paymentCountryRules.countryCode, "CI")));
     if (!(await getSetting(database, DEFAULT_SHOP_ID, "payments.bank_transfer.iban"))) {
       await updateSettings(database, { shopId: DEFAULT_SHOP_ID, actor, values: { "payments.bank_transfer.account_holder": "Compte de démonstration", "payments.bank_transfer.bank_name": "Banque de démonstration (ne pas utiliser)", "payments.bank_transfer.iban": "CI00 DEMO 0000 0000 0000 0000 00" } });
     }

@@ -16,7 +16,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "db:sql:all": "node scripts/build-migrate-all.mjs"
+    "db:sql:all": "node scripts/build-migrate-all.mjs",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.5.0",
@@ -37,6 +38,7 @@
   },
   "devDependencies": {
     "@electric-sql/pglite": "0.5.10",
+    "@playwright/test": "1.63.0",
     "@tailwindcss/postcss": "^4.3.3",
     "@types/bcryptjs": "^2.4.6",
     "@types/node": "^22.19.0",
