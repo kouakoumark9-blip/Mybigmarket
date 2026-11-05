@@ -402,3 +402,6 @@ body.pd-lock{overflow:hidden}
   .pd-mobile-bar .pd-btn{width:100%}
   body:has(.pd-mobile-bar) .mobile-tabbar{display:none}
 }
+
+/* Arrivée directe sur la photo depuis une carte produit (/produits/slug#photo), sous l'en-tête fixe. */
+.pd-gallery { scroll-margin-top: 120px; }
