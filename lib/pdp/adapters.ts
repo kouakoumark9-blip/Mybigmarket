@@ -58,7 +58,7 @@ export function catalogToProduct(product: DemoProduct, all: DemoProduct[], descr
       { label: "Quantité minimale", value: `${product.minimumQuantity} pièce${product.minimumQuantity > 1 ? "s" : ""}` },
       { label: "Délai estimé", value: `${product.leadTimeDays} jours` },
       { label: "Départ", value: `${product.city}, Chine` },
-      { label: "Stock indiqué", value: String(product.quantity) },
+      { label: "Disponibilité", value: product.quantity > 0 ? `${product.quantity} en stock` : "Sur commande" },
     ],
     highlights: [
       { lead: "Précommande groupée :", text: "le prix est indicatif et la livraison reste à confirmer selon la destination." },
