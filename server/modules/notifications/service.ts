@@ -10,10 +10,11 @@ import { and, asc, count, desc, eq, inArray, sql } from "drizzle-orm";
 import { emailTriggerForTransition } from "@/lib/order-rules";
 import { renderEmail, type EmailVariables } from "@/lib/email-render";
 import {
-  emailLog, emailQueue, emailTemplates, formSubmissions, forms, orderItems, orders, outboundMessages, paymentIntents, payments, refunds, users, DEFAULT_SHOP_ID,
+  emailLog, emailQueue, emailTemplates, employees, formSubmissions, forms, orderItems, orders, outboundMessages, paymentIntents, payments, refunds, supportTicketMessages, supportTickets, users, DEFAULT_SHOP_ID,
 } from "@/lib/db/schema";
 import { PAYMENT_METHOD_INFO, type PaymentMethodCode } from "@/lib/payments/types";
-import { BUILT_IN_TEMPLATES, builtInTemplate, formatXof, ordersTableHtml, paymentInstructionsHtml, submissionTableHtml, wrapLayout, type StoreIdentity } from "@/lib/notifications/templates";
+import { BUILT_IN_TEMPLATES, builtInTemplate, formatXof, ordersTableHtml, paymentInstructionsHtml, plainTextHtml, submissionTableHtml, wrapLayout, type StoreIdentity } from "@/lib/notifications/templates";
+import { ticketAccessKey } from "@/server/modules/support/service";
 import { emailSender, emailTransport, toE164, whatsappTransport } from "@/lib/notifications/transports";
 import { destinationCountries } from "@/lib/west-africa";
 import type { Db, Executor } from "@/server/core/db";
@@ -302,7 +303,52 @@ async function onFormSubmitted(event: DomainEvent<"form.submitted">, { db: datab
   });
 }
 
+/* Service client (étape 8) */
+const ticketUrl = (reference: string) => {
+  const key = ticketAccessKey(reference);
+  return `${siteUrl()}/compte/support/${encodeURIComponent(reference)}${key ? `?cle=${key}` : ""}`;
+};
+
+/** Nouveau ticket : accusé de réception au client ; alerte à l'équipe (sauf formulaire, déjà alerté, et ticket ouvert par l'équipe). */
+async function onTicketCreated(event: DomainEvent<"support.ticket_created">, { db: database, config: raw }: HandlerContext) {
+  const config = configOf(raw);
+  const [ticket] = await database.select().from(supportTickets).where(eq(supportTickets.id, event.payload.ticketId)).limit(1);
+  if (!ticket) return;
+  if (ticket.channel !== "admin") {
+    await notify(database, config, {
+      code: "support_ticket_received", to: ticket.email, dedupeKey: `support_ticket_received:${ticket.id}`,
+      variables: { customerName: ticket.name || "cher client", ticketReference: ticket.reference, ticketSubject: ticket.subject, ticketUrl: ticketUrl(ticket.reference) },
+    });
+  }
+  if (!config.adminAlerts || ticket.channel === "form" || ticket.channel === "admin") return;
+  const to = (await getSetting(database, ticket.shopId, "email.admin_notification_address")) || (await getSetting(database, ticket.shopId, "store.email"));
+  if (!to) return;
+  const [first] = await database.select().from(supportTicketMessages).where(eq(supportTicketMessages.ticketId, ticket.id)).orderBy(asc(supportTicketMessages.createdAt)).limit(1);
+  await notify(database, config, {
+    code: "support_new_ticket", to, replyTo: ticket.email, dedupeKey: `support_new_ticket:${ticket.id}`,
+    variables: { ticketReference: ticket.reference, ticketSubject: ticket.subject, customerEmail: ticket.email, channel: ticket.channel, messageHtml: plainTextHtml(first?.body ?? "") },
+  });
+}
+
+/** Réponse de l'équipe (hors note interne) : envoyée au client avec le lien de la conversation. */
+async function onAgentReplied(event: DomainEvent<"support.agent_replied">, { db: database, config: raw }: HandlerContext) {
+  const config = configOf(raw);
+  const [row] = await database.select({ ticket: supportTickets, message: supportTicketMessages }).from(supportTicketMessages)
+    .innerJoin(supportTickets, eq(supportTickets.id, supportTicketMessages.ticketId)).where(eq(supportTicketMessages.id, event.payload.messageId)).limit(1);
+  if (!row || row.message.isInternal) return;
+  const [agent] = row.message.employeeId ? await database.select({ firstName: employees.firstName, lastName: employees.lastName }).from(employees).where(eq(employees.id, row.message.employeeId)).limit(1) : [];
+  await notify(database, config, {
+    code: "support_reply", to: row.ticket.email, dedupeKey: `support_reply:${row.message.id}`,
+    variables: {
+      customerName: row.ticket.name || "cher client", ticketReference: row.ticket.reference, ticketSubject: row.ticket.subject, replyHtml: plainTextHtml(row.message.body),
+      agentName: agent ? `${agent.firstName} ${agent.lastName}`.trim() : "Le service client", ticketUrl: ticketUrl(row.ticket.reference),
+    },
+  });
+}
+
 export const notificationSubscriptions = {
+  "support.ticket_created": onTicketCreated,
+  "support.agent_replied": onAgentReplied,
   "order.created": onOrderCreated,
   "payment.succeeded": onPaymentSucceeded,
   "payment.failed": onPaymentFailed,
@@ -318,6 +364,8 @@ const SAMPLE: EmailVariables = {
   orderUrl: `${siteUrl()}/compte/commandes`, adminUrl: siteUrl(), trackingNumber: "LTA-123-456", trackingLink: "", cancelReason: "à votre demande.", refundAmount: "10 000 FCFA",
   refundReference: "RMB-2026-000001", paymentDeadline: "5 novembre 2026 à 18:00", formTitle: "Nous contacter", senderEmail: "awa@exemple.ci", receivedAt: "5 novembre 2026 à 10:00",
   employeeName: "Équipe mybigmarket", sentAt: "5 novembre 2026 à 10:00",
+  ticketReference: "TCK-261105-7K3QZ8", ticketSubject: "Livraison — CMD-2026-000123", ticketUrl: `${siteUrl()}/compte/support`, agentName: "Mariam", channel: "web",
+  replyHtml: "Bonjour,<br>Votre commande est en route.", messageHtml: "Bonjour, où en est ma commande ?",
   ordersTable: ordersTableHtml([{ reference: "CMD-2026-000123", lines: [{ title: "Lampe de bureau", quantity: 2, totalXof: 20000 }, { title: "Sac cabas", quantity: 1, totalXof: 15000 }], shippingXof: 10000, totalXof: 45000 }]),
   paymentInstructions: "", submissionTable: submissionTableHtml([{ label: "Message", value: "Bonjour, où en est ma commande ?" }]),
 };

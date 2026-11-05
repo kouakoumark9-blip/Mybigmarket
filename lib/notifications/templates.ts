@@ -12,6 +12,11 @@ export type NotificationTemplate = { code: string; name: string; subject: string
 const button = (label: string, variable = "orderUrl") =>
   `<p style="margin:24px 0"><a href="{{${variable}}}" style="background:#ff8000;color:#ffffff;text-decoration:none;font-weight:700;padding:12px 20px;border-radius:6px;display:inline-block">${label}</a></p>`;
 
+/** Texte saisi (message, réponse) en HTML sûr : échappé, retours à la ligne conservés. */
+export function plainTextHtml(value: string): string {
+  return escapeHtml(value).replace(/\r?\n/g, "<br>");
+}
+
 export const BUILT_IN_TEMPLATES: NotificationTemplate[] = [
   {
     code: "order_confirmation", name: "Confirmation de commande", audience: "customer",
@@ -78,6 +83,26 @@ export const BUILT_IN_TEMPLATES: NotificationTemplate[] = [
     subject: "{{formTitle}} : nouveau message de {{senderEmail}}",
     variables: ["formTitle", "senderEmail", "submissionTable", "receivedAt"],
     bodyHtml: `<p>Nouveau message reçu le {{receivedAt}} via le formulaire « {{formTitle}} ».</p>{{{submissionTable}}}<p>Répondez directement à {{senderEmail}}.</p>`,
+  },
+  {
+    code: "support_ticket_received", name: "Demande reçue (service client)", audience: "customer",
+    subject: "Votre demande {{ticketReference}} est bien reçue",
+    variables: ["customerName", "ticketReference", "ticketSubject", "ticketUrl"],
+    bodyHtml: `<p>Bonjour {{customerName}},</p><p>Nous avons bien reçu votre demande <strong>{{ticketReference}}</strong> : « {{ticketSubject}} ». Notre équipe vous répond dans les meilleurs délais.</p>${button("Suivre ma demande", "ticketUrl")}<p>Pour compléter votre demande, répondez depuis votre espace client.</p>`,
+    whatsappText: "Bonjour {{customerName}}, votre demande {{ticketReference}} est bien reçue. Suivi : {{ticketUrl}}",
+  },
+  {
+    code: "support_reply", name: "Réponse du service client", audience: "customer",
+    subject: "Réponse à votre demande {{ticketReference}}",
+    variables: ["customerName", "ticketReference", "ticketSubject", "replyHtml", "agentName", "ticketUrl"],
+    bodyHtml: `<p>Bonjour {{customerName}},</p><p>{{agentName}} a répondu à votre demande <strong>{{ticketReference}}</strong> (« {{ticketSubject}} ») :</p><div style="border-left:3px solid #ff8000;padding:8px 14px;margin:16px 0;color:#111">{{{replyHtml}}}</div>${button("Voir la conversation", "ticketUrl")}`,
+    whatsappText: "Bonjour {{customerName}}, le service client a répondu à votre demande {{ticketReference}} : {{ticketUrl}}",
+  },
+  {
+    code: "support_new_ticket", name: "Nouveau ticket (équipe)", audience: "team",
+    subject: "Nouveau ticket {{ticketReference}} : {{ticketSubject}}",
+    variables: ["ticketReference", "ticketSubject", "customerEmail", "channel", "messageHtml"],
+    bodyHtml: `<p>Nouveau ticket <strong>{{ticketReference}}</strong> de {{customerEmail}} (canal : {{channel}}).</p><div style="border-left:3px solid #ff8000;padding:8px 14px;margin:16px 0;color:#111">{{{messageHtml}}}</div>`,
   },
   {
     code: "email_test", name: "E-mail de test", audience: "team",

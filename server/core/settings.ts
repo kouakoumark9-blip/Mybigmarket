@@ -14,7 +14,7 @@ import { recordAudit, type AuditActor } from "@/server/core/audit";
 import { emitEvent } from "@/server/core/events";
 import type { RequestMeta } from "@/server/core/http/request-context";
 
-export type SettingGroup = "store" | "orders" | "catalog" | "customers" | "email" | "seo" | "security" | "payments" | "shipping";
+export type SettingGroup = "store" | "orders" | "catalog" | "customers" | "email" | "seo" | "security" | "payments" | "shipping" | "support" | "ai";
 
 export type SettingDefinition<T = unknown> = {
   group: SettingGroup;
@@ -81,6 +81,16 @@ export const SETTING_DEFINITIONS = {
   "seo.title_suffix": define({ group: "seo", label: "Suffixe des titres de page", schema: text(60), defaultValue: " | mybigmarket", public: true }),
   "seo.default_meta_description": define({ group: "seo", label: "Meta description par défaut", schema: text(320), defaultValue: "Précommandes et achats entre la Chine et l'Afrique de l'Ouest.", public: true }),
   "seo.index_catalog": define({ group: "seo", label: "Autoriser l'indexation du catalogue", schema: z.boolean(), defaultValue: true, public: true }),
+  // Service client (étape 8)
+  "support.first_response_hours": define({ group: "support", label: "Délai de première réponse aux tickets (heures)", schema: z.number().int().min(1).max(720), defaultValue: 24 }),
+  "support.auto_close_days": define({ group: "support", label: "Clôture automatique des tickets résolus après (jours)", schema: z.number().int().min(1).max(90), defaultValue: 7 }),
+  "support.tickets_from_contact_form": define({ group: "support", label: "Créer un ticket pour chaque message du formulaire de contact", schema: z.boolean(), defaultValue: true }),
+  // Assistant IA (étape 8). La clé de l'API reste dans l'environnement (ANTHROPIC_API_KEY).
+  "ai.enabled": define({ group: "ai", label: "Assistant IA activé", schema: z.boolean(), defaultValue: true }),
+  "ai.model": define({ group: "ai", label: "Modèle de l'assistant IA", schema: z.string().regex(/^claude-[a-z0-9-]{2,60}$/), defaultValue: "claude-opus-5-5" }),
+  "ai.daily_requests_per_employee": define({ group: "ai", label: "Propositions IA par employé et par jour", schema: z.number().int().min(1).max(1000), defaultValue: 30 }),
+  "ai.monthly_token_budget": define({ group: "ai", label: "Budget mensuel de l'assistant IA (jetons)", schema: z.number().int().min(10_000).max(1_000_000_000), defaultValue: 3_000_000 }),
+  "ai.proposal_ttl_hours": define({ group: "ai", label: "Validité d'une proposition IA (heures)", schema: z.number().int().min(1).max(720), defaultValue: 72 }),
   // Sécurité
   "admin.session_idle_minutes": define({ group: "security", label: "Déconnexion après inactivité (minutes)", schema: z.number().int().min(5).max(480), defaultValue: 30 }),
   "security.require_admin_2fa": define({ group: "security", label: "Double authentification obligatoire pour l'équipe", schema: z.boolean(), defaultValue: false }),
