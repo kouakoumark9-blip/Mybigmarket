@@ -21,7 +21,7 @@ const checkoutSchema = z.object({
 
 type CartInput = { slug: string; qty: number };
 
-export async function createCheckoutAction(formData: FormData): Promise<{ error?: string; orderIds?: string[] }> {
+export async function createCheckoutAction(formData: FormData): Promise<{ error?: string; orderIds?: string[]; checkoutUrl?: string | null; paymentReference?: string }> {
   const session = await auth();
   if (!session?.user?.id) return { error: "Connectez-vous ou créez un compte avant de commander." };
   try { await assertActiveAccount(session.user.id, "buyer"); }
@@ -122,7 +122,7 @@ export async function createCheckoutAction(formData: FormData): Promise<{ error?
 type CheckoutForm = z.infer<typeof checkoutSchema>;
 
 /** Panier du navigateur (slugs) → commande via le calcul unique du backend. */
-async function placeFromStorefrontCart(db: Db, userId: string, cart: CartInput[], form: CheckoutForm): Promise<{ error?: string; orderIds?: string[] }> {
+async function placeFromStorefrontCart(db: Db, userId: string, cart: CartInput[], form: CheckoutForm): Promise<{ error?: string; orderIds?: string[]; checkoutUrl?: string | null; paymentReference?: string }> {
   const slugs = [...new Set(cart.map((line) => line.slug))];
   const rows = await db.select({ id: products.id, slug: products.slug }).from(products).where(inArray(products.slug, slugs));
   if (rows.length !== slugs.length) return { error: "Un ou plusieurs produits ne sont plus disponibles." };
@@ -138,7 +138,8 @@ async function placeFromStorefrontCart(db: Db, userId: string, cart: CartInput[]
         address: form.deliveryMethod === "delivery" ? { name: form.name ?? "", phone: form.phone ?? "", address: form.address ?? "", city: form.city ?? "" } : null,
       },
     });
-    return { orderIds: result.orders.map((order) => order.id) };
+    // Page de paiement hébergée par le prestataire : le navigateur y est redirigé.
+    return { orderIds: result.orders.map((order) => order.id), checkoutUrl: result.payment.checkoutUrl, paymentReference: result.payment.reference };
   } catch (error) {
     if (error instanceof AppError) {
       const issue = (error.details as { issues?: Array<{ title: string; message: string }> } | undefined)?.issues?.[0];

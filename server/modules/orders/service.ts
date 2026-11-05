@@ -17,11 +17,12 @@ import { canTransition, nextStatuses, ORDER_STATUS_LABELS, shouldRestoreStock, t
 import { confirmOrderReservations, consumeOrderReservations, releaseOrderStock } from "@/lib/stock-ledger";
 import { nextDocumentNumber } from "@/lib/document-numbers";
 import {
-  creditNotes, escrowEntries, invoices, orderEvents, orderItems, orderStatusHistory, orders, payments, platformSettings, stockReservations, users,
+  creditNotes, escrowEntries, invoices, orderEvents, orderItems, orderStatusHistory, orders, payments, platformSettings, stockReservations, users, DEFAULT_SHOP_ID,
 } from "@/lib/db/schema";
 import type { Db, Executor } from "@/server/core/db";
 import { errors } from "@/server/core/errors";
-import { recordAudit } from "@/server/core/audit";
+import { recordAudit, type AuditActor } from "@/server/core/audit";
+import type { RequestMeta } from "@/server/core/http/request-context";
 import { emitEvent } from "@/server/core/events";
 import { buildOrderBy, buildWhere, likePattern, listMeta, type ListQuery, type ListSpec } from "@/server/core/http/list-query";
 import { fromLedgerError, type Context } from "@/server/modules/catalog/shared";
@@ -79,7 +80,7 @@ export async function getOrder(database: Db, id: string) {
     database.select().from(escrowEntries).where(eq(escrowEntries.orderId, id)).limit(1),
   ]);
   return {
-    id: order.id, reference: order.reference, status: order.status, statusLabel: label(order.status), nextStatuses: nextStatuses(order.status).map((status) => ({ status, label: label(status) })),
+    id: order.id, reference: order.reference, status: order.status, statusLabel: label(order.status), nextStatuses: nextStatuses(order.status, { paymentMethod: paymentRows[0]?.method ?? null }).map((status) => ({ status, label: label(status) })),
     version: order.version, buyer: buyer[0] ?? null, customerId: order.customerId, checkoutGroupId: order.checkoutGroupId,
     deliveryMethod: order.deliveryMethod, deliveryAddress: order.deliveryAddress, pickupPointId: order.pickupPointId, trackingNumber: order.trackingNumber, internalNote: order.internalNote,
     totals: { subtotalExclTaxXof: order.subtotalXof, discountXof: order.discountXof, taxXof: order.taxXof, shippingXof: order.shippingCostXof, totalXof: order.totalXof },
@@ -101,45 +102,79 @@ async function commissionBps(executor: Executor): Promise<number> {
   return Number.isInteger(raw) ? Math.max(0, Math.min(2000, raw)) : 800;
 }
 
+/** Auteur d'un changement de statut : un employé (back-office, API) ou le système (paiement, tâche planifiée). */
+export type StatusActor = { employeeId: string | null; audit: AuditActor; shopId: string; meta?: RequestMeta };
+export const employeeActor = (context: Context): StatusActor => ({ employeeId: context.actor.employeeId, audit: context.actor, shopId: context.actor.shopId, meta: context.meta });
+export const systemActor = (label: string): StatusActor => ({ employeeId: null, audit: { kind: "system", label, shopId: DEFAULT_SHOP_ID }, shopId: DEFAULT_SHOP_ID });
+
+type OrderRow = typeof orders.$inferSelect;
+
+/** Moyen de paiement de la commande (dernier paiement enregistré). */
+export async function orderPaymentMethod(executor: Executor, orderId: string): Promise<string | null> {
+  const [row] = await executor.select({ method: payments.method }).from(payments).where(eq(payments.orderId, orderId)).orderBy(desc(payments.createdAt)).limit(1);
+  return row?.method ?? null;
+}
+
+/** Commission de la plateforme en points de base (réglage, sinon variable d'environnement). */
+export { commissionBps };
+
+/**
+ * Applique un changement de statut et ses effets, dans la transaction de l'appelant. La commande doit
+ * avoir été verrouillée (`for update`) par l'appelant. Sert au back-office, aux notifications de
+ * paiement et aux tâches planifiées : les effets sont donc identiques quel que soit l'auteur.
+ */
+export async function applyOrderStatus(tx: Executor, order: OrderRow, input: { status: OrderStatus; note?: string | null; trackingNumber?: string | null; releaseAs?: "released" | "expired" }, actor: StatusActor) {
+  const id = order.id;
+  const paymentMethod = await orderPaymentMethod(tx, id);
+  const check = canTransition(order.status, input.status, { paymentMethod });
+  if (!check.allowed) throw errors.rule(check.message, { from: order.status, to: input.status });
+  if (input.status === "seller_paid") {
+    const [paid] = await tx.select({ id: payments.id }).from(payments).where(and(eq(payments.orderId, id), eq(payments.status, "succeeded"))).limit(1);
+    if (!paid) throw errors.rule("Le vendeur n'est réglé qu'une fois le paiement du client encaissé.");
+  }
+  const now = new Date();
+  const milestones: Partial<typeof orders.$inferInsert> =
+    input.status === "paid_escrow" ? { paidAt: now, paymentExpiresAt: null } : input.status === "shipped" ? { shippedAt: now } : input.status === "delivered" ? { deliveredAt: now }
+    : input.status === "cancelled" ? { cancelledAt: now } : input.status === "refunded" ? { refundedAt: now } : input.status === "seller_paid" ? { sellerPaidAt: now } : {};
+  // Paiement à la livraison confirmé par le vendeur : la commande n'expire plus.
+  const codConfirmed = paymentMethod === "cash_on_delivery" && order.status === "awaiting_payment" ? { paymentExpiresAt: null } : {};
+  await tx.update(orders).set({ status: input.status, updatedAt: now, version: sql`${orders.version} + 1`, ...milestones, ...codConfirmed, ...(input.trackingNumber ? { trackingNumber: input.trackingNumber } : {}) }).where(eq(orders.id, id));
+  const items = await tx.select({ productId: orderItems.productId, variantId: orderItems.variantId, quantity: orderItems.quantity }).from(orderItems).where(eq(orderItems.orderId, id));
+
+  try {
+    if (input.status === "paid_escrow") {
+      await confirmOrderReservations(tx, id);
+      await tx.update(payments).set({ status: "succeeded", paidAt: now, updatedAt: now }).where(and(eq(payments.orderId, id), eq(payments.status, "pending")));
+      const bps = await commissionBps(tx);
+      const commissionXof = Math.round((order.totalXof * bps) / 10_000);
+      await tx.insert(escrowEntries).values({ orderId: id, amountXof: order.totalXof, commissionBps: bps, commissionXof, sellerNetXof: order.totalXof - commissionXof, status: "blocked" }).onConflictDoNothing();
+    }
+    if (input.status === "seller_confirmed" && codConfirmed.paymentExpiresAt === null) await confirmOrderReservations(tx, id);
+    if (input.status === "shipped" || input.status === "delivered") await consumeOrderReservations(tx, { orderId: id, employeeId: actor.employeeId });
+    if (input.status === "delivered") await tx.update(escrowEntries).set({ status: "eligible" }).where(and(eq(escrowEntries.orderId, id), eq(escrowEntries.status, "blocked")));
+    if (input.status === "cancelled" || input.status === "refunded") {
+      await tx.update(escrowEntries).set({ status: "refund_pending" }).where(and(eq(escrowEntries.orderId, id), eq(escrowEntries.status, "blocked")));
+      await tx.update(payments).set({ status: "cancelled", updatedAt: now }).where(and(eq(payments.orderId, id), eq(payments.status, "pending")));
+    }
+    if (shouldRestoreStock(order.status, input.status) || (input.status === "refunded" && !order.shippedAt)) {
+      // Commandes anciennes sans réservation : stock restitué au niveau où il avait été pris (produit).
+      await releaseOrderStock(tx, { orderId: id, employeeId: actor.employeeId, status: input.releaseAs, note: input.releaseAs === "expired" ? "Délai de paiement expiré." : `Commande ${input.status === "cancelled" ? "annulée" : "remboursée"} avant expédition.`, lines: items.map((item) => ({ productId: item.productId, variantId: null, quantity: item.quantity })) });
+    }
+  } catch (error) {
+    fromLedgerError(error);
+  }
+
+  await tx.insert(orderStatusHistory).values({ orderId: id, fromStatus: order.status, toStatus: input.status, employeeId: actor.employeeId, note: input.note ?? null });
+  await tx.insert(orderEvents).values({ orderId: id, status: input.status, note: input.note ?? `Statut : ${label(input.status)}.` });
+  await recordAudit(tx, { action: "order.status_changed", entityType: "order", entityId: id, before: { status: order.status }, after: { status: input.status, trackingNumber: input.trackingNumber ?? order.trackingNumber }, details: { note: input.note ?? null }, actor: actor.audit, meta: actor.meta });
+  await emitEvent(tx, "order.status_changed", { orderId: id, from: order.status, to: input.status }, { aggregateId: id, shopId: actor.shopId });
+}
+
 export async function changeStatus(database: Db, id: string, input: { status: OrderStatus; note?: string | null; trackingNumber?: string | null; version?: number }, context: Context) {
   await database.transaction(async (tx) => {
     const order = await findOrder(tx, id, true);
     if (input.version !== undefined && input.version !== order.version) throw errors.conflict("La commande a changé entre-temps : rechargez-la.", { currentVersion: order.version });
-    const check = canTransition(order.status, input.status);
-    if (!check.allowed) throw errors.rule(check.message, { from: order.status, to: input.status });
-    const now = new Date();
-    const milestones: Partial<typeof orders.$inferInsert> =
-      input.status === "paid_escrow" ? { paidAt: now, paymentExpiresAt: null } : input.status === "shipped" ? { shippedAt: now } : input.status === "delivered" ? { deliveredAt: now }
-      : input.status === "cancelled" ? { cancelledAt: now } : input.status === "refunded" ? { refundedAt: now } : input.status === "seller_paid" ? { sellerPaidAt: now } : {};
-    await tx.update(orders).set({ status: input.status, updatedAt: now, version: sql`${orders.version} + 1`, ...milestones, ...(input.trackingNumber ? { trackingNumber: input.trackingNumber } : {}) }).where(eq(orders.id, id));
-    const items = await tx.select({ productId: orderItems.productId, variantId: orderItems.variantId, quantity: orderItems.quantity }).from(orderItems).where(eq(orderItems.orderId, id));
-
-    try {
-      if (input.status === "paid_escrow") {
-        await confirmOrderReservations(tx, id);
-        await tx.update(payments).set({ status: "succeeded" }).where(and(eq(payments.orderId, id), eq(payments.status, "pending")));
-        const bps = await commissionBps(tx);
-        const commissionXof = Math.round((order.totalXof * bps) / 10_000);
-        await tx.insert(escrowEntries).values({ orderId: id, amountXof: order.totalXof, commissionBps: bps, commissionXof, sellerNetXof: order.totalXof - commissionXof, status: "blocked" }).onConflictDoNothing();
-      }
-      if (input.status === "shipped" || input.status === "delivered") await consumeOrderReservations(tx, { orderId: id, employeeId: context.actor.employeeId });
-      if (input.status === "delivered") await tx.update(escrowEntries).set({ status: "eligible" }).where(and(eq(escrowEntries.orderId, id), eq(escrowEntries.status, "blocked")));
-      if (input.status === "cancelled" || input.status === "refunded") {
-        await tx.update(escrowEntries).set({ status: "refund_pending" }).where(and(eq(escrowEntries.orderId, id), eq(escrowEntries.status, "blocked")));
-        await tx.update(payments).set({ status: "cancelled" }).where(and(eq(payments.orderId, id), eq(payments.status, "pending")));
-      }
-      if (shouldRestoreStock(order.status, input.status) || (input.status === "refunded" && !order.shippedAt)) {
-        // Commandes anciennes sans réservation : stock restitué au niveau où il avait été pris (produit).
-        await releaseOrderStock(tx, { orderId: id, employeeId: context.actor.employeeId, note: `Commande ${input.status === "cancelled" ? "annulée" : "remboursée"} avant expédition.`, lines: items.map((item) => ({ productId: item.productId, variantId: null, quantity: item.quantity })) });
-      }
-    } catch (error) {
-      fromLedgerError(error);
-    }
-
-    await tx.insert(orderStatusHistory).values({ orderId: id, fromStatus: order.status, toStatus: input.status, employeeId: context.actor.employeeId, note: input.note ?? null });
-    await tx.insert(orderEvents).values({ orderId: id, status: input.status, note: input.note ?? `Statut : ${label(input.status)}.` });
-    await recordAudit(tx, { action: "order.status_changed", entityType: "order", entityId: id, before: { status: order.status }, after: { status: input.status, trackingNumber: input.trackingNumber ?? order.trackingNumber }, details: { note: input.note ?? null }, actor: context.actor, meta: context.meta });
-    await emitEvent(tx, "order.status_changed", { orderId: id, from: order.status, to: input.status }, { aggregateId: id, shopId: context.actor.shopId });
+    await applyOrderStatus(tx, order, input, employeeActor(context));
   });
   return getOrder(database, id);
 }

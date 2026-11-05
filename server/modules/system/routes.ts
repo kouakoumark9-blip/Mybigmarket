@@ -9,7 +9,7 @@ import { listModules, updateModule } from "@/server/core/modules";
 import { dispatchPendingEvents, pendingEventCount } from "@/server/core/events";
 import { ALL_PERMISSIONS } from "@/server/core/permissions";
 
-const settingGroups = ["store", "orders", "catalog", "customers", "email", "seo", "security"] as const satisfies readonly SettingGroup[];
+const settingGroups = ["store", "orders", "catalog", "customers", "email", "seo", "security", "payments", "shipping"] as const satisfies readonly SettingGroup[];
 
 export const auditListSpec: ListSpec = {
   sortable: { createdAt: employeeAuditLogs.createdAt, action: employeeAuditLogs.action },

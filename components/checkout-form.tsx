@@ -44,6 +44,7 @@ export default function CheckoutForm({ pickupPoints, demoMode = false }: { picku
     startTransition(async () => {
       const result = await createCheckoutAction(formData);
       if (result.error) { setError(result.error); return; }
+      if (result.checkoutUrl) { clearCart(); window.location.assign(result.checkoutUrl); return; }
       setOrderIds(result.orderIds || []); setDone(true); clearCart();
     });
   }

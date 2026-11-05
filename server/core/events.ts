@@ -41,6 +41,14 @@ export type DomainEventMap = {
   "order.status_changed": { orderId: string; from: string | null; to: string };
   "payment.confirmed": { paymentId: string; orderId: string; amountXof: number };
   "payment.refunded": { paymentId: string; orderId: string; amountXof: number };
+  // Paiement et livraison (étape 5).
+  "payment.succeeded": { intentId: string; reference: string; amountXof: number; method: string; orders: Array<{ orderId: string; result: string }> };
+  "payment.failed": { intentId: string; reference: string; status: string };
+  "payment.amount_mismatch": { intentId: string; reference: string; expectedXof: number; announcedXof: number | null };
+  "payment.refund_required": { orderId: string; intentId: string; amountXof: number; reason: "late_payment" | "duplicate_payment" };
+  "refund.created": { refundId: string; orderId: string; amountXof: number };
+  "refund.completed": { refundId: string; orderId: string; amountXof: number };
+  "shipment.status_changed": { shipmentId: number; batchRef: string; from: string; to: string; orderIds: string[] };
 };
 
 export type DomainEventName = keyof DomainEventMap;
