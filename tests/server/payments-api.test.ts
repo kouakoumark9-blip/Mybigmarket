@@ -230,6 +230,21 @@ describe("refus, nouvelle tentative et virement", () => {
     const notManual = await admin("POST", `/admin/payments/${first}/confirm`, {});
     expect(notManual.status).toBe(422);
   });
+
+  it("annule le paiement concurrent quand une autre tentative règle la commande", async () => {
+    const placed = await checkout([{ productId: bag, quantity: 1 }], "orange_money");
+    const first = placed.json.data.payment.reference;
+    const orderId = placed.json.data.orders[0].id;
+    const transfer = await shop("POST", `/shop/orders/${orderId}/pay`, { key: "retry-awa-0002", body: { method: "bank_transfer" } });
+    expect(transfer.json.data.status).toBe("pending");
+    // Le paiement mobile money, annulé par la nouvelle tentative, aboutit finalement chez le prestataire.
+    const late = await webhook({ eventId: "evt-first-wins", reference: first, status: "paid", amountXof: 5000, currency: "XOF" });
+    expect(late.json.result).toBe("late_paid");
+    const [order] = await rows<{ status: string }>(sql`select status from orders where id = ${orderId}`);
+    expect(order.status).toBe("paid_escrow");
+    const [pendingTransfer] = await rows<{ status: string }>(sql`select status from payment_intents where reference = ${transfer.json.data.reference}`);
+    expect(pendingTransfer.status).toBe("cancelled");
+  });
 });
 
 describe("paiement à la livraison", () => {

@@ -25,7 +25,8 @@ Le backend est organisé par domaine dans `server/` (route → service → repos
 - `01-audit-et-plan.md` : audit et plan ;
 - `02-fondations.md` : fondations, mise à jour de la base de production, variables d'environnement ;
 - `03-catalogue-prix-stocks.md` : catalogue, prix, promotions, bons, entrepôts et grand livre de stock ;
-- `04-clients-panier-commandes.md` : panier serveur, passage de commande, espace client, commandes, factures et avoirs, clients et groupes, taxes et devises.
+- `04-clients-panier-commandes.md` : panier serveur, passage de commande, espace client, commandes, factures et avoirs, clients et groupes, taxes et devises ;
+- `05-livraison-paiement.md` : paiement (intentions, notifications signées et idempotentes, journal, virement, paiement à la livraison, CinetPay, remboursements) et livraison (devis, transporteur au passage de commande, points relais, lots de groupage, suivi).
 
 Toute variation de stock passe par `lib/stock-ledger.ts` (réservations tracées, mouvements avant/après, sans survente).
 

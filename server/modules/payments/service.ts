@@ -284,6 +284,13 @@ export async function applyIntentOutcome(database: Db, intentId: string, outcome
         details.push({ orderId: order.id, result: await settleOrder(tx, order, payment, intent, actor, now) });
         await emitEvent(tx, "payment.confirmed", { paymentId: payment.id, orderId: order.id, amountXof: payment.amountXof }, { aggregateId: order.id, shopId: DEFAULT_SHOP_ID });
       }
+      // Les autres paiements en attente sur ces commandes (tentative précédente ou suivante) sont annulés.
+      const paidOrderIds = details.filter((entry) => entry.result === "paid").map((entry) => entry.orderId);
+      if (paidOrderIds.length) {
+        const others = await tx.selectDistinct({ intent: paymentIntents }).from(payments).innerJoin(paymentIntents, eq(paymentIntents.id, payments.intentId))
+          .where(and(inArray(payments.orderId, paidOrderIds), eq(paymentIntents.status, "pending"), ne(paymentIntents.id, intentId)));
+        for (const { intent: other } of others) await cancelIntent(tx, other, `Commande réglée par le paiement ${intent.reference}.`, { type: "system" });
+      }
       await log(source.kind, "ok", { response: { orders: details } });
       await emitEvent(tx, "payment.succeeded", { intentId, reference: intent.reference, amountXof: intent.amountXof, method: intent.method, orders: details }, { aggregateId: intentId, shopId: DEFAULT_SHOP_ID });
       return { result: late ? "late_paid" : "paid", details };
