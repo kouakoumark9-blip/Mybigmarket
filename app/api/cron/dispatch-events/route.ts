@@ -4,7 +4,7 @@
  */
 import { timingSafeEqual } from "node:crypto";
 import { db } from "@/server/core/db";
-import { dispatchPendingEvents } from "@/server/core/events";
+import { dispatchPendingEvents, runAfterDispatchHooks } from "@/server/core/events";
 import "@/server/api/registry";
 
 export const runtime = "nodejs";
@@ -20,5 +20,7 @@ function authorized(request: Request): boolean {
 export async function GET(request: Request) {
   if (!authorized(request)) return Response.json({ error: { code: "UNAUTHENTICATED", message: "Non autorisé." } }, { status: 401 });
   const result = await dispatchPendingEvents(db(), { limit: 500 });
+  // Puis les traitements abonnés (envoi des e-mails et messages WhatsApp mis en file).
+  await runAfterDispatchHooks(db());
   return Response.json({ data: result }, { headers: { "cache-control": "no-store" } });
 }

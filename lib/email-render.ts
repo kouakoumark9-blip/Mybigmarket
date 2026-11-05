@@ -27,6 +27,11 @@ export type RenderedEmail = {
 };
 
 const VARIABLE_PATTERN = /\{\{\s*([a-zA-Z0-9_.]+)\s*\}\}/g;
+/**
+ * `{{{nom}}}` : fragment HTML construit par le serveur (tableau des commandes, consignes de paiement),
+ * inséré tel quel. Ses valeurs sont échappées à la construction ; jamais une saisie brute.
+ */
+const RAW_PATTERN = /\{\{\{\s*([a-zA-Z0-9_.]+)\s*\}\}\}/g;
 
 export function escapeHtml(value: string): string {
   return value
@@ -58,14 +63,23 @@ export function htmlToText(html: string): string {
 
 export function extractVariables(template: string): string[] {
   const found = new Set<string>();
-  for (const match of template.matchAll(VARIABLE_PATTERN)) found.add(match[1]);
+  for (const match of template.matchAll(RAW_PATTERN)) found.add(match[1]);
+  for (const match of template.replace(RAW_PATTERN, "").matchAll(VARIABLE_PATTERN)) found.add(match[1]);
   return [...found];
 }
 
 type RenderMode = "html" | "text";
 
 function substitute(template: string, variables: EmailVariables, mode: RenderMode, missing: Set<string>): string {
-  return template.replace(VARIABLE_PATTERN, (_full, name: string) => {
+  const withRaw = template.replace(RAW_PATTERN, (_full, name: string) => {
+    const raw = variables[name];
+    if (raw === null || raw === undefined) {
+      missing.add(name);
+      return "";
+    }
+    return mode === "html" ? String(raw) : htmlToText(String(raw));
+  });
+  return withRaw.replace(VARIABLE_PATTERN, (_full, name: string) => {
     const raw = variables[name];
     if (raw === null || raw === undefined || raw === "") {
       missing.add(name);

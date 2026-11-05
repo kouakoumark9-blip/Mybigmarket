@@ -49,6 +49,9 @@ export type DomainEventMap = {
   "refund.created": { refundId: string; orderId: string; amountXof: number };
   "refund.completed": { refundId: string; orderId: string; amountXof: number };
   "shipment.status_changed": { shipmentId: number; batchRef: string; from: string; to: string; orderIds: string[] };
+  // Communication et CMS (étape 6).
+  "form.submitted": { formId: string; submissionId: string; code: string };
+  "cms.page_published": { pageId: string; slug: string };
 };
 
 export type DomainEventName = keyof DomainEventMap;
@@ -156,6 +159,23 @@ export async function dispatchPendingEvents(database: Db, options: { limit?: num
   return { dispatched, failed };
 }
 
+/** Traitements lancés après chaque distribution (ex. envoi des notifications mises en file). */
+const afterDispatchHooks: Array<{ name: string; run: (database: Db) => Promise<unknown> }> = [];
+
+export function onAfterDispatch(name: string, run: (database: Db) => Promise<unknown>) {
+  if (!afterDispatchHooks.some((hook) => hook.name === name)) afterDispatchHooks.push({ name, run });
+}
+
+export async function runAfterDispatchHooks(database: Db) {
+  for (const hook of afterDispatchHooks) {
+    try {
+      await hook.run(database);
+    } catch (error) {
+      logger.warn("event.after_dispatch_failed", { hook: hook.name, ...errorContext(error) });
+    }
+  }
+}
+
 /**
  * Distribution juste après la réponse HTTP (fonction `after` de Next.js), avec repli sur
  * la tâche planifiée /api/cron/dispatch-events si l'environnement ne la permet pas.
@@ -166,6 +186,7 @@ export async function scheduleDispatch(database: () => Db) {
     after(async () => {
       try {
         await dispatchPendingEvents(database());
+        await runAfterDispatchHooks(database());
       } catch (error) {
         logger.warn("event.dispatch_failed", errorContext(error));
       }
