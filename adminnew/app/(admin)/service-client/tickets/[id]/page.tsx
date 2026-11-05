@@ -6,6 +6,7 @@ import { ApiUnavailable, Badge, Field, Notice, PageHeader, formatDate, formatXof
 import { adminApi, adminApiList, apiErrorMessage } from "@/lib/admin-api";
 import { getAdminDb } from "@/lib/db";
 import { adminEmployees } from "@/lib/db/schema";
+import { isAiAssistantEnabled } from "@/lib/ai-feature";
 import { requireEmployee } from "@/lib/permissions";
 import { can, isPermissionCode } from "@/lib/permission-matrix";
 import { TICKET_CATEGORY_LABELS, TICKET_CHANNEL_LABELS, TICKET_PRIORITY_LABELS, TICKET_STATUS_LABELS, type Proposal, type ReplyTemplate, type TicketDetail } from "@/lib/support-labels";
@@ -21,13 +22,14 @@ export default async function TicketPage({ params, searchParams }: { params: Pro
   const { id } = await params;
   const search = await searchParams;
   const allowed = (code: string) => (isPermissionCode(code) ? can(employee.permissions, code) : employee.permissions.includes(code));
+  const aiOn = isAiAssistantEnabled() && allowed("ai.use");
   const header = (title: string) => <PageHeader trail={["Relations clients", "Tickets", title]} title={title} actions={<Link href="/service-client/tickets" className="ui-button ui-button-outline"><ArrowLeft size={15}/> Tous les tickets</Link>}/>;
   let data;
   try {
     const [ticket, templates, proposals, staff] = await Promise.all([
       adminApi<TicketDetail>("GET", `/admin/support/tickets/${id}`),
       adminApi<ReplyTemplate[]>("GET", "/admin/support/templates", { query: { active: true } }),
-      allowed("ai.use") ? adminApiList<Proposal>("/admin/ai/proposals", { "filter[targetId]": id, "filter[status]": "pending", limit: 5, sort: "-createdAt" }).catch(() => ({ data: [] as Proposal[] })) : Promise.resolve({ data: [] as Proposal[] }),
+      aiOn ? adminApiList<Proposal>("/admin/ai/proposals", { "filter[targetId]": id, "filter[status]": "pending", limit: 5, sort: "-createdAt" }).catch(() => ({ data: [] as Proposal[] })) : Promise.resolve({ data: [] as Proposal[] }),
       getAdminDb().select({ id: adminEmployees.id, firstName: adminEmployees.firstName, lastName: adminEmployees.lastName }).from(adminEmployees).where(eq(adminEmployees.status, "active")),
     ]);
     data = { ticket, templates, proposals: proposals.data, staff };
@@ -67,7 +69,7 @@ export default async function TicketPage({ params, searchParams }: { params: Pro
           </ol>
         </Card>
 
-        {allowed("ai.use") && !closed && <Card className="p-5" id="assistant">
+        {aiOn && !closed && <Card className="p-5" id="assistant">
           <h2 className="mb-1 flex items-center gap-2 font-bold text-slate-950"><Bot size={17}/> Assistant IA</h2>
           {draft && proposal ? <>
             <p className="mb-3 text-sm text-slate-600">Brouillon proposé (confiance : {draft.confidence === "high" ? "élevée" : draft.confidence === "medium" ? "moyenne" : "faible"}). Rien n’a été envoyé : relisez, modifiez si besoin, puis envoyez.</p>

@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/card";
 import { ApiUnavailable, Badge, Field, Notice, PageHeader, formatDate } from "@/components/admin/page";
 import { adminApi, adminApiList, apiErrorMessage } from "@/lib/admin-api";
 import type { ProductListItem } from "@/lib/api-types";
+import { isAiAssistantEnabled } from "@/lib/ai-feature";
 import { requireEmployee } from "@/lib/permissions";
 import { can, isPermissionCode } from "@/lib/permission-matrix";
 import { PRODUCT_FIELD_LABELS, PROPOSAL_KIND_LABELS, PROPOSAL_STATUS_LABELS, type Proposal } from "@/lib/support-labels";
@@ -21,6 +22,7 @@ export default async function AssistantPage({ searchParams }: { searchParams: Pr
   const notice = await searchParams;
   const allowed = (code: string) => (isPermissionCode(code) ? can(employee.permissions, code) : employee.permissions.includes(code));
   const header = <PageHeader trail={["Pilotage", "Assistant IA"]} title="Assistant IA" subtitle="L’assistant propose, vous confirmez : rien n’est modifié ni envoyé sans votre validation, et chaque décision est journalisée."/>;
+  if (!isAiAssistantEnabled()) return <>{header}<Card className="p-5 text-sm text-slate-600"><p className="font-semibold text-slate-900">L’assistant IA est désactivé.</p><p className="mt-1">Il n’est pas utilisé pour le moment : aucune donnée ne lui est envoyée. Pour l’activer, souscrivez un crédit Claude, puis ajoutez <code>ANTHROPIC_API_KEY</code> au projet Vercel « mybigmarket » et <code>ADMIN_AI_ENABLED=true</code> au projet « mybigmarket-adminnew ».</p></Card></>;
   let data;
   try {
     const [status, pending, recent, products] = await Promise.all([

@@ -92,12 +92,12 @@ const roleLabels: Record<string, string> = {
   customer_service: "Service client",
 };
 
-export function AdminShell({ children, user }: { children: ReactNode; user: { name: string; email: string; roleCode: string; permissions: string[] } }) {
+export function AdminShell({ children, user, aiEnabled = false }: { children: ReactNode; user: { name: string; email: string; roleCode: string; permissions: string[] }; aiEnabled?: boolean }) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   // Même règle que l'API : `.manage` accorde toute la ressource, une écriture accorde la lecture.
   const allowed = (code: string) => (isPermissionCode(code) ? can(user.permissions, code) : user.permissions.includes(code));
-  const groups = navGroups.map((group) => ({ ...group, items: group.items.filter((item) => allowed(item.permission)) })).filter((group) => group.items.length > 0);
+  const groups = navGroups.map((group) => ({ ...group, items: group.items.filter((item) => allowed(item.permission) && (aiEnabled || item.href !== "/assistant-ia")) })).filter((group) => group.items.length > 0);
   // L'entrée active est la plus précise (« Mouvements de stock » plutôt que « Stock »).
   const activeHref = groups.flatMap((group) => group.items.map((item) => item.href))
     .filter((href) => pathname === href || (href !== "/" && pathname.startsWith(`${href}/`)))
