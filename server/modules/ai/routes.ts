@@ -34,6 +34,32 @@ export const aiRoutes: AnyRoute[] = [
     handler: (ctx) => service.proposeSupportReply(ctx.db, ctx.body, actorContext(ctx)),
   }),
   defineRoute({
+    id: "admin.ai.propose.product_bulk", method: "POST", path: "/admin/ai/proposals/product-content/bulk", surface: "admin", tags, permission: "ai.use", rateLimit: "admin.ai",
+    summary: "Génération en masse : une proposition par produit (20 au plus), rien n'est modifié",
+    description: "Chaque proposition compte dans les quotas et attend sa confirmation (unitaire ou groupée). Un quota atteint arrête la série : les produits restants sont signalés « NOT_PROCESSED ».",
+    body: z.object({ productIds: z.array(z.string().uuid()).min(1).max(20), fields: z.array(z.enum(service.PRODUCT_FIELDS)).min(1).optional(), instructions, language: z.enum(["fr", "en"]).default("fr") }).strict(),
+    handler: (ctx) => service.proposeProductContentBulk(ctx.db, ctx.body, actorContext(ctx)),
+  }),
+  defineRoute({
+    id: "admin.ai.proposals.apply_bulk", method: "POST", path: "/admin/ai/proposals/apply-bulk", surface: "admin", tags, permission: "ai.use", status: 200,
+    summary: "Valider plusieurs propositions (confirmation explicite, mêmes contrôles qu'une par une)",
+    body: z.object({ ids: z.array(z.string().uuid()).min(1).max(20), confirm: z.literal(true, { message: "Confirmez explicitement l'application (confirm: true)." }), fields: z.array(z.enum(service.PRODUCT_FIELDS)).min(1).optional(), note: z.string().trim().max(1000).optional() }).strict(),
+    handler: (ctx) => service.applyProposalsBulk(ctx.db, ctx.body, actorContext(ctx)),
+  }),
+  defineRoute({
+    id: "admin.ai.sales_summary", method: "POST", path: "/admin/ai/sales-summary", surface: "admin", tags, permission: "ai.use", rateLimit: "admin.ai", status: 200,
+    summary: "Résumé des ventes d'une période, rédigé à partir des statistiques pré-calculées (lecture seule)",
+    body: z.object({ from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(), to: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional() }).strict(),
+    handler: (ctx) => service.summarizeSales(ctx.db, ctx.body, actorContext(ctx)),
+  }),
+  defineRoute({
+    id: "admin.ai.search", method: "POST", path: "/admin/ai/search", surface: "admin", tags, permission: "ai.use", rateLimit: "admin.ai", status: 200,
+    summary: "Recherche en langage naturel dans les produits, commandes, clients et tickets (lecture seule)",
+    description: "Le modèle ne voit aucune donnée : il traduit la question en requête de liste (champs et tris autorisés), revalidée puis exécutée avec les droits de l'employé.",
+    body: z.object({ question: z.string().trim().min(3).max(500), limit: z.number().int().min(1).max(50).optional() }).strict(),
+    handler: (ctx) => service.naturalLanguageSearch(ctx.db, ctx.body, actorContext(ctx)),
+  }),
+  defineRoute({
     id: "admin.ai.proposals.list", method: "GET", path: "/admin/ai/proposals", surface: "admin", tags, permission: "ai.use",
     summary: "Propositions de l'assistant (en attente, appliquées, refusées, expirées)", list: service.proposalListSpec,
     handler: ({ db, list, admin }) => service.listProposals(db, list, admin.shopId),
