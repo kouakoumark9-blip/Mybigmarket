@@ -50,9 +50,12 @@ const navGroups: NavGroup[] = [
     { label: "Zones de livraison", href: "/transport/zones", permission: "shipping.manage", icon: MapPin, implemented: true },
     { label: "Tranches tarifaires", href: "/transport/tarifs", permission: "shipping.manage", icon: Ruler, implemented: true },
     { label: "Paliers de remise", href: "/transport/paliers", permission: "shipping.manage", icon: BadgePercent, implemented: true },
+    { label: "Lots de groupage", href: "/transport/lots", permission: "shipping.read", icon: Truck, implemented: true },
     { label: "Simulateur de devis", href: "/transport/simulateur", permission: "shipping.read", icon: Calculator, implemented: true },
     { label: "Corbeille transport", href: "/transport/corbeille", permission: "shipping.manage", icon: Trash2, implemented: true },
     { label: "Paiement", href: "/paiement", permission: "payments.read", icon: CreditCard, implemented: true },
+    { label: "Paiements reçus", href: "/paiement/transactions", permission: "payments.read", icon: CreditCard, implemented: true },
+    { label: "Remboursements", href: "/paiement/remboursements", permission: "payments.read", icon: Undo2, implemented: true },
   ] },
   { label: "Boutique", items: [
     { label: "Apparence et pages", href: "/apparence", permission: "appearance.manage", icon: Image, implemented: true },
