@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { securityHeaders } from "./lib/security-headers";
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
@@ -6,7 +7,8 @@ const nextConfig: NextConfig = {
   // Photos produit : réduites dans le navigateur (2 000 px) puis envoyées une par une.
   experimental: { serverActions: { bodySizeLimit: "5mb" } },
   async headers() {
-    return [{ source: "/:path*", headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow, noarchive, nosnippet" }, { key: "X-Frame-Options", value: "DENY" }, { key: "X-Content-Type-Options", value: "nosniff" }, { key: "Referrer-Policy", value: "same-origin" }] }];
+    const headers = securityHeaders({ dev: process.env.NODE_ENV === "development", preview: process.env.VERCEL_ENV === "preview" }).map((header) => (header.key === "Referrer-Policy" ? { ...header, value: "same-origin" } : header));
+    return [{ source: "/:path*", headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow, noarchive, nosnippet" }, ...headers] }];
   },
 };
 
