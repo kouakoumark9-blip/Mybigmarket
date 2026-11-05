@@ -46,7 +46,7 @@ test("un client trouve un produit, commande et suit sa commande", async ({ page 
   await page.fill('input[name="phone"]', "+225 07 11 22 33 44");
   await page.fill('[name="address"]', "Rue des Jardins, Cocody");
   await page.fill('input[name="city"]', "Abidjan");
-  await page.getByText("Wave", { exact: true }).click();
+  await page.getByRole("main").getByText("Wave", { exact: true }).click();
   await page.getByRole("button", { name: /Confirmer la commande/ }).click();
   await expect(page.getByRole("heading", { name: /Commande enregistrée/ })).toBeVisible();
 

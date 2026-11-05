@@ -26,9 +26,11 @@ export const ProductInfo = forwardRef<HTMLDivElement, Props>(function ProductInf
   return <section className="pd-info" aria-label="Informations sur le produit">
     <h1 className="pd-title" title={product.title}>{product.title}</h1>
     <div className="pd-reputation">
-      <Stars value={product.rating}/>
-      <b>{product.rating.toLocaleString("fr-FR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}</b>
-      <a href="#pdp-reviews">({product.reviewsCount.toLocaleString("fr-FR")} avis)</a>
+      {product.reviewsCount > 0 ? <>
+        <Stars value={product.rating}/>
+        <b>{product.rating.toLocaleString("fr-FR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}</b>
+        <a href="#pdp-reviews">({product.reviewsCount.toLocaleString("fr-FR")} avis)</a>
+      </> : <span className="pd-new-badge">Nouveauté · soyez le premier à donner votre avis</span>}
       {product.soldCount > 0 && <><i aria-hidden="true"/><span>{product.soldCount.toLocaleString("fr-FR")} vendus</span></>}
       {product.rankLabel && <><i aria-hidden="true"/><span className="pd-rank" title={product.rankLabel}><Trophy size={14} strokeWidth={1.5} aria-hidden="true"/> <span>{product.rankLabel}</span></span></>}
     </div>

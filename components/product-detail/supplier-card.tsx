@@ -18,7 +18,7 @@ export function SupplierCard({ supplier, id, idPrefix = "pd-supplier" }: { suppl
     { label: "Chiffre d'affaires", value: supplier.onlineRevenue },
     { label: "Temps de réponse", value: supplier.responseTime },
     { label: "Expédié à temps", value: supplier.onTimeShipping ? `${supplier.onTimeShipping} %` : "Non communiqué" },
-    { label: "Note boutique", value: <>{rating}/5 <small>({supplier.ratingCount.toLocaleString("fr-FR")})</small></> },
+    { label: "Note boutique", value: supplier.ratingCount > 0 ? <>{rating}/5 <small>({supplier.ratingCount.toLocaleString("fr-FR")})</small></> : "Nouveau vendeur" },
   ].filter((metric) => metric.value !== "Non communiqué");
 
   return <section className="pd-supplier" id={id} aria-labelledby={`${idPrefix}-name`}>

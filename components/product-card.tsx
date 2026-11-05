@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { Archive, ArrowUpRight, Backpack, Cable, Clock3, CupSoda, Fan, Gem, Glasses, Headphones, Laptop, Lightbulb, Moon, Package, Paintbrush, Plus, Printer, Shirt, ShoppingBag, Smartphone, Store, Watch, Wallet, type LucideIcon } from "lucide-react";
+import { Archive, ArrowUpRight, Backpack, Cable, Clock3, CupSoda, Fan, Gem, Glasses, Headphones, Laptop, Lightbulb, Moon, Package, Paintbrush, Plus, Printer, Shirt, ShoppingBag, Smartphone, Watch, Wallet, type LucideIcon } from "lucide-react";
 import type { DemoProduct } from "@/lib/demo-data";
 import { localizedCategoryName } from "@/lib/site-locale";
 import { useCountryPreferences } from "@/components/country-preferences";
@@ -54,7 +54,6 @@ export function ProductCard({ product, compact = false }: { product: DemoProduct
       <Link href={`/produits/${product.slug}#photo`} className="product-card-title">{product.title}</Link>
       <div className="product-card-price">{formatPrice(product.priceXof)} <span>{text("perUnit")}</span></div>
       <div className="product-card-meta"><span className="delivery-estimate"><Clock3 size={12}/> {text("estimatedDelivery")}</span></div>
-      <div className="product-seller"><Store size={13}/><span>{product.seller}</span><small>{product.city}</small></div>
       <div className="product-card-foot"><span>{text("minimum")} {product.minimumQuantity} {product.minimumQuantity > 1 ? text("units") : text("unit")}</span><div className="product-card-actions"><CompareProductButton product={product}/><button className="quick-add" onClick={() => addItem(product)} aria-label={`${text("addToCart")}: ${product.title}`}><Plus size={16}/></button></div></div>
     </div>
   </article>;

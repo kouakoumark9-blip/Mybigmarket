@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowRight, Boxes, House, PackageCheck, Shirt, Smartphone, SlidersHorizontal, Truck, type LucideIcon } from "lucide-react";
+import { ArrowRight, BadgePercent, Boxes, Headset, House, ShieldCheck, Shirt, Smartphone, Truck, type LucideIcon } from "lucide-react";
 import { categories } from "@/lib/demo-data";
 import { LocalizedCategoryName } from "@/components/destination-labels";
 import { LocaleText } from "@/components/locale-text";
@@ -46,19 +46,17 @@ export default async function HomePage() {
       </div>
     </section>
 
-    <section className="catalog-welcome-row" aria-label="Bienvenue">
-      <h1><LocaleText messageKey="welcome"/> <span>mybigmarket</span></h1>
+    <section className="home-trust-bar" aria-label="Nos engagements">
+      <div><ShieldCheck size={22} strokeWidth={1.6}/><span><b>Paiement sécurisé</b><small>Mobile Money, Wave et carte bancaire</small></span></div>
+      <div><Truck size={22} strokeWidth={1.6}/><span><b>Livraison suivie</b><small>De la Chine jusqu’à votre porte</small></span></div>
+      <div><BadgePercent size={22} strokeWidth={1.6}/><span><b>Prix dans votre devise</b><small>Montant clair avant de commander</small></span></div>
+      <div><Headset size={22} strokeWidth={1.6}/><span><b>Service client</b><small>Une équipe pour vous accompagner</small></span></div>
     </section>
 
     <section id="catalogue" className="catalog-feed" aria-labelledby="catalog-feed-title">
-      <div className="catalog-feed-heading">
-        <div/>
+      <div className="home-section-heading">
+        <div><span className="eyebrow">{products.length} PRODUITS SÉLECTIONNÉS</span><h2 id="catalog-feed-title">Notre sélection du moment</h2></div>
         <Link className="catalog-more-link" href="/produits"><LocaleText messageKey="viewAllCatalog"/> <ArrowRight size={15}/></Link>
-      </div>
-      <div className="catalog-filter-strip">
-        <span className="catalog-result-count"><Boxes size={15}/>{products.length} produits</span>
-        <span className="catalog-filter-note"><PackageCheck size={15}/> <LocaleText messageKey="minimumsVisible"/></span>
-        <Link href="/produits" className="catalog-sort-link"><SlidersHorizontal size={15}/> Filtrer le catalogue</Link>
       </div>
       {products.length ? <div className="catalog-category-groups">{categoryGroups.map(({ category, items }, index) => <div className="catalog-category-group-wrap" key={category.slug}><section className="catalog-category-section" aria-labelledby={`category-${category.slug}`}><div className="catalog-category-section-heading"><div><span className="eyebrow">{items.length} PRODUITS</span><h3 id={`category-${category.slug}`}>{category.name}</h3></div><Link className="catalog-more-link" href={`/produits?categorie=${category.slug}`}>Voir tout <ArrowRight size={14}/></Link></div>{items.length ? <ProductCarousel products={items} categoryName={category.name}/> : <div className="catalog-empty"><p>De nouvelles offres seront bientôt ajoutées à ce rayon.</p></div>}</section>{index < categoryGroups.length - 1 && <Link className={`catalog-category-interstitial ${index === 0 ? "interstitial-electronics" : "interstitial-home"}`} href={index === 0 ? "/produits?categorie=electronique" : "/produits?categorie=maison-cuisine"}><Image src={index === 0 ? "/products/tech-keyboard.jpg" : "/products/home-kettle.jpg"} alt="" fill sizes="(max-width: 760px) 100vw, 1260px"/><span className="catalog-category-interstitial-copy"><small>{index === 0 ? "À DÉCOUVRIR · HIGH-TECH" : "À DÉCOUVRIR · MAISON & BEAUTÉ"}</small><b>{index === 0 ? "Les bons accessoires pour rester connecté." : "De nouvelles idées pour votre intérieur."}</b><span>Découvrir la sélection <ArrowRight size={14}/></span></span></Link>}</div>)}</div> : <div className="catalog-empty"><h2>Le catalogue se prépare</h2><p>Revenez bientôt pour découvrir les prochaines offres.</p></div>}
       <div className="catalog-bottom-note"><Truck size={16}/><span><LocaleText messageKey="demoProductsNote"/></span></div>
