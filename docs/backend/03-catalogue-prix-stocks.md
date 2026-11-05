@@ -88,7 +88,7 @@ Règles :
 | Modification | `PATCH /products/:id` (`version` facultatif pour le verrou optimiste) |
 | Corbeille / duplication | `DELETE /products/:id`, `POST /products/:id/duplicate` |
 | Actions groupées | `POST /products/bulk` : `publish`, `unpublish`, `archive`, `delete`, `feature`, `unfeature`, `set_category` |
-| Images | `GET/POST /products/:id/images`, `PUT /products/:id/images/order`, `PATCH/DELETE /products/:id/images/:imageId` |
+| Images | `GET/POST /products/:id/images` (par URL), `POST /products/:id/images/upload` (téléversement), `PUT /products/:id/images/order`, `PATCH/DELETE /products/:id/images/:imageId` |
 | Déclinaisons | `GET /products/:id/combinations`, `POST /products/:id/combinations/generate`, `PATCH/DELETE /products/:id/combinations/:variantId` |
 | Caractéristiques, pièces jointes | `PUT /products/:id/features`, `POST/DELETE /products/:id/attachments[/:attachmentId]` |
 | Pack, fournisseurs | `PUT /products/:id/pack`, `PUT /products/:id/suppliers` |
@@ -96,6 +96,7 @@ Règles :
 
 Règles :
 
+- **Photos.** `POST /products/:id/images/upload` reçoit des fichiers en `multipart/form-data` (champ `files`, 1 à 10 photos ; `alt` et `isCover` facultatifs). Le format JPEG, PNG ou WebP est vérifié par le type et la signature binaire du fichier ; 4 Mo au plus par photo, 4,4 Mo par requête (limite des fonctions Vercel). Les photos sont stockées dans le stockage public Vercel Blob (`product-images/<produit>/…`, variable `BLOB_READ_WRITE_TOKEN` posée par Vercel en reliant le store au projet), puis ajoutées comme les images par URL (ordre, couverture, audit, événement). Sans stockage configuré, l'API répond 503 avec un message clair. Dans le back-office, la section « Images » de la fiche accepte le glisser-déposer ou la sélection (ordinateur ou téléphone) ; les photos sont réduites dans le navigateur à 2 000 px de côté avant l'envoi, une par une, avec l'état de chacune.
 - **Prix.** Ils sont saisis HT, en FCFA entiers.
 - **Publication.** Passer un produit en `approved` ou `published` exige la permission `catalog.products.publish`.
 - **Slug.** Changer le slug crée une redirection 301 de l'ancienne URL. La fiche produit de la boutique (`/produits/…`) suit déjà ces redirections. Un produit désactivé peut aussi rediriger (`redirectType`, `redirectTargetType`, `redirectTarget`).

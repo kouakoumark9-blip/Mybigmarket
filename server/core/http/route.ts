@@ -64,6 +64,8 @@ export type RouteDefinition<PS extends ZodType | undefined = ZodType | undefined
   idempotency?: "required" | "optional";
   /** Taille maximale du corps JSON (1 Mo par défaut ; imports CSV : davantage). */
   maxBodyBytes?: number;
+  /** `multipart` : envoi de fichiers (multipart/form-data), lu par le handler via `request.formData()`. */
+  bodyType?: "json" | "multipart";
   status?: number;
   /** Schéma de la réponse (documentation OpenAPI). */
   response?: ZodType;
@@ -87,6 +89,13 @@ export function isListResult(value: unknown): value is { data: unknown[]; meta: 
 }
 
 const MAX_BODY_BYTES = 1_000_000;
+
+/** Envoi de fichiers : type multipart/form-data et taille annoncée vérifiés avant toute lecture. */
+function assertMultipart(request: Request, maxBytes: number) {
+  if (!(request.headers.get("content-type") || "").includes("multipart/form-data")) throw errors.badRequest("Content-Type attendu : multipart/form-data.");
+  const length = Number(request.headers.get("content-length") || 0);
+  if (length > maxBytes) throw errors.badRequest(`Envoi trop volumineux (${Math.round(maxBytes / 100_000) / 10} Mo maximum par requête).`);
+}
 
 async function readJsonBody(request: Request, maxBytes = MAX_BODY_BYTES): Promise<{ raw: string; value: unknown }> {
   const tooLarge = () => errors.badRequest(`Corps de requête trop volumineux (${Math.round(maxBytes / 100_000) / 10} Mo maximum).`);
@@ -175,7 +184,8 @@ export async function executeRoute(route: AnyRoute, request: Request, options: E
     const params = parseWith(route.params, options.params, "params");
     const query = parseWith(route.query, queryObject(url.searchParams), "query");
     const list = route.list ? parseListQuery(url.searchParams, route.list) : { page: 1, limit: 20, offset: 0, sort: [], filters: [] };
-    const needsBody = route.method !== "GET" && route.method !== "DELETE";
+    const needsBody = route.method !== "GET" && route.method !== "DELETE" && route.bodyType !== "multipart";
+    if (route.bodyType === "multipart") assertMultipart(request, route.maxBodyBytes ?? MAX_BODY_BYTES);
     const bodyInput = needsBody ? await readJsonBody(request, route.maxBodyBytes) : { raw: "", value: undefined };
     const body = parseWith(route.body, bodyInput.value, "body");
 
