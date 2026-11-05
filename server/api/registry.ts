@@ -16,6 +16,8 @@ import { webhooksModule } from "@/server/modules/webhooks/module";
 import { notificationsModule } from "@/server/modules/notifications/module";
 import { notificationRoutes } from "@/server/modules/notifications/routes";
 import { cmsRoutes } from "@/server/modules/cms/routes";
+import { exportRoutes } from "@/server/modules/exports/routes";
+import { importRoutes } from "@/server/modules/imports/routes";
 import { taxonomyRoutes } from "@/server/modules/catalog/taxonomy/routes";
 import { productRoutes } from "@/server/modules/catalog/products/routes";
 import { pricingRoutes } from "@/server/modules/pricing/routes";
@@ -54,6 +56,8 @@ export const ALL_ROUTES: AnyRoute[] = [
   ...shippingRoutes,
   ...notificationRoutes,
   ...cmsRoutes,
+  ...importRoutes,
+  ...exportRoutes,
   ...MODULES.flatMap((module) => module.routes ?? []),
   openApiRoute,
 ];

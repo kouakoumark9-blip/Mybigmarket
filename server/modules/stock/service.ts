@@ -10,6 +10,7 @@
  * - activer, désactiver ou rendre (non) vendable un entrepôt recale les compteurs boutique ;
  * - un entrepôt ne se supprime que vide (aucun stock physique, aucune réservation active).
  */
+import { csvCell, parseCsv } from "@/server/core/csv";
 import { and, asc, count, desc, eq, gt, gte, isNull, ne, sql } from "drizzle-orm";
 import {
   adjustStock, counterDrifts, reconcileCounters, releaseReservations, setPhysicalStock, StockLedgerError, stockByWarehouse, syncCounters, transferStock, type StockReason,
@@ -341,12 +342,8 @@ export async function replenishment(database: Db, options: { days: number }) {
 
 /* ─────────────────────────────  CSV  ───────────────────────────── */
 
-/** Cellule CSV sûre : guillemets doublés, et neutralisation des formules (injection CSV). */
-export function csvCell(value: unknown): string {
-  let text = value == null ? "" : String(value);
-  if (/^[=+\-@\t\r]/.test(text)) text = `'${text}`;
-  return /[";\n\r]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
-}
+// Lecture et écriture CSV partagées (server/core/csv.ts), réexportées pour les appelants existants.
+export { csvCell, parseCsv };
 
 export async function exportStockCsv(database: Db, options: { warehouseId?: string }) {
   const rows = await database.select({
@@ -357,30 +354,6 @@ export async function exportStockCsv(database: Db, options: { warehouseId?: stri
   const header = ["reference", "sku", "ean13", "titre", "sku_declinaison", "declinaison", "entrepot", "physique", "reserve", "disponible", "emplacement"];
   const body = rows.map((row) => [row.reference, row.sku, row.ean13, row.title, row.variantSku, row.variant, row.warehouse, row.physical, row.reserved, row.physical - row.reserved, row.location].map(csvCell).join(";"));
   return `﻿${[header.join(";"), ...body].join("\r\n")}\r\n`;
-}
-
-/** Lecture CSV simple (séparateur ; ou , détecté, guillemets gérés). */
-export function parseCsv(text: string): string[][] {
-  const clean = text.replace(/^﻿/, "");
-  const firstLine = clean.split(/\r?\n/, 1)[0] ?? "";
-  const separator = (firstLine.match(/;/g)?.length ?? 0) >= (firstLine.match(/,/g)?.length ?? 0) ? ";" : ",";
-  const rows: string[][] = [];
-  let row: string[] = [];
-  let cell = "";
-  let quoted = false;
-  for (let index = 0; index < clean.length; index += 1) {
-    const char = clean[index];
-    if (quoted) {
-      if (char === '"' && clean[index + 1] === '"') { cell += '"'; index += 1; } else if (char === '"') quoted = false; else cell += char;
-    } else if (char === '"') quoted = true;
-    else if (char === separator) { row.push(cell); cell = ""; }
-    else if (char === "\n" || char === "\r") {
-      if (char === "\r" && clean[index + 1] === "\n") index += 1;
-      row.push(cell); rows.push(row); row = []; cell = "";
-    } else cell += char;
-  }
-  if (cell !== "" || row.length) { row.push(cell); rows.push(row); }
-  return rows.filter((entry) => entry.some((value) => value.trim() !== ""));
 }
 
 class DryRunRollback extends Error {}

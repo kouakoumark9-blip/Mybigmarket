@@ -101,6 +101,21 @@ async function fromApiKey(database: Db, value: string, ip: string | null): Promi
   };
 }
 
+/**
+ * Principal d'un employé hors requête (traitement par lots d'un import, tâche relancée) : mêmes
+ * droits que son rôle actuel ; `null` si le compte n'est plus actif.
+ */
+export async function principalForEmployee(database: Db, employeeId: string): Promise<AdminPrincipal | null> {
+  const employee = await loadActiveEmployee(database, employeeId);
+  if (!employee) return null;
+  const role = await rolePermissionSet(database, employee.roleId);
+  return {
+    kind: "employee", actorId: employee.id, employeeId: employee.id, apiKeyId: null,
+    label: `${employee.firstName} ${employee.lastName}`.trim() || employee.email,
+    roleCode: role.roleCode, sessionId: null, shopId: DEFAULT_SHOP_ID, permissions: role.codes,
+  };
+}
+
 export function bearerToken(headers: Headers): string | null {
   const header = headers.get("authorization");
   if (!header) return null;
