@@ -5,6 +5,7 @@ import { shippingQuotes } from "@/lib/db/schema";
 import { cartFingerprint } from "@/lib/shipping-quote";
 import type { Db } from "@/server/core/db";
 import { quoteLines } from "@/server/modules/shipping/service";
+import { enforceRateLimit } from "@/server/core/rate-limit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -35,25 +36,6 @@ const requestSchema = z.object({
   methodCode: z.string().trim().max(30).optional(),
 });
 
-/** Limitation de débit en mémoire : suffisant par instance, à doubler d'un cache partagé en production multi-régions. */
-const WINDOW_MS = 60_000;
-const MAX_REQUESTS = 30;
-const hits = new Map<string, { count: number; resetAt: number }>();
-
-function rateLimited(key: string, now: number): { limited: boolean; retryAfter: number } {
-  const entry = hits.get(key);
-  if (!entry || entry.resetAt <= now) {
-    hits.set(key, { count: 1, resetAt: now + WINDOW_MS });
-    if (hits.size > 5000) {
-      for (const [candidate, value] of hits) if (value.resetAt <= now) hits.delete(candidate);
-    }
-    return { limited: false, retryAfter: 0 };
-  }
-  entry.count += 1;
-  if (entry.count > MAX_REQUESTS) return { limited: true, retryAfter: Math.ceil((entry.resetAt - now) / 1000) };
-  return { limited: false, retryAfter: 0 };
-}
-
 const clientKey = (request: Request) => {
   const forwarded = request.headers.get("x-forwarded-for");
   return (forwarded ? forwarded.split(",")[0].trim() : request.headers.get("x-real-ip") || "unknown").slice(0, 64);
@@ -61,12 +43,17 @@ const clientKey = (request: Request) => {
 
 export async function POST(request: Request) {
   const now = new Date();
-  const limited = rateLimited(clientKey(request), now.getTime());
-  if (limited.limited) {
-    return NextResponse.json(
-      { error: "rate_limited", message: "Trop de demandes de devis. Merci de patienter un instant." },
-      { status: 429, headers: { "Retry-After": String(limited.retryAfter) } },
-    );
+  // Compteur partagé entre toutes les instances (PostgreSQL ou Upstash), comme l'API v1.
+  if (process.env.DATABASE_URL) {
+    try {
+      await enforceRateLimit(() => getDb() as unknown as Db, "shop.quote", clientKey(request));
+    } catch (error) {
+      const retryAfter = (error as { headers?: Record<string, string> }).headers?.["retry-after"] ?? "60";
+      return NextResponse.json(
+        { error: "rate_limited", message: "Trop de demandes de devis. Merci de patienter un instant." },
+        { status: 429, headers: { "Retry-After": retryAfter } },
+      );
+    }
   }
 
   let payload: unknown;

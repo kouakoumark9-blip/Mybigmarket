@@ -25,6 +25,7 @@ export const RATE_LIMIT_POLICIES = {
   "shop.default": { limit: 300, windowSeconds: 60 },
   // Formulaires publics (contact…) : limite stricte contre le spam.
   "shop.forms": { limit: 10, windowSeconds: 60 * 60 },
+  "shop.quote": { limit: 30, windowSeconds: 60 },
   "admin.default": { limit: 600, windowSeconds: 60 },
   "admin.write": { limit: 120, windowSeconds: 60 },
   "admin.ai": { limit: 10, windowSeconds: 60 },
