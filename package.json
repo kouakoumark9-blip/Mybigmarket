@@ -17,7 +17,8 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "db:sql:all": "node scripts/build-migrate-all.mjs",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "docs:db": "tsx scripts/db-diagram.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.5.0",
