@@ -2109,3 +2109,137 @@ export const scheduledTaskRuns = pgTable("scheduled_task_runs", {
   error: text("error"),
   triggeredByEmployeeId: uuid("triggered_by_employee_id").references(() => employees.id, { onDelete: "set null" }),
 }, (t) => [index("scheduled_task_runs_task_time_idx").on(t.taskCode, t.startedAt)]);
+
+// ---------------------------------------------------------------------------
+// Service client, assistant IA et multi-boutique (étape 8)
+// ---------------------------------------------------------------------------
+
+/**
+ * Ticket du service client : une demande (formulaire de contact, espace client, téléphone…)
+ * suivie jusqu'à sa résolution, assignée à un employé, avec délai de première réponse.
+ */
+export const supportTickets = pgTable("support_tickets", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  shopId: uuid("shop_id").notNull().default(sql`'00000000-0000-4000-8000-000000000001'::uuid`).references(() => shops.id, { onDelete: "cascade" }),
+  /** Référence communiquée au client (TCK-260305-7K3QZ8). */
+  reference: varchar("reference", { length: 30 }).notNull(),
+  customerId: uuid("customer_id").references(() => customers.id, { onDelete: "set null" }),
+  userId: uuid("user_id").references(() => users.id, { onDelete: "set null" }),
+  email: varchar("email", { length: 190 }).notNull(),
+  name: varchar("name", { length: 160 }).notNull().default(""),
+  subject: varchar("subject", { length: 200 }).notNull(),
+  /** order, payment, delivery, product, return, account, seller, other. */
+  category: varchar("category", { length: 30 }).notNull().default("other"),
+  /** open, awaiting_customer, resolved, closed. */
+  status: varchar("status", { length: 24 }).notNull().default("open"),
+  /** low, normal, high, urgent. */
+  priority: varchar("priority", { length: 10 }).notNull().default("normal"),
+  /** web, form, email, phone, whatsapp, admin. */
+  channel: varchar("channel", { length: 20 }).notNull().default("web"),
+  assignedEmployeeId: uuid("assigned_employee_id").references(() => employees.id, { onDelete: "set null" }),
+  orderId: uuid("order_id").references(() => orders.id, { onDelete: "set null" }),
+  productId: uuid("product_id").references(() => products.id, { onDelete: "set null" }),
+  formSubmissionId: uuid("form_submission_id").references(() => formSubmissions.id, { onDelete: "set null" }),
+  tags: jsonb("tags").$type<string[]>().notNull().default([]),
+  firstResponseDueAt: timestamp("first_response_due_at", { withTimezone: true }),
+  firstResponseAt: timestamp("first_response_at", { withTimezone: true }),
+  lastMessageAt: timestamp("last_message_at", { withTimezone: true }).notNull().defaultNow(),
+  lastCustomerMessageAt: timestamp("last_customer_message_at", { withTimezone: true }),
+  resolvedAt: timestamp("resolved_at", { withTimezone: true }),
+  closedAt: timestamp("closed_at", { withTimezone: true }),
+  satisfactionScore: integer("satisfaction_score"),
+  satisfactionComment: text("satisfaction_comment"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  version: integer("version").notNull().default(0),
+}, (t) => [
+  uniqueIndex("support_tickets_reference_unique").on(t.reference),
+  uniqueIndex("support_tickets_form_submission_unique").on(t.formSubmissionId).where(sql`${t.formSubmissionId} IS NOT NULL`),
+  index("support_tickets_queue_idx").on(t.shopId, t.status, t.lastMessageAt),
+  index("support_tickets_assignee_idx").on(t.assignedEmployeeId, t.status),
+  index("support_tickets_user_idx").on(t.userId, t.lastMessageAt),
+  index("support_tickets_email_idx").on(t.email),
+]);
+
+/** Message d'un ticket : client, employé (réponse ou note interne invisible du client) ou système. */
+export const supportTicketMessages = pgTable("support_ticket_messages", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  ticketId: uuid("ticket_id").notNull().references(() => supportTickets.id, { onDelete: "cascade" }),
+  /** customer, employee, system. */
+  authorType: varchar("author_type", { length: 12 }).notNull(),
+  userId: uuid("user_id").references(() => users.id, { onDelete: "set null" }),
+  employeeId: uuid("employee_id").references(() => employees.id, { onDelete: "set null" }),
+  body: text("body").notNull(),
+  isInternal: boolean("is_internal").notNull().default(false),
+  /** Réponse issue d'une proposition de l'assistant IA, validée par l'employé. */
+  aiProposalId: uuid("ai_proposal_id"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [index("support_ticket_messages_ticket_idx").on(t.ticketId, t.createdAt)]);
+
+/** Modèle de réponse du service client, avec variables ({{customerName}}, {{ticketReference}}…). */
+export const supportReplyTemplates = pgTable("support_reply_templates", {
+  id: serial("id").primaryKey(),
+  shopId: uuid("shop_id").notNull().default(sql`'00000000-0000-4000-8000-000000000001'::uuid`).references(() => shops.id, { onDelete: "cascade" }),
+  code: varchar("code", { length: 60 }).notNull(),
+  title: varchar("title", { length: 160 }).notNull(),
+  body: text("body").notNull(),
+  category: varchar("category", { length: 30 }),
+  isActive: boolean("is_active").notNull().default(true),
+  position: integer("position").notNull().default(0),
+  usageCount: integer("usage_count").notNull().default(0),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [uniqueIndex("support_reply_templates_shop_code_unique").on(t.shopId, t.code)]);
+
+/**
+ * Proposition de l'assistant IA. Elle ne modifie rien : l'employé la consulte, peut la retoucher,
+ * puis la confirme (application journalisée) ou la refuse. L'état de la cible au moment de la
+ * proposition est conservé pour refuser une application sur une cible modifiée depuis.
+ */
+export const aiProposals = pgTable("ai_proposals", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  shopId: uuid("shop_id").notNull().default(sql`'00000000-0000-4000-8000-000000000001'::uuid`).references(() => shops.id, { onDelete: "cascade" }),
+  /** product_content, support_reply. */
+  kind: varchar("kind", { length: 30 }).notNull(),
+  /** product, support_ticket. */
+  targetType: varchar("target_type", { length: 20 }).notNull(),
+  targetId: varchar("target_id", { length: 64 }).notNull(),
+  /** pending, applying, applied, rejected, expired. */
+  status: varchar("status", { length: 12 }).notNull().default("pending"),
+  instructions: text("instructions").notNull().default(""),
+  proposal: jsonb("proposal").$type<Record<string, unknown>>().notNull().default({}),
+  baseline: jsonb("baseline").$type<Record<string, unknown>>().notNull().default({}),
+  appliedChanges: jsonb("applied_changes").$type<Record<string, unknown>>(),
+  model: varchar("model", { length: 60 }),
+  inputTokens: integer("input_tokens").notNull().default(0),
+  outputTokens: integer("output_tokens").notNull().default(0),
+  requestedByEmployeeId: uuid("requested_by_employee_id").references(() => employees.id, { onDelete: "set null" }),
+  decidedByEmployeeId: uuid("decided_by_employee_id").references(() => employees.id, { onDelete: "set null" }),
+  decidedAt: timestamp("decided_at", { withTimezone: true }),
+  decisionNote: text("decision_note"),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [index("ai_proposals_queue_idx").on(t.shopId, t.status, t.createdAt), index("ai_proposals_target_idx").on(t.targetType, t.targetId), index("ai_proposals_requester_idx").on(t.requestedByEmployeeId, t.createdAt)]);
+
+/** Journal de consommation de l'assistant IA (quotas par employé et budget mensuel par boutique). */
+export const aiUsage = pgTable("ai_usage", {
+  id: serial("id").primaryKey(),
+  shopId: uuid("shop_id").notNull().default(sql`'00000000-0000-4000-8000-000000000001'::uuid`).references(() => shops.id, { onDelete: "cascade" }),
+  employeeId: uuid("employee_id").references(() => employees.id, { onDelete: "set null" }),
+  proposalId: uuid("proposal_id").references(() => aiProposals.id, { onDelete: "set null" }),
+  kind: varchar("kind", { length: 30 }).notNull(),
+  model: varchar("model", { length: 60 }),
+  inputTokens: integer("input_tokens").notNull().default(0),
+  outputTokens: integer("output_tokens").notNull().default(0),
+  /** succeeded, failed, refused, quota_exceeded. */
+  status: varchar("status", { length: 16 }).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [index("ai_usage_employee_time_idx").on(t.employeeId, t.createdAt), index("ai_usage_shop_time_idx").on(t.shopId, t.createdAt)]);
+
+/** Boutiques auxquelles un employé a accès (sans ligne : la boutique par défaut). */
+export const employeeShops = pgTable("employee_shops", {
+  id: serial("id").primaryKey(),
+  employeeId: uuid("employee_id").notNull().references(() => employees.id, { onDelete: "cascade" }),
+  shopId: uuid("shop_id").notNull().references(() => shops.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [uniqueIndex("employee_shops_unique").on(t.employeeId, t.shopId), index("employee_shops_shop_idx").on(t.shopId)]);

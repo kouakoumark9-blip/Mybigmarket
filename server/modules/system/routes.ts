@@ -1,5 +1,5 @@
 /** Paramètres, journal d'audit, modules, événements et informations système. */
-import { count, desc, eq, sql } from "drizzle-orm";
+import { count, desc, sql } from "drizzle-orm";
 import { z } from "zod";
 import { domainEvents, employeeAuditLogs, shops } from "@/lib/db/schema";
 import { defineRoute, type AnyRoute } from "@/server/core/http/route";
@@ -9,7 +9,7 @@ import { listModules, updateModule } from "@/server/core/modules";
 import { dispatchPendingEvents, pendingEventCount } from "@/server/core/events";
 import { ALL_PERMISSIONS } from "@/server/core/permissions";
 
-const settingGroups = ["store", "orders", "catalog", "customers", "email", "seo", "security", "payments", "shipping"] as const satisfies readonly SettingGroup[];
+const settingGroups = ["store", "orders", "catalog", "customers", "email", "seo", "security", "payments", "shipping", "support", "ai"] as const satisfies readonly SettingGroup[];
 
 export const auditListSpec: ListSpec = {
   sortable: { createdAt: employeeAuditLogs.createdAt, action: employeeAuditLogs.action },
@@ -107,15 +107,10 @@ export const systemRoutes: AnyRoute[] = [
         permissions: ALL_PERMISSIONS.length,
         features: {
           adminApi: Boolean(process.env.ADMIN_API_JWT_SECRET), redisRateLimit: Boolean(process.env.UPSTASH_REDIS_REST_URL), smtp: Boolean(process.env.SMTP_HOST),
-          blob: Boolean(process.env.BLOB_PUBLIC_READ_WRITE_TOKEN), totpKey: Boolean(process.env.ADMIN_TOTP_ENCRYPTION_KEY), ai: Boolean(process.env.ANTHROPIC_API_KEY),
+          blob: Boolean(process.env.BLOB_PUBLIC_READ_WRITE_TOKEN || process.env.BLOB_READ_WRITE_TOKEN), totpKey: Boolean(process.env.ADMIN_TOTP_ENCRYPTION_KEY), ai: Boolean(process.env.ANTHROPIC_API_KEY),
         },
       };
     },
-  }),
-  defineRoute({
-    id: "admin.shops.list", method: "GET", path: "/admin/shops", surface: "admin", tags: ["Boutiques"], permission: "shops.read",
-    summary: "Lister les boutiques",
-    handler: ({ db }) => db.select().from(shops).where(eq(shops.isActive, true)),
   }),
   defineRoute({
     id: "shop.settings.public", method: "GET", path: "/shop/settings", surface: "shop", auth: "none", tags: ["Boutique"],

@@ -10,6 +10,8 @@ import { resumePendingImports } from "@/server/modules/imports/service";
 import { purgeExpiredShippingQuotes, purgeTechnicalData } from "@/server/modules/maintenance/service";
 import { expireOverduePayments, reconcilePendingIntents } from "@/server/modules/payments/service";
 import { isoDay, refreshDailyStats } from "@/server/modules/stats/service";
+import { autoCloseResolvedTickets } from "@/server/modules/support/service";
+import { expireProposals } from "@/server/modules/ai/service";
 
 registerTask({
   code: "payments.expire", name: "Paiements en attente", cronPath: "/api/cron/expire-orders", schedule: "Chaque jour à 00:00 UTC",
@@ -58,4 +60,16 @@ registerTask({
   code: "maintenance.purge", name: "Nettoyage technique", cronPath: "/api/cron/maintenance", schedule: "Chaque jour à 03:40 UTC",
   description: "Supprime les données techniques expirées : compteurs de débit, clés d'idempotence, historique des tâches (90 jours), rapports d'import (90 jours), erreurs résolues (90 jours) ou anciennes (180 jours).",
   run: (database) => purgeTechnicalData(database),
+});
+
+registerTask({
+  code: "support.auto_close", name: "Clôture des tickets résolus", cronPath: "/api/cron/maintenance", schedule: "Chaque jour à 03:40 UTC",
+  description: "Clôture les tickets du service client résolus depuis plus de N jours (paramètre « support.auto_close_days », 7 par défaut).",
+  run: (database) => autoCloseResolvedTickets(database),
+});
+
+registerTask({
+  code: "ai.expire_proposals", name: "Propositions IA expirées", cronPath: "/api/cron/maintenance", schedule: "Chaque jour à 03:40 UTC",
+  description: "Marque expirées les propositions de l'assistant IA non décidées dans le délai (paramètre « ai.proposal_ttl_hours »).",
+  run: (database) => expireProposals(database),
 });

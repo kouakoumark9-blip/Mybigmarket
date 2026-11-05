@@ -6,7 +6,8 @@
  * ce qui permettra d'en héberger d'autres sans refonte.
  */
 import { and, eq, isNull } from "drizzle-orm";
-import { DEFAULT_SHOP_ID, shops } from "@/lib/db/schema";
+import { DEFAULT_SHOP_ID, employeeShops, shops } from "@/lib/db/schema";
+import { hasPermission, type AdminPrincipal } from "@/server/core/auth/principal";
 import type { Db } from "@/server/core/db";
 import { errors } from "@/server/core/errors";
 
@@ -46,4 +47,26 @@ export async function resolveShop(database: Db, headers: Headers): Promise<ShopC
   const byDomain = host ? list.find((shop) => shop.domain?.toLowerCase() === host) : undefined;
   const chosen = byDomain ?? list.find((shop) => shop.isDefault) ?? list[0];
   return chosen ? { id: chosen.id, code: chosen.code, name: chosen.name } : DEFAULT_CONTEXT;
+}
+
+/**
+ * Boutiques accessibles à un acteur de l'administration (null : toutes). SuperAdmin ou permission
+ * « shops.manage » : toutes ; clé d'API : sa boutique ; employé : ses boutiques attribuées, ou la
+ * boutique par défaut s'il n'en a aucune.
+ */
+export async function accessibleShopIds(database: Db, principal: AdminPrincipal): Promise<string[] | null> {
+  if (principal.kind === "api_key") return [principal.shopId];
+  if (principal.roleCode === "super_admin" || principal.permissions.has("*") || hasPermission(principal, "shops.manage") || !principal.employeeId) return null;
+  try {
+    const rows = await database.select({ shopId: employeeShops.shopId }).from(employeeShops).where(eq(employeeShops.employeeId, principal.employeeId));
+    return rows.length ? rows.map((row) => row.shopId) : [DEFAULT_SHOP_ID];
+  } catch {
+    // Base pas encore migrée (table absente) : comportement historique, boutique par défaut seulement.
+    return [DEFAULT_SHOP_ID];
+  }
+}
+
+export async function canAccessShop(database: Db, principal: AdminPrincipal, shopId: string): Promise<boolean> {
+  const ids = await accessibleShopIds(database, principal);
+  return ids === null || ids.includes(shopId);
 }

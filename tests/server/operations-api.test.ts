@@ -133,7 +133,7 @@ describe("journal des erreurs", () => {
 describe("tâches planifiées", () => {
   it("liste les tâches, exécute à la demande et garde l'historique", async () => {
     const tasks = await admin("GET", "/admin/tasks");
-    expect(tasks.json.data.map((task: { code: string }) => task.code)).toEqual(expect.arrayContaining(["payments.expire", "shipping.purge_quotes", "events.dispatch", "stats.refresh", "imports.resume", "maintenance.purge"]));
+    expect(tasks.json.data.map((task: { code: string }) => task.code)).toEqual(expect.arrayContaining(["payments.expire", "shipping.purge_quotes", "events.dispatch", "stats.refresh", "imports.resume", "support.auto_close", "maintenance.purge"]));
     const run = await admin("POST", "/admin/tasks/stats.refresh/run");
     expect(run.json.data).toMatchObject({ code: "stats.refresh", status: "succeeded", result: { days: 7 } });
     const history = await admin("GET", "/admin/tasks/stats.refresh/runs");
@@ -153,7 +153,7 @@ describe("tâches planifiées", () => {
     const response = await GET(new Request("http://shop.test/api/cron/maintenance", { headers: { authorization: `Bearer ${process.env.CRON_SECRET}` } }));
     expect(response.status).toBe(200);
     const results = (await response.json()).data as Array<{ code: string; status: string; reason?: string }>;
-    expect(results.map((result) => [result.code, result.status])).toEqual([["stats.refresh", "succeeded"], ["imports.resume", "succeeded"], ["maintenance.purge", "skipped"]]);
+    expect(results.map((result) => [result.code, result.status])).toEqual([["stats.refresh", "succeeded"], ["imports.resume", "succeeded"], ["support.auto_close", "succeeded"], ["ai.expire_proposals", "succeeded"], ["maintenance.purge", "skipped"]]);
     // Exécution manuelle possible même désactivée.
     expect((await admin("POST", "/admin/tasks/maintenance.purge/run")).json.data.status).toBe("succeeded");
   });

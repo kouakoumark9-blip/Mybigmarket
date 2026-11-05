@@ -14,6 +14,10 @@ import { teamRoutes } from "@/server/modules/team/routes";
 import { systemRoutes } from "@/server/modules/system/routes";
 import { webhooksModule } from "@/server/modules/webhooks/module";
 import { notificationsModule } from "@/server/modules/notifications/module";
+import { supportModule } from "@/server/modules/support/module";
+import { supportRoutes } from "@/server/modules/support/routes";
+import { aiRoutes } from "@/server/modules/ai/routes";
+import { shopRoutes } from "@/server/modules/shops/routes";
 import { notificationRoutes } from "@/server/modules/notifications/routes";
 import { cmsRoutes } from "@/server/modules/cms/routes";
 import { exportRoutes } from "@/server/modules/exports/routes";
@@ -32,7 +36,7 @@ import { localizationRoutes } from "@/server/modules/localization/routes";
 import { paymentRoutes } from "@/server/modules/payments/routes";
 import { shippingRoutes } from "@/server/modules/shipping/routes";
 
-export const MODULES: ModuleDefinition[] = [webhooksModule, notificationsModule];
+export const MODULES: ModuleDefinition[] = [webhooksModule, notificationsModule, supportModule];
 registerModules(MODULES);
 
 const openApiRoute = defineRoute({
@@ -62,6 +66,9 @@ export const ALL_ROUTES: AnyRoute[] = [
   ...exportRoutes,
   ...statsRoutes,
   ...maintenanceRoutes,
+  ...supportRoutes,
+  ...aiRoutes,
+  ...shopRoutes,
   ...MODULES.flatMap((module) => module.routes ?? []),
   openApiRoute,
 ];

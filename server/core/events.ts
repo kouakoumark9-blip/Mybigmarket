@@ -53,6 +53,10 @@ export type DomainEventMap = {
   // Communication et CMS (étape 6).
   "form.submitted": { formId: string; submissionId: string; code: string };
   "cms.page_published": { pageId: string; slug: string };
+  "support.ticket_created": { ticketId: string; reference: string; channel: string };
+  "support.customer_replied": { ticketId: string; messageId: string };
+  "support.agent_replied": { ticketId: string; messageId: string };
+  "ai.proposal_applied": { proposalId: string; kind: string; targetId: string };
 };
 
 export type DomainEventName = keyof DomainEventMap;
