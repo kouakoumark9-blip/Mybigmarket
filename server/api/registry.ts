@@ -18,6 +18,8 @@ import { notificationRoutes } from "@/server/modules/notifications/routes";
 import { cmsRoutes } from "@/server/modules/cms/routes";
 import { exportRoutes } from "@/server/modules/exports/routes";
 import { importRoutes } from "@/server/modules/imports/routes";
+import { maintenanceRoutes } from "@/server/modules/maintenance/routes";
+import { statsRoutes } from "@/server/modules/stats/routes";
 import { taxonomyRoutes } from "@/server/modules/catalog/taxonomy/routes";
 import { productRoutes } from "@/server/modules/catalog/products/routes";
 import { pricingRoutes } from "@/server/modules/pricing/routes";
@@ -58,6 +60,8 @@ export const ALL_ROUTES: AnyRoute[] = [
   ...cmsRoutes,
   ...importRoutes,
   ...exportRoutes,
+  ...statsRoutes,
+  ...maintenanceRoutes,
   ...MODULES.flatMap((module) => module.routes ?? []),
   openApiRoute,
 ];
