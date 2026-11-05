@@ -184,6 +184,8 @@ describe("redirections", () => {
     expect(await digestOf(UnknownPath({ params: Promise.resolve({ path: ["ancien-catalogue"] }) }))).toMatch(/NEXT_REDIRECT;.*\/produits;308/);
     expect(await digestOf(UnknownPath({ params: Promise.resolve({ path: ["promo"] }) }))).toMatch(/NEXT_REDIRECT;.*https:\/\/exemple\.ci\/promo;307/);
     expect(await digestOf(UnknownPath({ params: Promise.resolve({ path: ["nulle-part"] }) }))).toContain("404");
+    // Adresse mal encodée : page introuvable, pas d'erreur serveur.
+    expect(await digestOf(UnknownPath({ params: Promise.resolve({ path: ["%E0%A4%A"] }) }))).toContain("404");
     const [{ hits }] = await rows<{ hits: number }>(sql`select hits from slug_redirects where old_path = '/ancien-catalogue'`);
     expect(hits).toBe(1);
   });
