@@ -32,7 +32,7 @@ export function adminApiConfigured(): boolean {
   return accessTokensConfigured();
 }
 
-type CallOptions = { body?: unknown; query?: Record<string, string | number | boolean | undefined | null>; raw?: boolean; idempotencyKey?: string };
+type CallOptions = { body?: unknown; /** Envoi de fichiers (multipart/form-data). */ form?: FormData; query?: Record<string, string | number | boolean | undefined | null>; raw?: boolean; idempotencyKey?: string };
 
 async function call(method: string, path: string, options: CallOptions = {}): Promise<Response> {
   if (!adminApiConfigured()) {
@@ -47,7 +47,9 @@ async function call(method: string, path: string, options: CallOptions = {}): Pr
   if (options.idempotencyKey) headers["idempotency-key"] = options.idempotencyKey;
   let response: Response;
   try {
-    response = await fetch(url, { method, headers, body: options.body === undefined ? undefined : JSON.stringify(options.body), cache: "no-store", signal: AbortSignal.timeout(20_000) });
+    // Fichiers : fetch pose lui-même l'en-tête multipart et sa frontière ; délai plus long pour l'envoi.
+    const body = options.form ?? (options.body === undefined ? undefined : JSON.stringify(options.body));
+    response = await fetch(url, { method, headers, body, cache: "no-store", signal: AbortSignal.timeout(options.form ? 60_000 : 20_000) });
   } catch {
     throw new AdminApiError(503, "UNREACHABLE", `L'API (${url.host}) ne répond pas. Réessayez dans un instant.`);
   }

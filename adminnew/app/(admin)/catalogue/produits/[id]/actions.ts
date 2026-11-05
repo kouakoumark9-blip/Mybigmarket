@@ -1,6 +1,7 @@
 "use server";
 
-import { adminApi } from "@/lib/admin-api";
+import { revalidatePath } from "next/cache";
+import { adminApi, apiErrorMessage } from "@/lib/admin-api";
 import { checkbox, integer, optionalText, runAndRedirect, text } from "@/lib/action-redirect";
 import { requireEmployee } from "@/lib/permissions";
 
@@ -75,6 +76,33 @@ export async function trashAction(form: FormData) {
 }
 
 /* Images */
+export type PhotoUploadResult = { ok: true; added: number } | { ok: false; error: string };
+
+/**
+ * Téléversement d'une ou plusieurs photos (déjà réduites dans le navigateur) vers l'API, qui vérifie
+ * le format, les stocke et les ajoute au produit. Rend un résultat au lieu de rediriger : le
+ * composant d'envoi enchaîne les photos et affiche l'avancement.
+ */
+export async function uploadPhotosAction(form: FormData): Promise<PhotoUploadResult> {
+  await requireEmployee("catalog.products.update");
+  const productId = text(form, "productId");
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(productId)) return { ok: false, error: "Produit invalide." };
+  const files = form.getAll("files").filter((entry): entry is File => typeof entry === "object" && entry !== null && "arrayBuffer" in entry && (entry as File).size > 0);
+  if (!files.length) return { ok: false, error: "Aucune photo reçue." };
+  const payload = new FormData();
+  for (const file of files) payload.append("files", file, file.name);
+  const alt = optionalText(form, "alt");
+  if (alt) payload.set("alt", alt);
+  if (checkbox(form, "isCover")) payload.set("isCover", "1");
+  try {
+    const result = await adminApi<{ added: unknown[] }>("POST", `/admin/products/${productId}/images/upload`, { form: payload });
+    revalidatePath(`/catalogue/produits/${productId}`);
+    return { ok: true, added: result.added.length };
+  } catch (error) {
+    return { ok: false, error: apiErrorMessage(error) };
+  }
+}
+
 export async function addImageAction(form: FormData) {
   await requireEmployee("catalog.products.update");
   await runAndRedirect(page(form, "images"), "Image ajoutée.", () => adminApi("POST", `/admin/products/${id(form)}/images`, { body: { url: text(form, "url"), alt: optionalText(form, "alt"), isCover: checkbox(form, "isCover") } }));

@@ -1,6 +1,7 @@
 import { defineRoute, type AnyRoute } from "@/server/core/http/route";
 import { actorContext, uuidParams } from "@/server/modules/catalog/shared";
 import * as service from "@/server/modules/catalog/products/service";
+import * as photos from "@/server/modules/catalog/products/photos";
 import * as relations from "@/server/modules/catalog/products/relations";
 import * as v from "@/server/modules/catalog/products/validators";
 
@@ -68,6 +69,12 @@ export const productRoutes: AnyRoute[] = [
     id: "admin.products.images.create", method: "POST", path: "/admin/products/:id/images", surface: "admin", tags, permission: "catalog.products.update",
     summary: "Ajouter une image (la première devient la couverture)", params: uuidParams, body: v.imageBody,
     handler: (ctx) => relations.addImage(ctx.db, ctx.params.id, ctx.body, actorContext(ctx)),
+  }),
+  defineRoute({
+    id: "admin.products.images.upload", method: "POST", path: "/admin/products/:id/images/upload", surface: "admin", tags, permission: "catalog.products.update",
+    summary: "Téléverser des photos (JPEG, PNG, WebP)", params: uuidParams, bodyType: "multipart", maxBodyBytes: photos.MAX_UPLOAD_REQUEST_BYTES,
+    description: "`multipart/form-data` : `files` (1 à 10 fichiers, 4 Mo au plus chacun, 4,4 Mo par requête), `alt` et `isCover` facultatifs. Type et signature binaire vérifiés ; la première photo d'un produit sans image devient la couverture.",
+    handler: async (ctx) => photos.uploadProductPhotos(ctx.db, ctx.params.id, await photos.readPhotoUpload(ctx.request), actorContext(ctx)),
   }),
   defineRoute({
     id: "admin.products.images.reorder", method: "PUT", path: "/admin/products/:id/images/order", surface: "admin", tags, permission: "catalog.products.update",
