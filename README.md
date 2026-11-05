@@ -28,6 +28,7 @@ Le backend est organisé par domaine dans `server/` (route → service → repos
 - `04-clients-panier-commandes.md` : panier serveur, passage de commande, espace client, commandes, factures et avoirs, clients et groupes, taxes et devises ;
 - `05-livraison-paiement.md` : paiement (intentions, notifications signées et idempotentes, journal, virement, paiement à la livraison, CinetPay, remboursements) et livraison (devis, transporteur au passage de commande, points relais, lots de groupage, suivi).
 - `06-communication-cms-seo-recherche.md` : notifications (file d'e-mails sans doublon reliée aux événements, modèles personnalisables, WhatsApp), CMS (pages à blocs sans HTML libre, menus, formulaires, bannières), redirections 301/302 et recherche (plein texte sans accents, fautes de frappe, facettes, meilleures ventes, suggestions).
+- `07-import-export-stats-journaux.md` : imports CSV ligne par ligne (simulation sans écriture, rapport par ligne, lots reprenables), exports réimportables, statistiques pré-calculées, journal des erreurs et tâches planifiées.
 
 Toute variation de stock passe par `lib/stock-ledger.ts` (réservations tracées, mouvements avant/après, sans survente).
 
