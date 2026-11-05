@@ -6,6 +6,7 @@ import { categories, type DemoProduct } from "@/lib/demo-data";
 import { localizedCategoryName } from "@/lib/site-locale";
 import { ProductCard } from "@/components/product-card";
 import { useCountryPreferences } from "@/components/country-preferences";
+import { matchesSearch } from "@/lib/search";
 
 export function CatalogBrowser({ products, initialQuery, initialCategory, initialMin, initialMax }: { products: DemoProduct[]; initialQuery: string; initialCategory: string; initialMin: string; initialMax: string }) {
   const { currency, exchangeRateReady, convertXofToLocal, text, language } = useCountryPreferences();
@@ -25,8 +26,8 @@ export function CatalogBrowser({ products, initialQuery, initialCategory, initia
   const sellerOptions = useMemo(() => Array.from(new Map(products.map((product) => [product.sellerSlug, product.seller])).entries()), [products]);
   const filtered = useMemo(() => {
     const result = products.filter((product) => {
-      const searchable = `${product.title} ${product.category} ${product.seller}`.toLocaleLowerCase(language);
-      return (!query || searchable.includes(query.toLocaleLowerCase(language)))
+      // Sans accents ni casse, chaque mot doit figurer : « telephone sans fil » trouve « Téléphone… sans fil ».
+      return matchesSearch(`${product.title} ${product.category} ${product.seller}`, query)
         && (!category || product.categorySlug === category)
         && (!minPrice || convertXofToLocal(product.priceXof) >= Number(minPrice))
         && (!maxPrice || convertXofToLocal(product.priceXof) <= Number(maxPrice))
@@ -40,7 +41,7 @@ export function CatalogBrowser({ products, initialQuery, initialCategory, initia
     if (sort === "delay") result.sort((a, b) => a.leadTimeDays - b.leadTimeDays);
     if (sort === "popular") result.sort((a, b) => b.reviewCount - a.reviewCount);
     return result;
-  }, [products, query, category, minPrice, maxPrice, maxDays, maxMinimum, seller, availableOnly, sort, convertXofToLocal, language]);
+  }, [products, query, category, minPrice, maxPrice, maxDays, maxMinimum, seller, availableOnly, sort, convertXofToLocal]);
 
   const activeFilterCount = [category, minPrice, maxPrice, maxDays > 0, maxMinimum > 0, seller, availableOnly].filter(Boolean).length;
   const clearFilters = () => {
