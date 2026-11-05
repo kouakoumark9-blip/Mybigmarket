@@ -59,6 +59,12 @@ const navGroups: NavGroup[] = [
   ] },
   { label: "Boutique", items: [
     { label: "Apparence et pages", href: "/apparence", permission: "appearance.manage", icon: Image, implemented: true },
+    { label: "Pages", href: "/contenu/pages", permission: "appearance.read", icon: FileText, implemented: true },
+    { label: "Menus", href: "/contenu/menus", permission: "appearance.read", icon: Menu, implemented: true },
+    { label: "Bannières", href: "/contenu/bannieres", permission: "appearance.read", icon: Image, implemented: true },
+    { label: "Formulaires", href: "/contenu/formulaires", permission: "appearance.read", icon: Inbox, implemented: true },
+    { label: "Redirections", href: "/contenu/redirections", permission: "seo.read", icon: ArrowLeftRight, implemented: true },
+    { label: "E-mails", href: "/communication/emails", permission: "communication.read", icon: Bell, implemented: true },
     { label: "Marketing", href: "/marketing", permission: "marketing.manage", icon: BadgePercent, implemented: true },
     { label: "Bons de réduction", href: "/marketing/bons", permission: "pricing.read", icon: Ticket, implemented: true },
     { label: "Règles de prix", href: "/marketing/regles", permission: "pricing.read", icon: Percent, implemented: true },

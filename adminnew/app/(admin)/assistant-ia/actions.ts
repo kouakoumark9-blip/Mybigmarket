@@ -1,6 +1,6 @@
 "use server";
 
-import { adminApi, apiErrorMessage } from "@/lib/admin-api";
+import { AdminApiError, adminApi, apiErrorMessage } from "@/lib/admin-api";
 import { optionalText, runAndRedirect, text } from "@/lib/action-redirect";
 import { requireEmployee } from "@/lib/permissions";
 
@@ -38,7 +38,7 @@ export async function bulkProposeAction(form: FormData) {
     const result = await adminApi<{ created: number; failed: Array<{ message: string }> }>("POST", "/admin/ai/proposals/product-content/bulk", {
       body: { productIds, fields: fields.length ? fields : undefined, instructions: optionalText(form, "instructions") ?? undefined, language: text(form, "language") === "en" ? "en" : "fr" },
     });
-    if (!result.created && result.failed.length) throw new Error(result.failed[0].message);
+    if (!result.created && result.failed.length) throw new AdminApiError(422, "BUSINESS_RULE", result.failed[0].message);
     return result;
   });
 }
@@ -56,7 +56,7 @@ export async function applyAllProposalsAction(form: FormData) {
   const ids = form.getAll("ids").map(String).filter(Boolean);
   await runAndRedirect(PATH, "Propositions validées.", async () => {
     const result = await adminApi<{ applied: number; failed: number; results: Array<{ message?: string }> }>("POST", "/admin/ai/proposals/apply-bulk", { body: { ids, confirm: true } });
-    if (!result.applied && result.failed) throw new Error(result.results.find((entry) => entry.message)?.message ?? "Aucune proposition appliquée.");
+    if (!result.applied && result.failed) throw new AdminApiError(422, "BUSINESS_RULE", result.results.find((entry) => entry.message)?.message ?? "Aucune proposition appliquée.");
     return result;
   });
 }
