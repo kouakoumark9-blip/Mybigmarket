@@ -24,6 +24,7 @@ const checkoutBody = z.object({
     addressId: z.string().uuid().nullable().optional(),
     address: z.object({ name: z.string().trim().min(2).max(160), phone: z.string().trim().min(6).max(32), address: z.string().trim().min(4).max(400), city: z.string().trim().min(2).max(120) }).strict().nullable().optional(),
     pickupPointId: z.number().int().positive().nullable().optional(),
+    shippingMethodCode: z.string().trim().min(2).max(30).nullable().optional(),
   }).strict(),
   paymentMethod: z.enum(PAYMENT_METHOD_CODES),
 }).strict();

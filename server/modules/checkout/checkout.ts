@@ -20,7 +20,9 @@ import {
 import type { Db, Executor } from "@/server/core/db";
 import { AppError, errors } from "@/server/core/errors";
 import { emitEvent } from "@/server/core/events";
+import { getSetting } from "@/server/core/settings";
 import { createIntent, initiateIntent, loadPaymentSettings, paymentDeadline, paymentMethodAvailability } from "@/server/modules/payments/service";
+import { planShipping } from "@/server/modules/shipping/service";
 import { ensureCustomer, type CustomerContext } from "@/server/modules/checkout/customers";
 import { publicLine, quoteCart, type QuoteLineInput, type QuotedLine } from "@/server/modules/checkout/quote";
 
@@ -31,6 +33,8 @@ export type DeliveryInput = {
   addressId?: string | null;
   address?: { name: string; phone: string; address: string; city: string } | null;
   pickupPointId?: number | null;
+  /** Transporteur choisi (code). Sans choix : transport à confirmer, sauf si un transporteur facturable est exigé. */
+  shippingMethodCode?: string | null;
 };
 
 export type PlaceOrderInput = { userId: string; lines: QuoteLineInput[]; voucherCodes?: string[]; delivery: DeliveryInput; paymentMethod: PaymentMethodCode; cartId?: string | null; requireVariant?: boolean };
@@ -54,9 +58,9 @@ async function deliverySnapshot(executor: Executor, customer: CustomerContext, d
   if (delivery.method === "pickup") {
     if (delivery.countryCode !== "CI") throw errors.validation([{ path: "delivery.method", message: "Le point relais est proposé uniquement en Côte d'Ivoire." }]);
     if (!delivery.pickupPointId) throw errors.validation([{ path: "delivery.pickupPointId", message: "Choisissez un point relais." }]);
-    const [point] = await executor.select({ id: pickupPoints.id }).from(pickupPoints).where(and(eq(pickupPoints.id, delivery.pickupPointId), eq(pickupPoints.isActive, true))).limit(1);
+    const [point] = await executor.select({ id: pickupPoints.id, city: pickupPoints.city, name: pickupPoints.name }).from(pickupPoints).where(and(eq(pickupPoints.id, delivery.pickupPointId), eq(pickupPoints.isActive, true))).limit(1);
     if (!point) throw errors.validation([{ path: "delivery.pickupPointId", message: "Ce point relais n'est plus disponible." }]);
-    return { address: common, pickupPointId: point.id };
+    return { address: { ...common, city: point.city, pickupPointName: point.name }, pickupPointId: point.id };
   }
   if (delivery.addressId) {
     const [address] = await executor.select().from(customerAddresses).where(and(eq(customerAddresses.id, delivery.addressId), eq(customerAddresses.customerId, customer.customerId), isNull(customerAddresses.deletedAt))).limit(1);
@@ -94,6 +98,7 @@ export async function placeOrder(database: Db, input: PlaceOrderInput) {
   const customer = await ensureCustomer(database, input.userId);
   const delivery = await deliverySnapshot(database, customer, input.delivery);
   const paymentSettings = await loadPaymentSettings(database);
+  const requireBillableShipping = await getSetting(database, DEFAULT_SHOP_ID, "shipping.require_billable_method");
 
   const result = await database.transaction(async (tx) => {
     const quote = await quoteCart(tx, { lines: input.lines, customer, countryCode: input.delivery.countryCode, voucherCodes: input.voucherCodes, requireVariant: input.requireVariant });
@@ -103,8 +108,17 @@ export async function placeOrder(database: Db, input: PlaceOrderInput) {
     const rejected = quote.vouchers.rejected.filter((entry) => entry.reason !== "not_combinable");
     if (rejected.length) throw errors.rule(rejected[0].message, { vouchers: rejected });
 
+    // Transport : un coût par commande (vendeur), transporteur facturable choisi ou « à confirmer ».
+    const shipping = await planShipping(tx, {
+      groups: quote.sellers.map((group) => ({ sellerId: group.sellerId, lines: group.lines.map((line) => ({ productId: line.productId, quantity: line.quantity })), totalXof: group.totalXof })),
+      countryCode: input.delivery.countryCode, city: delivery.address.city ?? null, methodCode: input.delivery.shippingMethodCode ?? null,
+      freeShipping: quote.freeShipping, requireBillable: requireBillableShipping,
+    });
+    const shippingXof = shipping.reduce((sum, plan) => sum + plan.costXof, 0);
+    const grandTotalXof = quote.totals.totalXof + shippingXof;
+
     // Moyen de paiement : disponible pour ce pays, ce montant et les groupes du client.
-    const availability = await paymentMethodAvailability(tx, paymentSettings, { countryCode: input.delivery.countryCode, amountXof: quote.totals.totalXof, customerGroupIds: customer.groupIds });
+    const availability = await paymentMethodAvailability(tx, paymentSettings, { countryCode: input.delivery.countryCode, amountXof: grandTotalXof, customerGroupIds: customer.groupIds });
     const choice = availability.find((entry) => entry.code === input.paymentMethod);
     if (!choice?.available || !choice.provider) throw errors.rule(choice?.reason ? `Moyen de paiement indisponible : ${choice.reason}` : "Moyen de paiement indisponible.", { method: input.paymentMethod, available: availability.filter((entry) => entry.available).map((entry) => entry.code) });
 
@@ -120,12 +134,15 @@ export async function placeOrder(database: Db, input: PlaceOrderInput) {
     const paymentExpiresAt = paymentDeadline(input.paymentMethod, paymentSettings);
     const created: Array<{ id: string; reference: string; sellerId: string; totalXof: number; payment: { provider: string; reference: string; status: string; checkoutUrl?: string | null } }> = [];
 
-    for (const group of quote.sellers) {
+    for (const [groupIndex, group] of quote.sellers.entries()) {
+      const plan = shipping[groupIndex];
+      const orderTotalXof = group.totalXof + plan.costXof;
       const reference = await nextDocumentNumber(tx, "order", year);
       const appliedVouchers = quote.vouchers.applied.map((voucher) => ({ code: voucher.code, discountXof: 0 }));
       const [order] = await tx.insert(orders).values({
         buyerId: input.userId, customerId: customer.customerId, reference, checkoutGroupId, status: "awaiting_payment",
-        subtotalXof: group.subtotalExclTaxXof, discountXof: group.discountXof, taxXof: group.taxXof, totalXof: group.totalXof, shippingCostXof: 0,
+        subtotalXof: group.subtotalExclTaxXof, discountXof: group.discountXof, taxXof: group.taxXof, totalXof: orderTotalXof, shippingCostXof: plan.costXof,
+        shippingMethodId: plan.methodId, shippingMode: plan.mode, shippingQuoteSnapshot: plan.snapshot,
         deliveryMethod: input.delivery.method, pickupPointId: delivery.pickupPointId, deliveryAddress: delivery.address, paymentExpiresAt, locale: input.delivery.language,
         appliedVouchers: group.discountXof > 0 ? appliedVouchers.map((voucher) => ({ ...voucher, discountXof: group.discountXof })) : [],
       }).returning();
@@ -144,11 +161,11 @@ export async function placeOrder(database: Db, input: PlaceOrderInput) {
         }
         throw error;
       }
-      if (group.totalXof < 1) throw errors.rule("Le montant de la commande doit être d'au moins 1 FCFA.");
+      if (orderTotalXof < 1) throw errors.rule("Le montant de la commande doit être d'au moins 1 FCFA.");
       await tx.insert(orderEvents).values({ orderId: order.id, status: "awaiting_payment", actorUserId: input.userId, note: input.paymentMethod === "cash_on_delivery" ? "Commande créée ; paiement à la livraison." : "Commande créée ; en attente de confirmation du paiement." });
       await tx.insert(orderStatusHistory).values({ orderId: order.id, fromStatus: null, toStatus: "awaiting_payment", note: "Commande passée par le client." });
-      await emitEvent(tx, "order.created", { orderId: order.id, reference, totalXof: group.totalXof }, { aggregateId: order.id, shopId: DEFAULT_SHOP_ID });
-      created.push({ id: order.id, reference, sellerId: group.sellerId, totalXof: group.totalXof, payment: { provider: choice.provider, reference: "", status: "pending" } });
+      await emitEvent(tx, "order.created", { orderId: order.id, reference, totalXof: orderTotalXof }, { aggregateId: order.id, shopId: DEFAULT_SHOP_ID });
+      created.push({ id: order.id, reference, sellerId: group.sellerId, totalXof: orderTotalXof, payment: { provider: choice.provider, reference: "", status: "pending" } });
     }
 
     // Un seul paiement pour toutes les commandes du passage en caisse.
@@ -168,7 +185,8 @@ export async function placeOrder(database: Db, input: PlaceOrderInput) {
       checkoutGroupId,
       intentId: intent.id,
       orders: created,
-      totals: quote.totals,
+      totals: { ...quote.totals, shippingXof, totalXof: grandTotalXof },
+      shipping: shipping.map((plan, index) => ({ sellerId: quote.sellers[index].sellerId, costXof: plan.costXof, methodCode: (plan.snapshot as { methodCode?: string } | null)?.methodCode ?? null, mode: plan.mode, toConfirm: plan.methodId === null })),
       vouchers: quote.vouchers.applied.map((voucher) => ({ code: voucher.code, discountXof: voucher.discountXof })),
       lines: quote.lines.map(publicLine),
     };
