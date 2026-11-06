@@ -3,7 +3,8 @@
  *   - `mock`     : développement et tests, notifications signées par MOCK_WEBHOOK_SECRET ;
  *                  refusé en production sauf ALLOW_MOCK_PAYMENTS=true ;
  *   - `manual`   : virement bancaire et paiement à la livraison, confirmés par l'équipe ;
- *   - `cinetpay` : agrégateur (Orange Money, MTN, Moov, Wave, carte) sur page hébergée.
+ *   - `cinetpay` : agrégateur (Orange Money, MTN, Moov, Wave, carte) sur page hébergée ;
+ *   - `geniuspay`: agrégateur (Wave, Orange Money, MTN, Moov, carte) sur page hébergée.
  */
 import { createHash, createHmac, randomUUID, timingSafeEqual } from "node:crypto";
 import {
@@ -219,6 +220,133 @@ export class CinetPayGateway implements PaymentGateway {
   async refund(input: RefundInput): Promise<RefundResult> {
     // L'API checkout ne propose pas de remboursement : il se fait depuis l'espace marchand, puis l'équipe le confirme.
     return { mode: "manual", status: "processing", request: redacted(input), response: { status: "manual_refund_required", via: "espace marchand CinetPay" } };
+  }
+}
+
+/* ─────────────────────────────  GeniusPay  ───────────────────────────── */
+
+/** Moyen choisi → code GeniusPay. `null` : page de paiement hébergée, le client y choisit son opérateur. */
+const GENIUSPAY_METHODS: Partial<Record<PaymentMethodCode, string | null>> = {
+  wave: "wave", orange_money: "orange_money", mtn_momo: "mtn_money", moov_money: null, card: "card",
+};
+
+const GENIUSPAY_STATUS: Record<string, GatewayStatus> = {
+  paid: "succeeded", completed: "succeeded", success: "succeeded", successful: "succeeded",
+  failed: "failed", cancelled: "cancelled", canceled: "cancelled", expired: "cancelled",
+};
+
+/** Tolérance d'horloge sur l'horodatage signé des notifications. */
+const GENIUSPAY_TOLERANCE_SECONDS = 300;
+
+const asRecord = (value: unknown): Record<string, unknown> => (value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>) : {});
+
+export class GeniusPayGateway implements PaymentGateway {
+  readonly key = "geniuspay";
+  readonly label = "GeniusPay";
+  readonly confirmsByCheck = true;
+  readonly sendsWebhooks = true;
+
+  constructor(private readonly fetcher: FetchLike = (input, init) => fetch(input, init)) {}
+
+  private get base() { return (process.env.GENIUSPAY_API_BASE || "https://geniuspay.ci/api/v1/merchant").replace(/\/+$/, ""); }
+  private get apiKey() { return process.env.GENIUSPAY_API_KEY?.trim() || ""; }
+  private get apiSecret() { return process.env.GENIUSPAY_API_SECRET?.trim() || ""; }
+
+  supports(method: PaymentMethodCode) { return method in GENIUSPAY_METHODS; }
+  configured() { return Boolean(this.apiKey && this.apiSecret); }
+
+  private async call(method: "GET" | "POST", path: string, body?: Record<string, unknown>) {
+    let response: Response;
+    try {
+      response = await this.fetcher(`${this.base}${path}`, {
+        method,
+        headers: { "content-type": "application/json", accept: "application/json", "X-API-Key": this.apiKey, "X-API-Secret": this.apiSecret },
+        body: body ? JSON.stringify(body) : undefined,
+        signal: AbortSignal.timeout(15_000),
+      });
+    } catch (error) {
+      throw new GatewayError("unreachable", "Le prestataire de paiement ne répond pas. Réessayez dans un instant.", { cause: error instanceof Error ? error.message : String(error) });
+    }
+    let json: Record<string, unknown> = {};
+    try { json = asRecord(await response.json()); } catch { /* réponse non JSON */ }
+    return { httpStatus: response.status, ok: response.ok, json };
+  }
+
+  async initiate(input: InitiateInput): Promise<InitiateResult> {
+    if (!this.configured()) throw new GatewayError("not_configured", "GeniusPay n'est pas configuré.");
+    if (!(input.method in GENIUSPAY_METHODS)) throw new GatewayError("unsupported_method", "Moyen de paiement non pris en charge par GeniusPay.");
+    const channel = GENIUSPAY_METHODS[input.method];
+    const customer: Record<string, unknown> = {
+      name: `${input.customer.firstName} ${input.customer.lastName}`.trim(), email: input.customer.email, country: input.customer.countryCode,
+    };
+    if (input.customer.phone) customer.phone = input.customer.phone;
+    const body: Record<string, unknown> = {
+      amount: input.amountXof, currency: input.currency,
+      description: input.description.replace(/[^\p{L}\p{N} .,'-]/gu, " ").slice(0, 120),
+      customer, success_url: input.returnUrl, error_url: input.returnUrl,
+      metadata: { intent_reference: input.reference },
+    };
+    if (channel) body.payment_method = channel;
+    const { httpStatus, ok, json } = await this.call("POST", "/payments", body);
+    const data = asRecord(json.data ?? json);
+    const checkoutUrl = typeof data.checkout_url === "string" ? data.checkout_url : typeof data.payment_url === "string" ? data.payment_url : null;
+    if (!ok || !checkoutUrl) {
+      throw new GatewayError("refused", `Le prestataire a refusé l'initialisation du paiement (${String(asRecord(json.error).message ?? json.message ?? httpStatus)}).`, { response: redacted(json) });
+    }
+    return { status: "pending", providerReference: typeof data.reference === "string" ? data.reference : null, checkoutUrl, request: redacted(body), response: redacted(json) };
+  }
+
+  parseWebhook({ rawBody, headers }: WebhookInput): WebhookParseResult {
+    const secret = process.env.GENIUSPAY_WEBHOOK_SECRET?.trim();
+    const signature = (headers.get("x-webhook-signature") || "").replace(/^sha256=/i, "").trim();
+    const timestamp = headers.get("x-webhook-timestamp") || "";
+    const age = Math.abs(Date.now() / 1000 - Number(timestamp));
+    const fresh = Number.isFinite(age) && age <= GENIUSPAY_TOLERANCE_SECONDS;
+    const expected = secret ? createHmac("sha256", secret).update(`${timestamp}.${rawBody}`).digest("hex") : "";
+    const signatureValid = Boolean(secret) && fresh && safeEqualHex(expected, signature.toLowerCase());
+
+    let payload: Record<string, unknown> = {};
+    try { payload = asRecord(JSON.parse(rawBody)); } catch { /* corps illisible */ }
+    const data = asRecord(payload.data ?? payload);
+    const metadata = asRecord(data.metadata);
+    const reference = typeof metadata.intent_reference === "string" ? metadata.intent_reference : null;
+    const providerRef = typeof data.reference === "string" ? data.reference : "";
+    const amount = Number.parseInt(String(data.amount ?? ""), 10);
+    const event = headers.get("x-webhook-event") || String(payload.event ?? "");
+    return {
+      signatureValid,
+      eventKey: `${(providerRef || reference || "inconnu").slice(0, 80)}:${event.slice(0, 30)}:${sha256(rawBody).slice(0, 24)}`,
+      reference,
+      amountXof: Number.isFinite(amount) ? amount : undefined,
+      currency: typeof data.currency === "string" ? data.currency : undefined,
+      needsConfirmation: true,
+      payload: redacted(payload),
+      error: signatureValid ? undefined : "Signature ou horodatage invalide.",
+    };
+  }
+
+  async check(reference: string, providerReference?: string | null): Promise<CheckResult> {
+    if (!this.configured()) throw new GatewayError("not_configured", "GeniusPay n'est pas configuré.");
+    if (!providerReference) return { status: "pending", request: { reference }, response: { note: "paiement non encore initialisé chez le prestataire" } };
+    const { ok, httpStatus, json } = await this.call("GET", `/payments/${encodeURIComponent(providerReference)}`);
+    if (!ok) throw new GatewayError("unreachable", `Le prestataire n'a pas pu confirmer l'état du paiement (${httpStatus}).`, { response: redacted(json) });
+    const data = asRecord(json.data ?? json);
+    const amount = Number.parseInt(String(data.amount ?? ""), 10);
+    const rawStatus = String(data.status ?? "").toLowerCase();
+    return {
+      status: GENIUSPAY_STATUS[rawStatus] ?? "pending",
+      amountXof: Number.isFinite(amount) ? amount : undefined,
+      currency: typeof data.currency === "string" ? data.currency : undefined,
+      providerReference: typeof data.reference === "string" ? data.reference : providerReference,
+      usedMethod: typeof data.payment_method === "string" ? data.payment_method : null,
+      request: { reference, providerReference },
+      response: redacted(json),
+    };
+  }
+
+  async refund(input: RefundInput): Promise<RefundResult> {
+    // Remboursement depuis l'espace marchand GeniusPay, puis confirmation par l'équipe.
+    return { mode: "manual", status: "processing", request: redacted(input), response: { status: "manual_refund_required", via: "espace marchand GeniusPay" } };
   }
 }
 
