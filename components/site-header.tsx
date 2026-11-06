@@ -65,7 +65,7 @@ export function SiteHeader() {
           </button>
           <span className="header-currency" aria-label={`${languageName} · ${currency}`}><Globe size={17}/><span>{languageName} · {currency}</span></span>
           <Link href="/panier" className="header-action cart-action" aria-label={`${text("cart")}${count ? `, ${count}` : ""}`}><span className="cart-icon"><ShoppingCart size={22}/>{count > 0 && <b>{count}</b>}</span></Link>
-          <Link href="/connexion" className="header-action"><UserRound size={19}/><span>{text("signIn")}</span></Link>
+          <Link href="/connexion" className="header-action" aria-label={text("signIn")}><UserRound size={19}/><span>{text("signIn")}</span></Link>
           <Link href="/inscription" className="header-signup"><UserRoundPlus size={15}/><span>{text("createAccount")}</span></Link>
         </div>
       </div>

@@ -154,7 +154,7 @@ export function ProductDetailPage({ product, cartItem, publishedReviews = [], pa
     </div>
 
     <FloatingActions onImageSearch={() => setImageSearchOpen(true)}/>
-    <MobileActionBar slug={product.slug} onOrder={order} orderable={!cartItem.isDemo} title={product.title}/>
+    <MobileActionBar slug={product.slug} onOrder={order} onAddToCart={addToCart} orderable={!cartItem.isDemo} title={product.title}/>
     <VariantSheet product={product} state={variants} open={sheetOpen} onClose={closeSheet}/>
     <ImageSearchDialog open={imageSearchOpen} onClose={closeImageSearch}/>
   </main>;
