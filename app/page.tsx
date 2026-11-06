@@ -16,10 +16,9 @@ const categoryIcons: Record<string, LucideIcon> = {
 };
 
 export default async function HomePage() {
-  // Accueil vitrine : rendu sans dépendre de la base. Un accueil en 500 parce
-  // que la base est momentanément indisponible fait perdre visiteurs et
-  // crédibilité ; le catalogue temps réel reste sur /produits.
-  const products = await getCatalogProducts({ forceDemo: true });
+  // Vrais produits d'abord, complétés par les exemples. Une base indisponible
+  // ne fait pas tomber l'accueil : getCatalogProducts retombe sur la démonstration.
+  const products = await getCatalogProducts();
   const categoryGroups = categories.map((category) => ({ category, items: products.filter((product) => product.categorySlug === category.slug) }));
 
   return <main className="shell marketplace-home marketplace-catalog-home">

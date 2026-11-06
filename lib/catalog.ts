@@ -64,18 +64,24 @@ export async function countCatalogProductsForSeller(sellerSlug:string):Promise<n
  * toucher la base, donc sans 500 possible ni latence inutile.
  */
 export async function getCatalogProducts(options:{featured?:boolean;forceDemo?:boolean}={}) : Promise<DemoProduct[]> {
-  if (options.forceDemo || !process.env.DATABASE_URL) return demoCatalog(options);
+  // Sans base (développement local), le parcours de démonstration simule les commandes dans le navigateur.
+  if (!process.env.DATABASE_URL) return demoCatalog(options);
+  if (options.forceDemo) return markDemo(demoCatalog(options));
   try {
     const rows = await queryCatalog(options);
-    if (rows.length) return rows;
-    // Base joignable mais aucun produit publié (boutique pas encore alimentée) : la vitrine
-    // garde le catalogue de démonstration, cohérent avec l'accueil, au lieu de pages vides
-    // et de fiches introuvables. Il disparaît dès qu'un produit réel est publié.
-    return demoCatalog(options);
+    // Vrais produits d'abord, complétés par les exemples de démonstration (marqués, non commandables)
+    // pour que la vitrine ne paraisse pas vide tant que le catalogue réel est réduit.
+    const realSlugs = new Set(rows.map((row) => row.slug));
+    const examples = markDemo(demoCatalog(options).filter((product) => !realSlugs.has(product.slug)));
+    return options.featured ? [...rows, ...examples].slice(0, 8) : [...rows, ...examples];
   } catch (error) {
     console.error("[catalog] Base injoignable, repli sur le catalogue de démonstration :", error instanceof Error ? error.message : error);
-    return demoCatalog(options);
+    return markDemo(demoCatalog(options));
   }
+}
+
+function markDemo(items:DemoProduct[]):DemoProduct[] {
+  return items.map((product)=>({ ...product, isDemo:true }));
 }
 
 function demoCatalog(options:{featured?:boolean}={}):DemoProduct[] {

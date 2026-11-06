@@ -85,7 +85,7 @@ describe("confirmation de commande", () => {
     expect(customer[0].subject).toBe(`Votre commande ${first}, ${second} est enregistrée`);
     expect(customer[0].html).toContain("Lampe de bureau");
     expect(customer[0].html).toContain("25 000 FCFA");
-    expect(customer[0].html).toContain("#ff8000");
+    expect(customer[0].html).toContain("#ff6a00");
     // Le nom saisi par le client est échappé, jamais interprété.
     expect(customer[0].html).toContain("Awa &lt;b&gt;Koné&lt;/b&gt;");
     expect(customer[0].html).not.toContain("<b>Koné</b>");

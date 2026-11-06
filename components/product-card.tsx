@@ -39,6 +39,7 @@ export function ProductVisual({ product, className = "" }: { product: DemoProduc
   return <div className={`product-visual tone-${product.tone} ${className}`} aria-label={product.title} role="img">
     {product.imageUrl ? <Image src={product.imageUrl} alt="" fill sizes="(max-width: 720px) 45vw, 22vw" className="product-image"/> : <div className="product-placeholder" aria-hidden="true"><PlaceholderIcon size={46} strokeWidth={1.35}/></div>}
     <span className="visual-origin">CHINE → {country.code}</span>
+    {product.isDemo && <span className="visual-demo-badge">Exemple</span>}
   </div>;
 }
 
@@ -54,7 +55,7 @@ export function ProductCard({ product, compact = false }: { product: DemoProduct
       <Link href={`/produits/${product.slug}#photo`} className="product-card-title">{product.title}</Link>
       <div className="product-card-price">{formatPrice(product.priceXof)} <span>{text("perUnit")}</span></div>
       <div className="product-card-meta"><span className="delivery-estimate"><Clock3 size={12}/> {text("estimatedDelivery")}</span></div>
-      <div className="product-card-foot"><span>{text("minimum")} {product.minimumQuantity} {product.minimumQuantity > 1 ? text("units") : text("unit")}</span><div className="product-card-actions"><CompareProductButton product={product}/><button className="quick-add" onClick={() => addItem(product)} aria-label={`${text("addToCart")}: ${product.title}`}><Plus size={16}/></button></div></div>
+      <div className="product-card-foot"><span>{text("minimum")} {product.minimumQuantity} {product.minimumQuantity > 1 ? text("units") : text("unit")}</span><div className="product-card-actions"><CompareProductButton product={product}/>{!product.isDemo && <button className="quick-add" onClick={() => addItem(product)} aria-label={`${text("addToCart")}: ${product.title}`}><Plus size={16}/></button>}</div></div>
     </div>
   </article>;
 }

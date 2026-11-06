@@ -352,9 +352,9 @@ body.pd-lock{overflow:hidden}
 
 /* ---------- Tablette ---------- */
 @media (max-width:1180px){
-  .pd-layout{display:flex;flex-direction:column;gap:24px}
+  .pd-layout{display:flex;flex-direction:column;align-items:stretch;gap:24px}
   .pd-left{display:contents}
-  .pd-main{order:1}
+  .pd-main{order:1;width:100%}
   .pd-right{order:2;position:static;max-height:none;overflow:visible;width:100%}
   .pd-lower{order:3;margin-top:0;width:100%}
   .pd-floating{display:none}
