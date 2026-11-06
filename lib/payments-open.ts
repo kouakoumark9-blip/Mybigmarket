@@ -18,3 +18,15 @@ export async function hasOpenPaymentMethod(): Promise<boolean> {
     return false;
   }
 }
+
+/** Codes des moyens de paiement activés au back-office (ex. « wave », « card »), pour afficher leurs logos. */
+export async function listOpenPaymentMethodCodes(): Promise<string[]> {
+  if (!process.env.DATABASE_URL) return ["wave", "orange_money", "mtn_momo", "card"];
+  try {
+    const rows = await getDb().select({ code: paymentMethodConfigs.code }).from(paymentMethodConfigs).where(eq(paymentMethodConfigs.isActive, true));
+    return rows.map((row) => row.code);
+  } catch (error) {
+    console.error("[payments] Moyens de paiement illisibles :", error instanceof Error ? error.message : error);
+    return [];
+  }
+}

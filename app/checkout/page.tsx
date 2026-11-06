@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { and, eq } from "drizzle-orm";
 import CheckoutForm from "@/components/checkout-form";
+import { auth } from "@/auth";
 import { getDb } from "@/lib/db";
-import { paymentCountryRules, paymentMethodConfigs, pickupPoints } from "@/lib/db/schema";
+import { paymentCountryRules, paymentMethodConfigs, pickupPoints, users } from "@/lib/db/schema";
 
 export const dynamic="force-dynamic";
 export const metadata:Metadata={title:"Finaliser ma commande"};
@@ -23,6 +24,8 @@ async function availablePayments(db:ReturnType<typeof getDb>):Promise<Record<str
 export default async function CheckoutPage(){
  if(!process.env.DATABASE_URL)return <CheckoutForm pickupPoints={[{id:1,name:"Point démo Plateau",city:"Abidjan",address:"Plateau, Abidjan"},{id:2,name:"Point démo Cocody",city:"Abidjan",address:"Cocody, Abidjan"}]} demoMode/>;
  const db=getDb();
+ const session=await auth().catch(()=>null);
+ const account=session?.user?.id?await db.select({name:users.name,phone:users.phone}).from(users).where(eq(users.id,session.user.id)).limit(1).then((rows)=>rows[0]).catch(()=>undefined):undefined;
  const [points,payments]=await Promise.all([db.select({id:pickupPoints.id,name:pickupPoints.name,city:pickupPoints.city,address:pickupPoints.address}).from(pickupPoints).where(eq(pickupPoints.isActive,true)),availablePayments(db)]);
- return <CheckoutForm pickupPoints={points} paymentsByCountry={payments}/>;
+ return <CheckoutForm pickupPoints={points} paymentsByCountry={payments} defaultName={account?.name??""} defaultPhone={account?.phone??""}/>;
 }

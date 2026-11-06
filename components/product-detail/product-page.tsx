@@ -49,7 +49,7 @@ function useHeaderOffset() {
   }, []);
 }
 
-export function ProductDetailPage({ product, cartItem, publishedReviews = [], paymentsOpen = false }: { product: Product; cartItem: DemoProduct; publishedReviews?: PublicReview[]; paymentsOpen?: boolean }) {
+export function ProductDetailPage({ product, cartItem, publishedReviews = [], paymentsOpen = false, paymentMethods = [] }: { product: Product; cartItem: DemoProduct; publishedReviews?: PublicReview[]; paymentsOpen?: boolean; paymentMethods?: string[] }) {
   const router = useRouter();
   const { addItem } = useCart();
   const [color, setColor] = useState(product.colorVariants[0]?.id || "");
@@ -148,7 +148,7 @@ export function ProductDetailPage({ product, cartItem, publishedReviews = [], pa
         </div>
 
         <div className="pd-right">
-          <BuyBox product={product} variants={variants} compact={compact} onOrder={order} onAddToCart={addToCart} feedback={feedback} orderable={!cartItem.isDemo} paymentsOpen={paymentsOpen}/>
+          <BuyBox product={product} variants={variants} compact={compact} onOrder={order} onAddToCart={addToCart} feedback={feedback} orderable={!cartItem.isDemo} paymentsOpen={paymentsOpen} paymentMethods={paymentMethods}/>
         </div>
       </div>
     </div>

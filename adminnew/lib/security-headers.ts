@@ -43,7 +43,7 @@ export function contentSecurityPolicy(options: SecurityHeaderOptions = {}): stri
   return parts.join("; ");
 }
 
-export const PERMISSIONS_POLICY = "camera=(), microphone=(), geolocation=(), payment=(), usb=(), serial=(), bluetooth=(), hid=(), midi=(), browsing-topics=()";
+export const PERMISSIONS_POLICY = "camera=(), microphone=(), geolocation=(self), payment=(), usb=(), serial=(), bluetooth=(), hid=(), midi=(), browsing-topics=()";
 
 export function securityHeaders(options: SecurityHeaderOptions = {}): Array<{ key: string; value: string }> {
   return [

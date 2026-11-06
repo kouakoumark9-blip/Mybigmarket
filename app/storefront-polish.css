@@ -259,3 +259,92 @@ body main:not(.pd) .catalog-image-banner-copy i * { color: var(--color-on-primar
 body main:not(.pd) .catalog-image-banner-copy i { font-weight: 700; font-size: 12.5px; }
 body .pd .pd-btn { font-weight: 700; }
 body .pd .pd-btn-primary, body .pd-mobile-bar .pd-btn-primary { color: var(--color-on-primary); }
+
+/* ==========================================================================
+   Drapeaux, logos de paiement, localisation, tunnel de commande sur mobile
+   ========================================================================== */
+.country-flag { display: inline-block; vertical-align: middle; flex: none; border-radius: 3px; object-fit: cover; box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-shadow) 14%, transparent); }
+.country-flag-code { display: inline-grid; place-items: center; min-width: 26px; height: 18px; padding: 0 3px; background: var(--color-bg); font-size: 10px; font-weight: 800; }
+body .country-picker-code { width: auto; height: auto; border: 0; background: transparent; }
+.header-flag { margin-right: 6px; }
+body .mobile-destination-button .country-flag { margin-right: 4px; }
+
+.payment-logos { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.payment-logos li { display: flex; line-height: 0; }
+.payment-logos { flex: none; }
+.payment-logos img { display: block; max-width: none; border-radius: 6px; }
+.payment-choice .payment-logos { gap: 4px; }
+body .payment-choice { align-items: center; gap: 10px; }
+body .payment-choice > span { font-weight: 600; }
+
+.footer-countries { margin-top: 16px; }
+.footer-countries b { display: block; margin-bottom: 8px; font-size: 13px; color: var(--color-text); }
+.footer-countries ul { list-style: none; display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; }
+.site-footer .footer-payments { margin-top: 2px; }
+
+.locate-box { margin: 0 0 14px; }
+.locate-button {
+  display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 16px;
+  border: 1px solid var(--color-primary); border-radius: 999px; background: var(--color-primary-soft);
+  color: var(--color-primary-strong); font-size: 14px; font-weight: 700; cursor: pointer;
+  transition: background-color .15s, color .15s, transform .1s;
+}
+body .locate-button, body .locate-button * { color: var(--color-primary-strong) !important; }
+@media (hover: hover) {
+  body .locate-button:hover:not(:disabled) { background: var(--color-primary); }
+  body .locate-button:hover:not(:disabled), body .locate-button:hover:not(:disabled) * { color: var(--color-on-primary) !important; }
+}
+.locate-button:active { transform: scale(.97); }
+.locate-spin { animation: locate-spin 1s linear infinite; }
+@keyframes locate-spin { to { transform: rotate(360deg); } }
+body .locate-message { margin: 8px 0 0; font-size: 13.5px; font-weight: 600; color: var(--color-success) !important; }
+body .locate-message.is-error { color: var(--color-danger) !important; }
+body .locate-privacy { margin: 6px 0 0; font-size: 12px; line-height: 1.4; color: var(--color-text-muted) !important; }
+
+.checkout-sticky-bar { display: none; }
+@media (max-width: 720px) {
+  /* Le récapitulatif passe après le formulaire (adresse, puis paiement), et le bouton reste à portée de pouce. */
+  body .checkout-layout .summary-card { order: 0; }
+  body .checkout-layout .summary-card > button[type="submit"] { display: none; }
+  body .checkout-sticky-bar {
+    position: fixed; z-index: 90; left: 0; right: 0; bottom: 0;
+    display: flex; align-items: center; justify-content: space-between; gap: 14px;
+    padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px));
+    background: var(--color-surface); border-top: 1px solid var(--color-border); box-shadow: var(--shadow-md);
+  }
+  .checkout-sticky-bar > div { display: grid; gap: 1px; min-width: 0; }
+  .checkout-sticky-bar small { font-size: 12px; color: var(--color-text-muted); }
+  .checkout-sticky-bar b { font-size: 18px; letter-spacing: -.3px; color: var(--color-text); white-space: nowrap; }
+  .checkout-sticky-bar .button { flex: 1; max-width: 230px; min-height: 48px; }
+  body:has(.checkout-sticky-bar) .mobile-tabbar { display: none; }
+  body:has(.checkout-sticky-bar) .site-footer { padding-bottom: 84px; }
+  body:has(.checkout-sticky-bar) .whatsapp-float { bottom: 88px; }
+  .payment-options { grid-template-columns: 1fr; }
+  body .payment-choice { min-height: 56px; }
+}
+
+/* Résultat du paiement et règlement d'une commande en attente. */
+.pay-banner { display: flex; gap: 14px; align-items: flex-start; margin: 0 0 16px; padding: 16px 18px; border-radius: 12px; border: 1px solid var(--color-border); background: var(--color-surface); }
+.pay-banner > svg { flex: none; margin-top: 2px; }
+.pay-banner h2 { margin: 0 0 4px; font-size: 18px; }
+.pay-banner p { margin: 0 0 10px; font-size: 14.5px; line-height: 1.5; color: var(--color-text-muted); }
+.pay-banner.is-success { background: var(--color-success-soft); border-color: color-mix(in srgb, var(--color-success) 35%, transparent); }
+.pay-banner.is-success > svg { color: var(--color-success); }
+.pay-banner.is-pending { background: var(--color-primary-soft); border-color: var(--color-primary-muted); }
+.pay-banner.is-pending > svg { color: var(--color-primary); }
+.pay-banner.is-failed { background: var(--color-danger-soft); border-color: color-mix(in srgb, var(--color-danger) 35%, transparent); }
+.pay-banner.is-failed > svg { color: var(--color-danger); }
+.pay-banner > div { min-width: 0; flex: 1; }
+
+.pay-form { display: grid; gap: 10px; margin-top: 4px; }
+.pay-form-options { display: grid; gap: 8px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.pay-form-submit { width: 100%; min-height: 48px; }
+.pay-form-note, .pay-form-empty { margin: 0; font-size: 12.5px; color: var(--color-text-muted); }
+@media (max-width: 720px) { .pay-form-options { grid-template-columns: 1fr; } .pay-banner { padding: 14px; } }
+
+/* Sélecteur de pays : la mention « livraison à confirmer » figure déjà en haut, pas sur chaque ligne. */
+.country-picker-modal .locate-box { margin: 0 22px 12px; }
+.country-picker-item:not(.is-selected) .country-picker-confirm { display: none; }
+
+/* Les logos portent déjà leur propre cadre : pas de pastille supplémentaire autour. */
+body .payment-logos li, body .pd-payments li { padding: 0; border: 0; background: transparent; min-height: 0; border-radius: 0; }
