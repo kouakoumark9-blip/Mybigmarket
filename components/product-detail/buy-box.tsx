@@ -80,8 +80,8 @@ export function BuyBox({ product, variants, compact, onOrder, onAddToCart, feedb
     </>}
 
     {!orderable ? <div className="pd-actions">
-      <p className="pd-demo-note">Produit d’exemple : il n’est pas encore en vente. Demandez un devis, notre équipe vous propose un article équivalent.</p>
-      <Link href={`/demande-de-devis?produit=${encodeURIComponent(product.title)}`} className="pd-btn pd-btn-primary pd-btn-block">Demander un devis</Link>
+      <p className="pd-demo-note">Ce produit se commande sur demande : indiquez la quantité souhaitée, notre équipe vous confirme le prix et le délai.</p>
+      <Link href={`/demande-de-devis?produit=${encodeURIComponent(product.title)}`} className="pd-btn pd-btn-primary pd-btn-block">Commander</Link>
     </div> : <div className="pd-actions">
       <button type="button" className="pd-btn pd-btn-primary pd-btn-block" onClick={onOrder}>Commander</button>
       <div className="pd-actions-row">
