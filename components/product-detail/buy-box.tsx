@@ -2,9 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ChevronDown, ChevronRight, Code2, Globe, MessageCircle, RotateCcw, ShieldCheck, ShoppingBag, ShoppingCart, Store } from "lucide-react";
-
-const integrationIcons = { bag: ShoppingBag, cart: ShoppingCart, globe: Globe, store: Store, code: Code2 } as const;
+import { ChevronDown, ChevronRight, MessageCircle, RotateCcw, ShieldCheck, ShoppingCart } from "lucide-react";
 import type { Product } from "@/lib/pdp/types";
 import { pdpConfig } from "@/lib/pdp/config";
 import { startConversationAction } from "@/actions/messages";
@@ -23,10 +21,12 @@ type Props = {
   feedback: string;
   /** Faux pour un produit d'exemple : ni commande ni discussion, seulement une demande de devis. */
   orderable?: boolean;
+  /** Un moyen de paiement est ouvert : on peut alors afficher les garanties de paiement. */
+  paymentsOpen?: boolean;
 };
 
 /** Boîte d'achat. En mode compact (au défilement), elle reprend prix, MOQ et variantes. */
-export function BuyBox({ product, variants, compact, onOrder, onAddToCart, feedback, orderable = true }: Props) {
+export function BuyBox({ product, variants, compact, onOrder, onAddToCart, feedback, orderable = true, paymentsOpen = false }: Props) {
   const { language, formatPrice } = useCountryPreferences();
   const [shippingOpen, setShippingOpen] = useState(false);
   const [shipping, setShipping] = useState<ShippingChoice | null>(null);
@@ -52,6 +52,7 @@ export function BuyBox({ product, variants, compact, onOrder, onAddToCart, feedb
         : product.shipping.placeholder}</p>
     </section>
 
+    {paymentsOpen && <>
     <hr className="pd-rule"/>
 
     <section className="pd-buybox-row">
@@ -73,6 +74,7 @@ export function BuyBox({ product, variants, compact, onOrder, onAddToCart, feedb
         </div>
       </div>}
     </section>
+    </>}
 
     {!orderable ? <div className="pd-actions">
       <p className="pd-demo-note">Produit d’exemple : il n’est pas encore en vente. Demandez un devis, notre équipe vous propose un article équivalent.</p>
@@ -88,14 +90,6 @@ export function BuyBox({ product, variants, compact, onOrder, onAddToCart, feedb
       <Link href={`/demande-de-devis?produit=${encodeURIComponent(product.title)}`} className="pd-quote-link">Besoin d’une grande quantité ? Demander un devis</Link>
     </div>}
 
-    {!compact && <>
-      <hr className="pd-rule"/>
-      <section className="pd-dropship" aria-labelledby="pd-dropship-title">
-        <h2 id="pd-dropship-title">{pdpConfig.dropshipping.title}</h2>
-        <ul className="pd-integrations" aria-label="Intégrations disponibles">{pdpConfig.dropshipping.integrations.map((item) => { const Icon = integrationIcons[item.icon]; return <li key={item.label} title={item.label}><Icon size={15} strokeWidth={1.5} aria-hidden="true"/><span className="sr-only">{item.label}</span></li>; })}</ul>
-        <Link href={pdpConfig.dropshipping.href} className="pd-btn pd-btn-outline pd-btn-block">{pdpConfig.dropshipping.cta}</Link>
-      </section>
-    </>}
 
     {shippingOpen && <ShippingModal shipping={product.shipping} value={shipping} onChange={setShipping} onClose={() => setShippingOpen(false)}/>}
   </aside>;

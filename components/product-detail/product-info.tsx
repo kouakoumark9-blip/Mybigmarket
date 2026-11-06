@@ -1,12 +1,10 @@
 "use client";
 
-import { forwardRef, useState } from "react";
-import { ChevronRight, Info, Sparkles, Trophy } from "lucide-react";
+import { forwardRef } from "react";
+import { Info, Trophy } from "lucide-react";
 import type { Product } from "@/lib/pdp/types";
-import { pdpConfig } from "@/lib/pdp/config";
 import { VariantPicker, type VariantState } from "@/components/product-detail/variant-picker";
 import { SpecsGrid } from "@/components/product-detail/specs-grid";
-import { MarginCalculator } from "@/components/product-detail/margin-calculator";
 import { Stars, plural, usePriceRange } from "@/components/product-detail/shared";
 
 type Props = { product: Product; variants: VariantState; unitPrice: number };
@@ -16,13 +14,17 @@ export function PriceBlock({ product, compact = false }: { product: Product; com
   const priceRange = usePriceRange();
   return <div className={`pd-price-block${compact ? " is-compact" : ""}`}>
     {product.lowestPriceBadge && <span className="pd-badge-deal">{product.lowestPriceBadge}</span>}
-    <p className="pd-price"><span className="sr-only">Prix : </span>{priceRange(product.priceMin, product.priceMax)}</p>
+    {product.quantityPrices?.length ? <ul className="pd-qty-prices" aria-label="Prix selon la quantité">
+      {product.quantityPrices.map((row) => <li key={row.minQuantity}>
+        <span className="pd-qty-range">{row.maxQuantity == null ? `${row.minQuantity.toLocaleString("fr-FR")} ${product.unit}s et plus` : `${row.minQuantity.toLocaleString("fr-FR")} – ${row.maxQuantity.toLocaleString("fr-FR")} ${product.unit}s`}</span>
+        <b>{priceRange(row.unitPriceXof)}</b>
+      </li>)}
+    </ul> : <p className="pd-price"><span className="sr-only">Prix : </span>{priceRange(product.priceMin, product.priceMax)}</p>}
     <p className="pd-moq">Quantité minimale : {plural(product.minOrderQty, product.unit)}</p>
   </div>;
 }
 
-export const ProductInfo = forwardRef<HTMLDivElement, Props>(function ProductInfo({ product, variants, unitPrice }, priceRef) {
-  const [calcOpen, setCalcOpen] = useState(false);
+export const ProductInfo = forwardRef<HTMLDivElement, Props>(function ProductInfo({ product, variants }, priceRef) {
   return <section className="pd-info" aria-label="Informations sur le produit">
     <h1 className="pd-title" title={product.title}>{product.title}</h1>
     <div className="pd-reputation">
@@ -46,10 +48,5 @@ export const ProductInfo = forwardRef<HTMLDivElement, Props>(function ProductInf
       <ul className="pd-highlights">{product.highlights.map((item) => <li key={item.lead}><b>{item.lead}</b> {item.text}</li>)}</ul>
     </section>}
 
-    <section className="pd-block" aria-label={pdpConfig.analysisTitle}>
-      <p className="pd-analysis"><Sparkles size={15} strokeWidth={1.75} className="pd-spark" aria-hidden="true"/> {pdpConfig.analysisTitle}</p>
-      <button type="button" className="pd-row-button" onClick={() => setCalcOpen((value) => !value)} aria-expanded={calcOpen}>{pdpConfig.marginCta}<ChevronRight size={16} strokeWidth={1.5} className={calcOpen ? "is-rotated" : ""}/></button>
-      {calcOpen && <MarginCalculator unitPrice={unitPrice} minOrderQty={product.minOrderQty} onClose={() => setCalcOpen(false)}/>}
-    </section>
   </section>;
 });

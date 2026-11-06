@@ -94,6 +94,9 @@ export type ShippingInfo = {
   carriers: Array<{ id: string; label: string; delay: string; feeXof?: number }>;
 };
 
+/** Tranche de prix par quantité (maxQuantity null : « et plus »). */
+export type QuantityPrice = { minQuantity: number; maxQuantity: number | null; unitPriceXof: number };
+
 export type Product = {
   id: string;
   slug: string;
@@ -131,4 +134,6 @@ export type Product = {
   supplierProducts: ProductCardData[];
   /** Texte SEO (meta description). */
   metaDescription: string;
+  /** Prix dégressifs réellement appliqués au panier ; absent s'il n'y a qu'un prix. */
+  quantityPrices?: QuantityPrice[];
 };

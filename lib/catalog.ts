@@ -6,7 +6,7 @@ import { products as demoProducts, sellers as demoSellers, type DemoProduct } fr
 import { getMockStorefrontForSeller, getMockStorefrontBySlug } from "@/lib/demo-backend";
 import { smartphoneCamon50Pro } from "@/lib/product";
 
-export type StoreSeller = { slug:string; name:string; university:string; city:string; rating:number; orders:number; initials:string };
+export type StoreSeller = { slug:string; name:string; university:string; city:string; rating:number; orders:number; initials:string; isDemo?:boolean };
 export type PublicStorefront = { slug:string; storeName:string; headline:string; description:string; announcement:string|null; sellerSlug:string; sellerName:string; university:string; city:string; rating:number; productCount:number; isDemo:boolean };
 
 export async function getPublicStorefrontBySlug(slug:string):Promise<PublicStorefront|undefined>{
@@ -116,13 +116,15 @@ export async function getCatalogProduct(slug:string):Promise<DemoProduct|undefin
  */
 export async function getStoreSellers():Promise<StoreSeller[]>{
   if(!process.env.DATABASE_URL)return demoSellers;
+  const examples=(exclude:Set<string>)=>demoSellers.filter((seller)=>!exclude.has(seller.slug)).map((seller)=>({...seller,isDemo:true}));
   try{
     const rows=await queryStoreSellers();
-    // Aucun vendeur validé et actif en base : même règle que le catalogue.
-    return rows.length?rows:demoSellers;
+    // Même règle que le catalogue : vrais vendeurs d'abord, puis ceux des produits d'exemple
+    // (leurs fiches pointent vers ces profils, qui doivent donc rester accessibles).
+    return [...rows,...examples(new Set(rows.map((row)=>row.slug)))];
   }catch(error){
     console.error("[catalog] Base injoignable, repli sur les vendeurs de démonstration :", error instanceof Error ? error.message : error);
-    return demoSellers;
+    return examples(new Set());
   }
 }
 

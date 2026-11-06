@@ -36,6 +36,7 @@ export const SETTING_DEFINITIONS = {
   "store.logo_url": define({ group: "store", label: "URL du logo", schema: optionalUrl, defaultValue: "", public: true }),
   "store.email": define({ group: "store", label: "E-mail de contact", schema: z.union([z.literal(""), z.string().email().max(190)]), defaultValue: "", public: true }),
   "store.phone": define({ group: "store", label: "Téléphone de contact", schema: text(32), defaultValue: "", public: true }),
+  "store.whatsapp": define({ group: "store", label: "Numéro WhatsApp (format international, ex. +225 07 00 00 00 00)", schema: z.union([z.literal(""), z.string().trim().regex(/^\+?[0-9 ().-]{8,24}$/, "Numéro WhatsApp invalide.")]), defaultValue: "", public: true }),
   "store.address": define({ group: "store", label: "Adresse", schema: text(400), defaultValue: "", public: true }),
   "store.time_zone": define({ group: "store", label: "Fuseau horaire", schema: z.string().refine((value) => { try { new Intl.DateTimeFormat("fr", { timeZone: value }); return true; } catch { return false; } }, "Fuseau horaire inconnu."), defaultValue: "Africa/Abidjan", public: true }),
   "store.currency": define({ group: "store", label: "Devise par défaut", schema: z.string().regex(/^[A-Z]{3}$/), defaultValue: "XOF", public: true }),
