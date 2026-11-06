@@ -9,9 +9,10 @@ import { DestinationPrice } from "@/components/country-preferences";
 import { PaymentStatusBanner } from "@/components/payment-status-banner";
 import { db as coreDb } from "@/server/core/db";
 import { getIntentForCustomer, loadPaymentSettings, paymentMethodAvailability } from "@/server/modules/payments/service";
+import { getLanguage, getTr } from "@/lib/i18n/server";
 import { DemoOrdersView } from "@/components/demo-orders-view";
 
-export const metadata: Metadata = { title: "Mes commandes" };
+export async function generateMetadata(): Promise<Metadata> { return { title: (await getTr())("Mes commandes") }; }
 const labels: Record<string, string> = { awaiting_payment:"En attente de paiement", paid_escrow:"Payée · fonds bloqués", seller_confirmed:"Confirmée par le vendeur", received_collection_point:"Au point de collecte", shipped:"Expédiée", arrived_abidjan:"Arrivée à Abidjan", out_for_delivery:"En livraison", delivered:"Livrée", seller_paid:"Vendeur payé", cancelled:"Annulée", dispute:"En litige", refunded:"Remboursée" };
 
 export const dynamic = "force-dynamic";
@@ -37,13 +38,15 @@ async function paymentFeedback(userId: string, reference: string, orderRows: Arr
 export default async function OrdersPage({ searchParams }: { searchParams: Promise<{ paiement?: string; erreur?: string }> }) {
   if (!process.env.DATABASE_URL) return <DemoOrdersView/>;
   const user = await requireUser();
+  const tr = await getTr();
+  const lang = await getLanguage();
   const db = getDb();
   const rows = await db.select().from(orders).where(eq(orders.buyerId, user.id)).orderBy(desc(orders.createdAt)).limit(50);
   const query = await searchParams;
   const feedback = query.paiement ? await paymentFeedback(user.id, query.paiement.slice(0, 60), rows) : null;
-  return <main className="shell page-space"><div className="breadcrumbs"><Link href="/">Accueil</Link><span>›</span><span>Mes commandes</span></div><h1 className="page-title">Mes commandes</h1><p className="page-subtitle">Suivez vos précommandes de la confirmation à la livraison.</p>
+  return <main className="shell page-space"><div className="breadcrumbs"><Link href="/">{tr("Accueil")}</Link><span>›</span><span>{tr("Mes commandes")}</span></div><h1 className="page-title">{tr("Mes commandes")}</h1><p className="page-subtitle">{tr("Suivez vos précommandes de la confirmation à la livraison.")}</p>
     {query.erreur && <div className="form-error" role="alert">{query.erreur.slice(0, 240)}</div>}
-    {feedback && <PaymentStatusBanner intent={feedback.intent} retryMethods={feedback.retryMethods} formattedAmount={new Intl.NumberFormat("fr-FR").format(feedback.intent.amountXof) + " FCFA"}/>}
-    {!rows.length ? <div className="cart-panel cart-empty"><PackageSearch size={34}/><h2>Aucune commande pour le moment</h2><p>Vos achats et leur suivi apparaîtront ici après le paiement.</p><Link className="button button-primary" href="/produits">Découvrir le catalogue</Link></div> : rows.map((order) => <Link href={`/compte/commandes/${order.id}`} className="order-card order-card-link" key={order.id}><div className="order-card-head"><div><b>Commande #{order.id.slice(0,8).toUpperCase()}</b><small>Passée le {new Intl.DateTimeFormat("fr-FR",{dateStyle:"medium"}).format(order.createdAt)}</small></div><span className="status-pill">{labels[order.status] || order.status}</span></div><div className="order-card-body"><span><DestinationPrice amountXof={order.totalXof} countryCode={order.deliveryAddress?.countryCode}/></span><span className="text-link">Suivre <ArrowRight size={14}/></span></div></Link>)}
+    {feedback && <PaymentStatusBanner intent={feedback.intent} retryMethods={feedback.retryMethods} formattedAmount={new Intl.NumberFormat(lang).format(feedback.intent.amountXof) + " FCFA"}/>}
+    {!rows.length ? <div className="cart-panel cart-empty"><PackageSearch size={34}/><h2>{tr("Aucune commande pour le moment")}</h2><p>{tr("Vos achats et leur suivi apparaîtront ici après le paiement.")}</p><Link className="button button-primary" href="/produits">{tr("Découvrir le catalogue")}</Link></div> : rows.map((order) => <Link href={`/compte/commandes/${order.id}`} className="order-card order-card-link" key={order.id}><div className="order-card-head"><div><b>{tr("Commande")} #{order.id.slice(0,8).toUpperCase()}</b><small>{tr("Passée le")} {new Intl.DateTimeFormat(lang,{dateStyle:"medium"}).format(order.createdAt)}</small></div><span className="status-pill">{labels[order.status] ? tr(labels[order.status]) : order.status}</span></div><div className="order-card-body"><span><DestinationPrice amountXof={order.totalXof} countryCode={order.deliveryAddress?.countryCode}/></span><span className="text-link">{tr("Suivre")} <ArrowRight size={14}/></span></div></Link>)}
   </main>;
 }

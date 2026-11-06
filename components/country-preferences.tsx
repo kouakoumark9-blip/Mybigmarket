@@ -1,9 +1,11 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { countryName, destinationByCode, languageLabels, localeForCountry, resolveCountryLanguage } from "@/lib/west-africa";
+import { countryName, destinationByCode, languageLabels, localeForCountry } from "@/lib/west-africa";
 import type { DestinationCountry, SiteLanguage } from "@/lib/west-africa";
 import { t } from "@/lib/site-locale";
+import { LANGUAGE_COOKIE, translator, type Translate } from "@/lib/i18n";
 import type { LocaleMessageKey } from "@/lib/site-locale";
 
 type CountryPreferencesValue = {
@@ -20,6 +22,10 @@ type CountryPreferencesValue = {
   exchangeRateReady: boolean;
   exchangeRateUpdatedAt: string | null;
   text: (key: LocaleMessageKey) => string;
+  /** Change de langue parmi celles que propose le pays (ex. français / anglais en Côte d'Ivoire). */
+  setSiteLanguage: (next: SiteLanguage) => void;
+  /** Traduit un texte français de l'interface dans la langue du pays choisi. */
+  tr: Translate;
 };
 
 const CountryPreferencesContext = createContext<CountryPreferencesValue | null>(null);
@@ -27,16 +33,20 @@ const COUNTRY_COOKIE = "mybigmarket-country";
 
 type ExchangePayload = { rates?: Record<string, number>; updatedAt?: string | null; unavailable?: boolean };
 
-export function CountryPreferencesProvider({ children, initialCountryCode = "CI" }: { children: React.ReactNode; initialCountryCode?: string }) {
+const writeCookie = (name: string, value: string) => {
+  document.cookie = `${name}=${value}; Path=/; Max-Age=31536000; SameSite=Lax${location.protocol === "https:" ? "; Secure" : ""}`;
+};
+
+export function CountryPreferencesProvider({ children, initialCountryCode = "CI", initialLanguage }: { children: React.ReactNode; initialCountryCode?: string; initialLanguage?: SiteLanguage }) {
+  const router = useRouter();
   const [countryCode, setCountryCode] = useState(initialCountryCode);
-  const [language, setLanguage] = useState<SiteLanguage>(() => destinationByCode(initialCountryCode).language);
+  const [language, setLanguage] = useState<SiteLanguage>(() => initialLanguage ?? destinationByCode(initialCountryCode).language);
   const [rates, setRates] = useState<Record<string, number>>({ XOF: 1 });
   const [exchangeRateUpdatedAt, setExchangeRateUpdatedAt] = useState<string | null>(null);
   const country = destinationByCode(countryCode);
   const locale = localeForCountry(country, language);
 
   useEffect(() => {
-    const timer = window.setTimeout(() => setLanguage(resolveCountryLanguage(destinationByCode(initialCountryCode), navigator.language)), 0);
     fetch("/api/exchange-rates", { cache: "no-store" })
       .then((response) => response.json() as Promise<ExchangePayload>)
       .then((payload) => {
@@ -44,8 +54,7 @@ export function CountryPreferencesProvider({ children, initialCountryCode = "CI"
         setExchangeRateUpdatedAt(payload.updatedAt || null);
       })
       .catch(() => undefined);
-    return () => window.clearTimeout(timer);
-  }, [initialCountryCode]);
+  }, []);
 
   useEffect(() => {
     document.documentElement.lang = locale;
@@ -54,14 +63,28 @@ export function CountryPreferencesProvider({ children, initialCountryCode = "CI"
 
   const selectCountry = useCallback((code: string) => {
     const nextCountry = destinationByCode(code);
-    const nextLanguage = resolveCountryLanguage(nextCountry, navigator.language);
+    // La langue suit le pays ; le visiteur peut ensuite choisir la seconde langue du pays (setSiteLanguage).
+    const nextLanguage = nextCountry.language;
     setCountryCode(nextCountry.code);
     setLanguage(nextLanguage);
     window.localStorage.setItem(COUNTRY_COOKIE, nextCountry.code);
-    document.cookie = `${COUNTRY_COOKIE}=${nextCountry.code}; Path=/; Max-Age=31536000; SameSite=Lax${location.protocol === "https:" ? "; Secure" : ""}`;
+    writeCookie(COUNTRY_COOKIE, nextCountry.code);
+    writeCookie(LANGUAGE_COOKIE, nextLanguage);
     document.documentElement.lang = localeForCountry(nextCountry, nextLanguage);
     document.documentElement.dir = nextLanguage === "ar" ? "rtl" : "ltr";
-  }, []);
+    // Les pages rendues côté serveur (fiche produit, panier, pied de page…) reprennent la nouvelle langue.
+    router.refresh();
+  }, [router]);
+
+  const setSiteLanguage = useCallback((next: SiteLanguage) => {
+    const options = destinationByCode(countryCode).languageOptions || [destinationByCode(countryCode).language];
+    if (!options.includes(next)) return;
+    setLanguage(next);
+    writeCookie(LANGUAGE_COOKIE, next);
+    document.documentElement.lang = localeForCountry(destinationByCode(countryCode), next);
+    document.documentElement.dir = next === "ar" ? "rtl" : "ltr";
+    router.refresh();
+  }, [countryCode, router]);
 
   const formatPriceForCountry = useCallback((amountXof: number, code: string, languageOverride?: SiteLanguage) => {
     const target = destinationByCode(code);
@@ -88,7 +111,9 @@ export function CountryPreferencesProvider({ children, initialCountryCode = "CI"
     exchangeRateReady: country.currency === "XOF" || Boolean(rates[country.currency]),
     exchangeRateUpdatedAt,
     text: (key) => t(language, key),
-  }), [country, language, locale, selectCountry, formatPrice, formatPriceForCountry, convertXofToLocal, rates, exchangeRateUpdatedAt]);
+    setSiteLanguage,
+    tr: translator(language),
+  }), [country, language, locale, selectCountry, setSiteLanguage, formatPrice, formatPriceForCountry, convertXofToLocal, rates, exchangeRateUpdatedAt]);
 
   return <CountryPreferencesContext.Provider value={value}>{children}</CountryPreferencesContext.Provider>;
 }

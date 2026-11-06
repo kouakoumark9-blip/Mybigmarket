@@ -5,6 +5,7 @@ import { ChevronDown, ChevronLeft, ChevronRight, Heart, Play, ScanSearch, X } fr
 import type { DemoProduct } from "@/lib/demo-data";
 import type { ProductImage } from "@/lib/pdp/types";
 import { useFavorites } from "@/components/favorites-provider";
+import { useCountryPreferences } from "@/components/country-preferences";
 import { PdpImage } from "@/components/product-detail/shared";
 import { PDP_FROM_CARD } from "@/lib/pdp/navigation";
 
@@ -23,7 +24,8 @@ type Props = {
 const THUMBS = 6;
 
 export function ProductGallery({ images, videoUrl, label, activeIndex, onSelect, favoriteItem, onImageSearch }: Props) {
-  const media: Media[] = [...images.map((image) => ({ ...image, kind: "image" as const })), ...(videoUrl ? [{ src: videoUrl, alt: "Vidéo du produit", kind: "video" as const }] : [])];
+  const { tr } = useCountryPreferences();
+  const media: Media[] = [...images.map((image) => ({ ...image, kind: "image" as const })), ...(videoUrl ? [{ src: videoUrl, alt: tr("Vidéo du produit"), kind: "video" as const }] : [])];
   const count = media.length;
   const index = Math.min(activeIndex, count - 1);
   const active = media[index];
@@ -85,12 +87,12 @@ export function ProductGallery({ images, videoUrl, label, activeIndex, onSelect,
   if (!active) return null;
 
   return <div className="pd-gallery" id="photo">
-    <div className="pd-thumbs" ref={thumbList} role="listbox" aria-label="Miniatures du produit" aria-orientation="vertical" onKeyDown={(event) => { onKey(event); requestAnimationFrame(() => thumbList.current?.querySelector<HTMLButtonElement>(".pd-thumb.is-active")?.focus()); }}>
-      {thumbs.map((item, i) => <button key={`${item.src}-${i}`} type="button" role="option" aria-selected={i === index} tabIndex={i === index ? 0 : -1} className={`pd-thumb${i === index ? " is-active" : ""}`} onClick={() => onSelect(i)} onMouseEnter={() => onSelect(i)} aria-label={`${item.kind === "video" ? "Vidéo" : `Image ${i + 1}`} : ${item.alt}`}>
+    <div className="pd-thumbs" ref={thumbList} role="listbox" aria-label={tr("Miniatures du produit")} aria-orientation="vertical" onKeyDown={(event) => { onKey(event); requestAnimationFrame(() => thumbList.current?.querySelector<HTMLButtonElement>(".pd-thumb.is-active")?.focus()); }}>
+      {thumbs.map((item, i) => <button key={`${item.src}-${i}`} type="button" role="option" aria-selected={i === index} tabIndex={i === index ? 0 : -1} className={`pd-thumb${i === index ? " is-active" : ""}`} onClick={() => onSelect(i)} onMouseEnter={() => onSelect(i)} aria-label={`${item.kind === "video" ? tr("Vidéo") : `${tr("Image")} ${i + 1}`} : ${item.alt}`}>
         <PdpImage src={item.kind === "video" ? poster || item.src : item.src} alt="" width={64} height={64} sizes="64px"/>
         {item.kind === "video" && <span className="pd-thumb-play" aria-hidden="true"><Play size={14} strokeWidth={1.75}/></span>}
       </button>)}
-      {count > THUMBS && <button type="button" className="pd-thumbs-more" onClick={() => setExpanded((value) => !value)} aria-expanded={expanded} aria-label={expanded ? "Afficher moins de miniatures" : "Afficher toutes les miniatures"}><ChevronDown size={18} strokeWidth={1.5} className={expanded ? "is-flipped" : ""}/></button>}
+      {count > THUMBS && <button type="button" className="pd-thumbs-more" onClick={() => setExpanded((value) => !value)} aria-expanded={expanded} aria-label={expanded ? tr("Afficher moins de miniatures") : tr("Afficher toutes les miniatures")}><ChevronDown size={18} strokeWidth={1.5} className={expanded ? "is-flipped" : ""}/></button>}
     </div>
 
     <div className="pd-stage">
@@ -100,7 +102,7 @@ export function ProductGallery({ images, videoUrl, label, activeIndex, onSelect,
         tabIndex={0}
         role="group"
         aria-roledescription="galerie"
-        aria-label={`${active.alt} (${index + 1} sur ${count}). Flèches gauche et droite pour naviguer, Entrée pour agrandir.`}
+        aria-label={tr("{alt} ({i} sur {n}). Flèches gauche et droite pour naviguer, Entrée pour agrandir.", { alt: active.alt, i: index + 1, n: count })}
         onKeyDown={(event) => { if (event.key === "Enter") setLightbox(true); else onKey(event); }}
         onMouseMove={onMove}
         onMouseLeave={() => setZoom(null)}
@@ -114,21 +116,21 @@ export function ProductGallery({ images, videoUrl, label, activeIndex, onSelect,
       </div>
       {label && <span className="pd-stage-label">{label}</span>}
       <div className="pd-stage-actions">
-        <button type="button" onClick={() => toggle(favoriteItem)} aria-pressed={favorite} aria-label={favorite ? "Retirer des favoris" : "Ajouter aux favoris"} className={favorite ? "is-on" : ""}><Heart size={18} strokeWidth={1.5} fill={favorite ? "currentColor" : "none"}/></button>
-        <button type="button" onClick={onImageSearch} aria-label="Rechercher des produits similaires par image"><ScanSearch size={18} strokeWidth={1.5}/></button>
+        <button type="button" onClick={() => toggle(favoriteItem)} aria-pressed={favorite} aria-label={favorite ? tr("Retirer des favoris") : tr("Ajouter aux favoris")} className={favorite ? "is-on" : ""}><Heart size={18} strokeWidth={1.5} fill={favorite ? "currentColor" : "none"}/></button>
+        <button type="button" onClick={onImageSearch} aria-label={tr("Rechercher des produits similaires par image")}><ScanSearch size={18} strokeWidth={1.5}/></button>
       </div>
       {count > 1 && <>
-        <button type="button" className="pd-stage-prev" onClick={() => go(-1)} aria-label="Image précédente"><ChevronLeft size={20} strokeWidth={1.5}/></button>
-        <button type="button" className="pd-stage-next" onClick={() => go(1)} aria-label="Image suivante"><ChevronRight size={20} strokeWidth={1.5}/></button>
+        <button type="button" className="pd-stage-prev" onClick={() => go(-1)} aria-label={tr("Image précédente")}><ChevronLeft size={20} strokeWidth={1.5}/></button>
+        <button type="button" className="pd-stage-next" onClick={() => go(1)} aria-label={tr("Image suivante")}><ChevronRight size={20} strokeWidth={1.5}/></button>
       </>}
       <span className="pd-stage-count" aria-hidden="true">{index + 1}/{count}</span>
     </div>
 
-    {lightbox && active.kind === "image" && <div className="pd-lightbox" role="dialog" aria-modal="true" aria-label="Image agrandie" onClick={() => setLightbox(false)}>
-      <button type="button" className="pd-lightbox-close" onClick={() => setLightbox(false)} aria-label="Fermer" autoFocus><X size={22} strokeWidth={1.5}/></button>
-      <button type="button" className="pd-lightbox-prev" onClick={(event) => { event.stopPropagation(); go(-1); }} aria-label="Image précédente"><ChevronLeft size={26} strokeWidth={1.5}/></button>
+    {lightbox && active.kind === "image" && <div className="pd-lightbox" role="dialog" aria-modal="true" aria-label={tr("Image agrandie")} onClick={() => setLightbox(false)}>
+      <button type="button" className="pd-lightbox-close" onClick={() => setLightbox(false)} aria-label={tr("Fermer")} autoFocus><X size={22} strokeWidth={1.5}/></button>
+      <button type="button" className="pd-lightbox-prev" onClick={(event) => { event.stopPropagation(); go(-1); }} aria-label={tr("Image précédente")}><ChevronLeft size={26} strokeWidth={1.5}/></button>
       <PdpImage src={active.src} alt={active.alt} width={1400} height={1400} sizes="90vw" onClick={(event) => event.stopPropagation()}/>
-      <button type="button" className="pd-lightbox-next" onClick={(event) => { event.stopPropagation(); go(1); }} aria-label="Image suivante"><ChevronRight size={26} strokeWidth={1.5}/></button>
+      <button type="button" className="pd-lightbox-next" onClick={(event) => { event.stopPropagation(); go(1); }} aria-label={tr("Image suivante")}><ChevronRight size={26} strokeWidth={1.5}/></button>
     </div>}
   </div>;
 }
