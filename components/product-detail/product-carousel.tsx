@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from "react";
 import Link from "next/link";
+import { markProductCardClick } from "@/lib/pdp/navigation";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { ProductCardData } from "@/lib/pdp/types";
 import { PdpImage, usePriceRange } from "@/components/product-detail/shared";
@@ -21,7 +22,7 @@ function Card({ item }: { item: ProductCardData }) {
     {item.compareAtPrice && item.discountPercent ? <p className="pd-card-discount"><s>{formatPrice(item.compareAtPrice)}</s> <span>-{item.discountPercent} %</span></p> : null}
     <p className="pd-card-moq">MOQ : {item.minOrderQty} pièce{item.minOrderQty > 1 ? "s" : ""}</p>
   </>;
-  return item.slug ? <Link href={`/produits/${item.slug}`} className="pd-card">{body}</Link> : <article className="pd-card">{body}</article>;
+  return item.slug ? <Link href={`/produits/${item.slug}`} onClick={markProductCardClick} className="pd-card">{body}</Link> : <article className="pd-card">{body}</article>;
 }
 
 export function ProductCarousel({ title, items, id, anchorId }: { title: string; items: ProductCardData[]; id: string; anchorId?: string }) {
