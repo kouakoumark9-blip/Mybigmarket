@@ -6,6 +6,7 @@ import type { DemoProduct } from "@/lib/demo-data";
 import type { ProductImage } from "@/lib/pdp/types";
 import { useFavorites } from "@/components/favorites-provider";
 import { PdpImage } from "@/components/product-detail/shared";
+import { PDP_FROM_CARD } from "@/lib/pdp/navigation";
 
 type Media = ProductImage & { kind: "image" | "video" };
 
@@ -69,6 +70,17 @@ export function ProductGallery({ images, videoUrl, label, activeIndex, onSelect,
     window.addEventListener("keydown", close);
     return () => window.removeEventListener("keydown", close);
   }, [lightbox, index, count, onSelect]);
+
+  // Anciens liens « /produits/slug#photo » : la photo n'existait pas encore quand le navigateur a
+  // traité l'ancre (page en chargement), on l'amène donc à l'écran une fois la fiche affichée.
+  useEffect(() => {
+    if (window.location.hash === "#photo") { document.getElementById("photo")?.scrollIntoView({ block: "start" }); return; }
+    // Arrivée depuis une carte produit : la fiche s'ouvre tout en haut, sur la photo (et non à la
+    // hauteur où l'on était sur la page précédente).
+    try {
+      if (sessionStorage.getItem(PDP_FROM_CARD) === "1") { sessionStorage.removeItem(PDP_FROM_CARD); window.scrollTo({ top: 0, behavior: "auto" }); }
+    } catch { /* stockage indisponible : on garde le comportement du navigateur */ }
+  }, [images]); // d'une fiche à l'autre (recommandations), le composant peut être réutilisé
 
   if (!active) return null;
 

@@ -9,6 +9,7 @@ import { useCountryPreferences } from "@/components/country-preferences";
 import { useCart } from "@/components/cart-provider";
 import { CompareProductButton } from "@/components/product-compare";
 import { FavoriteToggleButton } from "@/components/favorites-provider";
+import { markProductCardClick } from "@/lib/pdp/navigation";
 
 const productVisuals: Record<string, LucideIcon> = {
   "sac-cabas-urbain": ShoppingBag,
@@ -47,12 +48,12 @@ export function ProductCard({ product, compact = false }: { product: DemoProduct
   const { addItem } = useCart();
   const { formatPrice, text, language } = useCountryPreferences();
   return <article className={`product-card ${compact ? "product-card-compact" : ""}`}>
-    <Link href={`/produits/${product.slug}#photo`} className="product-card-image-link" aria-label={`Voir ${product.title}`}>
+    <Link href={`/produits/${product.slug}`} onClick={markProductCardClick} className="product-card-image-link" aria-label={`Voir ${product.title}`}>
       <ProductVisual product={product}/>
     </Link>
     <div className="product-card-info">
       <div className="product-card-category-row"><div className="product-card-category">{localizedCategoryName(product.categorySlug, language, product.category)}</div><FavoriteToggleButton product={product}/></div>
-      <Link href={`/produits/${product.slug}#photo`} className="product-card-title">{product.title}</Link>
+      <Link href={`/produits/${product.slug}`} onClick={markProductCardClick} className="product-card-title">{product.title}</Link>
       <div className="product-card-price">{formatPrice(product.priceXof)} <span>{text("perUnit")}</span></div>
       <div className="product-card-meta"><span className="delivery-estimate"><Clock3 size={12}/> {text("estimatedDelivery")}</span></div>
       <div className="product-card-foot"><span>{text("minimum")} {product.minimumQuantity} {product.minimumQuantity > 1 ? text("units") : text("unit")}</span><div className="product-card-actions"><CompareProductButton product={product}/>{!product.isDemo && <button className="quick-add" onClick={() => addItem(product)} aria-label={`${text("addToCart")}: ${product.title}`}><Plus size={16}/></button>}</div></div>
