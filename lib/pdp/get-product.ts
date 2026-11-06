@@ -4,6 +4,7 @@ import { smartphoneCamon50Pro } from "@/lib/product";
 import { catalogToProduct, detailedToProduct, productToCartItem } from "@/lib/pdp/adapters";
 import { sampleWatchProduct } from "@/lib/pdp/sample-product";
 import type { Product } from "@/lib/pdp/types";
+import { getQuantityPrices } from "@/lib/pdp/quantity-prices";
 
 export type PdpPayload = { product: Product; cartItem: DemoProduct };
 
@@ -16,5 +17,7 @@ export async function getPdpProduct(slug: string): Promise<PdpPayload | null> {
   }
   const catalogProduct = await getCatalogProduct(slug);
   if (!catalogProduct) return null;
-  return { product: catalogToProduct(catalogProduct, all, getProductDescription(catalogProduct)), cartItem: catalogProduct };
+  const product = catalogToProduct(catalogProduct, all, getProductDescription(catalogProduct));
+  if (!catalogProduct.isDemo) product.quantityPrices = await getQuantityPrices(slug);
+  return { product, cartItem: catalogProduct };
 }

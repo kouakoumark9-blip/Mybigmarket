@@ -1,10 +1,11 @@
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowRight, BadgePercent, Boxes, Headset, House, ShieldCheck, Shirt, Smartphone, Truck, type LucideIcon } from "lucide-react";
+import { ArrowRight, BadgePercent, Boxes, ClipboardList, Headset, House, ShieldCheck, Shirt, Smartphone, Truck, type LucideIcon } from "lucide-react";
 import { categories } from "@/lib/demo-data";
 import { LocalizedCategoryName } from "@/components/destination-labels";
 import { LocaleText } from "@/components/locale-text";
 import { getCatalogProducts } from "@/lib/catalog";
+import { hasOpenPaymentMethod } from "@/lib/payments-open";
 import { ProductCarousel } from "@/components/product-carousel";
 
 export const dynamic = "force-dynamic";
@@ -18,7 +19,7 @@ const categoryIcons: Record<string, LucideIcon> = {
 export default async function HomePage() {
   // Vrais produits d'abord, complétés par les exemples. Une base indisponible
   // ne fait pas tomber l'accueil : getCatalogProducts retombe sur la démonstration.
-  const products = await getCatalogProducts();
+  const [products, paymentsOpen] = await Promise.all([getCatalogProducts(), hasOpenPaymentMethod()]);
   const categoryGroups = categories.map((category) => ({ category, items: products.filter((product) => product.categorySlug === category.slug) }));
 
   return <main className="shell marketplace-home marketplace-catalog-home">
@@ -46,7 +47,9 @@ export default async function HomePage() {
     </section>
 
     <section className="home-trust-bar" aria-label="Nos engagements">
-      <div><ShieldCheck size={22} strokeWidth={1.6}/><span><b>Paiement sécurisé</b><small>Mobile Money, Wave et carte bancaire</small></span></div>
+      {paymentsOpen
+        ? <div><ShieldCheck size={22} strokeWidth={1.6}/><span><b>Paiement sécurisé</b><small>Validé sur la page du prestataire de paiement</small></span></div>
+        : <Link href="/demande-de-devis"><ClipboardList size={22} strokeWidth={1.6}/><span><b>Devis gratuit</b><small>Achat en quantité, sans engagement</small></span></Link>}
       <div><Truck size={22} strokeWidth={1.6}/><span><b>Livraison suivie</b><small>De la Chine jusqu’à votre porte</small></span></div>
       <div><BadgePercent size={22} strokeWidth={1.6}/><span><b>Prix dans votre devise</b><small>Montant clair avant de commander</small></span></div>
       <div><Headset size={22} strokeWidth={1.6}/><span><b>Service client</b><small>Une équipe pour vous accompagner</small></span></div>
