@@ -1,26 +1,30 @@
 "use client";
 
+import { useCountryPreferences } from "@/components/country-preferences";
 import { Fragment, useState } from "react";
 import type { LabeledValue } from "@/lib/pdp/types";
 import { pdpConfig } from "@/lib/pdp/config";
 
 function Value({ value }: { value: string }) {
+  const { tr } = useCountryPreferences();
   const [open, setOpen] = useState(false);
   const limit = pdpConfig.attributeTruncate;
   if (value.length <= limit) return <>{value}</>;
-  return <>{open ? value : `${value.slice(0, limit).trimEnd()}…`} <button type="button" className="pd-link-button pd-see-more" onClick={() => setOpen((current) => !current)} aria-expanded={open}>{open ? "Voir moins" : "Voir plus"}</button></>;
+  return <>{open ? value : `${value.slice(0, limit).trimEnd()}…`} <button type="button" className="pd-link-button pd-see-more" onClick={() => setOpen((current) => !current)} aria-expanded={open}>{open ? tr("Voir moins") : tr("Voir plus")}</button></>;
 }
 
-export function AttributesTable({ items, id, title = "Caractéristiques du produit" }: { items: LabeledValue[]; id: string; title?: string }) {
+export function AttributesTable({ items, id, title }: { items: LabeledValue[]; id: string; title?: string }) {
+  const { tr } = useCountryPreferences();
+  const heading = title ?? tr("Caractéristiques du produit");
   const rows = Array.from({ length: Math.ceil(items.length / 2) }, (_, index) => items.slice(index * 2, index * 2 + 2));
   return <section className="pd-section" id={id} aria-labelledby={`${id}-title`}>
-    <h2 id={`${id}-title`} className="pd-section-title">{title}</h2>
+    <h2 id={`${id}-title`} className="pd-section-title">{heading}</h2>
     <div className="pd-table-scroll">
       <table className="pd-attributes">
-        <caption className="sr-only">{title}</caption>
+        <caption className="sr-only">{heading}</caption>
         <tbody>
           {rows.map((row, index) => <tr key={index}>
-            {row.map((item) => <Fragment key={item.label}><th scope="row">{item.label}</th><td><Value value={item.value}/></td></Fragment>)}
+            {row.map((item) => <Fragment key={item.label}><th scope="row">{tr(item.label)}</th><td><Value value={tr(item.value)}/></td></Fragment>)}
             {row.length === 1 && <><th aria-hidden="true"/><td aria-hidden="true"/></>}
           </tr>)}
         </tbody>

@@ -18,7 +18,7 @@ const navIcons = { menu: Menu, badge: BadgeCheck, truck: Truck } as const;
 export function SiteHeader() {
   const { count } = useCart();
   const { count: favoritesCount } = useFavorites();
-  const { country, countryLabel, selectCountry, language, languageName, currency, exchangeRateReady, text } = useCountryPreferences();
+  const { country, countryLabel, selectCountry, language, languageName, currency, exchangeRateReady, text, tr } = useCountryPreferences();
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [showScrollSearch, setShowScrollSearch] = useState(false);
@@ -57,7 +57,7 @@ export function SiteHeader() {
     <header className="site-header">
       <div className={`shell header-main ${showScrollSearch ? "is-scrolled" : ""}`}>
         <button className="mobile-menu-button" aria-label={mobileOpen ? text("closeMenu") : text("openMenu")} onClick={() => setMobileOpen(!mobileOpen)}>{mobileOpen ? <X/> : <Menu/>}</button>
-        <Link className="brand" href="/" aria-label="Mybigmarket"><span className="brand-wordmark"><span className="brand-initial">M</span>ybigmarket<small>CHINE → AFRIQUE DE L’OUEST</small></span></Link>
+        <Link className="brand" href="/" aria-label="Mybigmarket"><span className="brand-wordmark"><span className="brand-initial">M</span>ybigmarket<small>{tr("CHINE → AFRIQUE DE L’OUEST")}</small></span></Link>
         <form action="/produits" className="search-form header-scroll-search" role="search" aria-label={text("searchCatalog")}>
           <Search size={18}/><input name="q" placeholder={text("searchCatalog")} aria-label={text("searchCatalog")}/><button type="button" className="search-image-button" onClick={() => setImageSearchOpen(true)} aria-label={pdpConfig.imageSearch} title={pdpConfig.imageSearch}><Camera size={19} strokeWidth={1.5}/></button><button type="submit" aria-label={text("search")}><span>{text("search")}</span><Search className="mobile-search-submit-icon" size={17}/></button>
         </form>
