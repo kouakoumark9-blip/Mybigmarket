@@ -31,7 +31,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     let saved: CartLine[] = [];
     try {
       const value = localStorage.getItem(KEY);
-      if (value) saved = JSON.parse(value) as CartLine[];
+      if (value) saved = (JSON.parse(value) as CartLine[]).filter((item) => !item.isDemo);
     } catch {
       localStorage.removeItem(KEY);
     }
@@ -49,6 +49,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const addItem = useCallback((product: DemoProduct, quantity = product.minimumQuantity) => {
+    if (product.isDemo) { showNotice("Produit d’exemple : il n’est pas encore disponible à la commande."); return; }
     const safeQty = Math.min(product.quantity, Math.max(product.minimumQuantity, Math.floor(quantity)));
     setItems((current) => {
       const existing = current.find((item) => item.slug === product.slug);

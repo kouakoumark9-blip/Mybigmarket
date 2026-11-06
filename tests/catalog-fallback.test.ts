@@ -34,7 +34,7 @@ describe("catalogue public quand la base ne contient encore aucun produit publi�
     expect((await getStoreSellers()).length).toBeGreaterThan(0);
   });
 
-  it("bascule sur les produits réels dès qu'il y en a un de publié", async () => {
+  it("affiche les produits réels en premier, puis les exemples marqués non commandables", async () => {
     state.rows = [{
       product: { id: "p1", slug: "produit-reel", title: "Produit réel", description: "", priceXof: 1000, minimumQuantity: 1, leadTimeDays: 7, quantity: 3 },
       category: { name: "Maison", slug: "maison" },
@@ -42,6 +42,17 @@ describe("catalogue public quand la base ne contient encore aucun produit publi�
       profile: { university: "", cityChina: "Yiwu", ratingAvg: "4.5", ratingCount: 2 },
     }];
     const live = await getCatalogProducts();
-    expect(live.map((product) => product.slug)).toEqual(["produit-reel"]);
+    expect(live[0]).toMatchObject({ slug: "produit-reel" });
+    expect(live[0].isDemo).toBeFalsy();
+    expect(live.length).toBeGreaterThan(1);
+    expect(live.slice(1).every((product) => product.isDemo)).toBe(true);
+    expect(await getCatalogProduct("produit-reel")).toMatchObject({ slug: "produit-reel" });
+  });
+
+  it("marque le catalogue de démonstration comme non commandable quand aucun produit n'est publié", async () => {
+    state.rows = [];
+    const live = await getCatalogProducts();
+    expect(live.length).toBeGreaterThan(0);
+    expect(live.every((product) => product.isDemo)).toBe(true);
   });
 });

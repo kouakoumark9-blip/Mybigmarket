@@ -17,9 +17,10 @@ const home = readFileSync(resolve(root, "app/page.tsx"), "utf8");
 const health = readFileSync(resolve(root, "app/api/health/route.ts"), "utf8");
 
 describe("accueil résilient aux pannes de base", () => {
-  it("la page d'accueil se rend sans interroger la base", () => {
-    expect(home).toContain("forceDemo: true");
-    expect(home).not.toMatch(/getCatalogProducts\(\s*\)/);
+  it("la page d'accueil lit le catalogue par le chemin protégé (repli sur la démonstration)", () => {
+    // L'accueil montre les vrais produits ; getCatalogProducts intercepte toute panne de base.
+    expect(home).toMatch(/getCatalogProducts\(\s*\)/);
+    expect(catalog).toMatch(/catch \(error\) \{\s*\n\s*console\.error\("\[catalog\] Base injoignable, repli/);
   });
 
   it("le catalogue et les vendeurs encapsulent l'accès base", () => {
@@ -33,9 +34,8 @@ describe("accueil résilient aux pannes de base", () => {
   });
 
   it("quand la base est configurée, la lecture en base reste le chemin normal", () => {
-    expect(catalog).toMatch(
-      /if \(options\.forceDemo \|\| !process\.env\.DATABASE_URL\) return demoCatalog\(options\);\s*\n\s*try \{\s*\n\s*const rows = await queryCatalog\(options\);\s*\n\s*if \(rows\.length\) return rows;/,
-    );
+    expect(catalog).toMatch(/if \(!process\.env\.DATABASE_URL\) return demoCatalog\(options\);/);
+    expect(catalog).toMatch(/try \{\s*\n\s*const rows = await queryCatalog\(options\);/);
   });
 });
 

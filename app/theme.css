@@ -10,14 +10,14 @@
   color-scheme:light;
 
   /* Orange de marque : une seule valeur, les composants lisent --color-primary */
-  --brand-color:#ff8000;
+  --brand-color:#ff6a00;
   --color-primary:var(--brand-color);
-  --color-primary-hover:#e66f00;
-  --color-primary-strong:#a64d00;       /* orange foncé (texte, liens) */
-  --color-primary-soft:#fff3e5;         /* fond orange très clair */
-  --color-primary-muted:#f0d4b2;        /* bordures orangées */
+  --color-primary-hover:#e65f00;
+  --color-primary-strong:#a34400;       /* orange foncé (texte, liens) */
+  --color-primary-soft:#fff1e8;         /* fond orange très clair */
+  --color-primary-muted:#ffd0b0;        /* bordures orangées */
   --color-on-primary:#ffffff;           /* texte sur les boutons orange */
-  --color-focus-ring:#ff8000;
+  --color-focus-ring:#ff6a00;
 
   /* Noir et neutres */
   --color-text:#111111;

@@ -21,10 +21,12 @@ type Props = {
   onOrder: () => void;
   onAddToCart: () => void;
   feedback: string;
+  /** Faux pour un produit d'exemple : ni commande ni discussion, seulement une demande de devis. */
+  orderable?: boolean;
 };
 
 /** Boîte d'achat. En mode compact (au défilement), elle reprend prix, MOQ et variantes. */
-export function BuyBox({ product, variants, compact, onOrder, onAddToCart, feedback }: Props) {
+export function BuyBox({ product, variants, compact, onOrder, onAddToCart, feedback, orderable = true }: Props) {
   const { language, formatPrice } = useCountryPreferences();
   const [shippingOpen, setShippingOpen] = useState(false);
   const [shipping, setShipping] = useState<ShippingChoice | null>(null);
@@ -72,7 +74,10 @@ export function BuyBox({ product, variants, compact, onOrder, onAddToCart, feedb
       </div>}
     </section>
 
-    <div className="pd-actions">
+    {!orderable ? <div className="pd-actions">
+      <p className="pd-demo-note">Produit d’exemple : il n’est pas encore en vente. Demandez un devis, notre équipe vous propose un article équivalent.</p>
+      <Link href={`/demande-de-devis?produit=${encodeURIComponent(product.title)}`} className="pd-btn pd-btn-primary pd-btn-block">Demander un devis</Link>
+    </div> : <div className="pd-actions">
       <button type="button" className="pd-btn pd-btn-primary pd-btn-block" onClick={onOrder}>Commander</button>
       <div className="pd-actions-row">
         <button type="button" className="pd-btn pd-btn-outline" onClick={onAddToCart}><ShoppingCart size={16} strokeWidth={1.5} aria-hidden="true"/> Ajouter au panier</button>
@@ -80,7 +85,8 @@ export function BuyBox({ product, variants, compact, onOrder, onAddToCart, feedb
       </div>
       <p className="pd-feedback" aria-live="polite">{feedback}</p>
       <p className="pd-muted pd-small">{pdpConfig.guaranteeNote}</p>
-    </div>
+      <Link href={`/demande-de-devis?produit=${encodeURIComponent(product.title)}`} className="pd-quote-link">Besoin d’une grande quantité ? Demander un devis</Link>
+    </div>}
 
     {!compact && <>
       <hr className="pd-rule"/>

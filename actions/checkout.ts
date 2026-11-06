@@ -43,7 +43,7 @@ export async function createCheckoutAction(formData: FormData): Promise<{ error?
   }
   const slugs = [...new Set(cart.map((line) => line.slug))];
   const rows = await db.select({ product: products, seller: sellerProfiles, sellerStatus: users.status }).from(products).innerJoin(sellerProfiles, eq(products.sellerId, sellerProfiles.userId)).innerJoin(users, eq(users.id, products.sellerId)).where(inArray(products.slug, slugs));
-  if (rows.length !== slugs.length) return { error: "Un ou plusieurs produits ne sont plus disponibles." };
+  if (rows.length !== slugs.length) return { error: "Certains articles du panier ne sont pas en vente (produits d’exemple ou retirés) : retirez-les du panier, puis réessayez." };
   const bySlug = new Map(rows.map((row) => [row.product.slug, row]));
   for (const line of cart) {
     const row = bySlug.get(line.slug);
@@ -125,7 +125,7 @@ type CheckoutForm = z.infer<typeof checkoutSchema>;
 async function placeFromStorefrontCart(db: Db, userId: string, cart: CartInput[], form: CheckoutForm): Promise<{ error?: string; orderIds?: string[]; checkoutUrl?: string | null; paymentReference?: string }> {
   const slugs = [...new Set(cart.map((line) => line.slug))];
   const rows = await db.select({ id: products.id, slug: products.slug }).from(products).where(inArray(products.slug, slugs));
-  if (rows.length !== slugs.length) return { error: "Un ou plusieurs produits ne sont plus disponibles." };
+  if (rows.length !== slugs.length) return { error: "Certains articles du panier ne sont pas en vente (produits d’exemple ou retirés) : retirez-les du panier, puis réessayez." };
   const idOf = new Map(rows.map((row) => [row.slug, row.id]));
   try {
     const result = await placeOrder(db, {

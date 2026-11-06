@@ -3,14 +3,14 @@
  * « active ») remplace le modèle livré pour son code et sa langue ; sinon, c'est celui-ci qui sert.
  *
  * Variables : `{{nom}}` est échappé ; `{{{nom}}}` est un fragment HTML construit par le serveur.
- * Charte : texte noir, accent orange #ff8000, bouton orange à texte blanc.
+ * Charte : texte noir, accent orange #ff6a00, bouton orange à texte blanc.
  */
 import { escapeHtml } from "@/lib/email-render";
 
 export type NotificationTemplate = { code: string; name: string; subject: string; bodyHtml: string; variables: string[]; audience: "customer" | "team"; whatsappText?: string };
 
 const button = (label: string, variable = "orderUrl") =>
-  `<p style="margin:24px 0"><a href="{{${variable}}}" style="background:#ff8000;color:#ffffff;text-decoration:none;font-weight:700;padding:12px 20px;border-radius:6px;display:inline-block">${label}</a></p>`;
+  `<p style="margin:24px 0"><a href="{{${variable}}}" style="background:#ff6a00;color:#ffffff;text-decoration:none;font-weight:700;padding:12px 20px;border-radius:6px;display:inline-block">${label}</a></p>`;
 
 /** Texte saisi (message, réponse) en HTML sûr : échappé, retours à la ligne conservés. */
 export function plainTextHtml(value: string): string {
@@ -95,14 +95,14 @@ export const BUILT_IN_TEMPLATES: NotificationTemplate[] = [
     code: "support_reply", name: "Réponse du service client", audience: "customer",
     subject: "Réponse à votre demande {{ticketReference}}",
     variables: ["customerName", "ticketReference", "ticketSubject", "replyHtml", "agentName", "ticketUrl"],
-    bodyHtml: `<p>Bonjour {{customerName}},</p><p>{{agentName}} a répondu à votre demande <strong>{{ticketReference}}</strong> (« {{ticketSubject}} ») :</p><div style="border-left:3px solid #ff8000;padding:8px 14px;margin:16px 0;color:#111">{{{replyHtml}}}</div>${button("Voir la conversation", "ticketUrl")}`,
+    bodyHtml: `<p>Bonjour {{customerName}},</p><p>{{agentName}} a répondu à votre demande <strong>{{ticketReference}}</strong> (« {{ticketSubject}} ») :</p><div style="border-left:3px solid #ff6a00;padding:8px 14px;margin:16px 0;color:#111">{{{replyHtml}}}</div>${button("Voir la conversation", "ticketUrl")}`,
     whatsappText: "Bonjour {{customerName}}, le service client a répondu à votre demande {{ticketReference}} : {{ticketUrl}}",
   },
   {
     code: "support_new_ticket", name: "Nouveau ticket (équipe)", audience: "team",
     subject: "Nouveau ticket {{ticketReference}} : {{ticketSubject}}",
     variables: ["ticketReference", "ticketSubject", "customerEmail", "channel", "messageHtml"],
-    bodyHtml: `<p>Nouveau ticket <strong>{{ticketReference}}</strong> de {{customerEmail}} (canal : {{channel}}).</p><div style="border-left:3px solid #ff8000;padding:8px 14px;margin:16px 0;color:#111">{{{messageHtml}}}</div>`,
+    bodyHtml: `<p>Nouveau ticket <strong>{{ticketReference}}</strong> de {{customerEmail}} (canal : {{channel}}).</p><div style="border-left:3px solid #ff6a00;padding:8px 14px;margin:16px 0;color:#111">{{{messageHtml}}}</div>`,
   },
   {
     code: "email_test", name: "E-mail de test", audience: "team",
@@ -123,7 +123,7 @@ export function wrapLayout(contentHtml: string, store: StoreIdentity): string {
     + `<body style="margin:0;background:#f6f6f6;font-family:Arial,Helvetica,sans-serif;color:#111111">`
     + `<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:24px 12px">`
     + `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;background:#ffffff;border-radius:8px;overflow:hidden">`
-    + `<tr><td style="padding:20px 24px;border-bottom:4px solid #ff8000"><a href="${escapeHtml(store.url)}" style="color:#111111;text-decoration:none;font-size:20px;font-weight:700">${escapeHtml(store.name)}</a></td></tr>`
+    + `<tr><td style="padding:20px 24px;border-bottom:4px solid #ff6a00"><a href="${escapeHtml(store.url)}" style="color:#111111;text-decoration:none;font-size:20px;font-weight:700">${escapeHtml(store.name)}</a></td></tr>`
     + `<tr><td style="padding:24px;font-size:15px;line-height:1.55">${contentHtml}</td></tr>`
     + `<tr><td style="padding:16px 24px;background:#111111;color:#dddddd;font-size:12px;line-height:1.5">${escapeHtml(store.name)}${contact ? `<br>${contact}` : ""}</td></tr>`
     + `</table></td></tr></table></body></html>`;
@@ -147,7 +147,7 @@ export function paymentInstructionsHtml(instructions: Record<string, unknown> | 
   if (!instructions || typeof instructions !== "object") return "";
   const value = (key: string) => (instructions[key] === undefined || instructions[key] === null ? "" : escapeHtml(String(instructions[key])));
   if (instructions.kind === "bank_transfer") {
-    return `<div style="border:1px solid #ff8000;border-radius:6px;padding:12px 16px;margin:16px 0"><p style="margin:0 0 8px;font-weight:700">Virement à effectuer</p>`
+    return `<div style="border:1px solid #ff6a00;border-radius:6px;padding:12px 16px;margin:16px 0"><p style="margin:0 0 8px;font-weight:700">Virement à effectuer</p>`
       + `<p style="margin:0">Bénéficiaire : ${value("accountHolder")}<br>Banque : ${value("bankName")}<br>IBAN / RIB : ${value("iban")}${instructions.bic ? `<br>BIC : ${value("bic")}` : ""}<br>Montant : ${typeof instructions.amountXof === "number" ? formatXof(instructions.amountXof) : ""}<br><strong>Référence à indiquer : ${value("reference")}</strong></p>`
       + (instructions.note ? `<p style="margin:8px 0 0">${value("note")}</p>` : "") + `</div>`;
   }

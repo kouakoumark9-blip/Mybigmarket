@@ -148,13 +148,13 @@ export function ProductDetailPage({ product, cartItem, publishedReviews = [] }: 
         </div>
 
         <div className="pd-right">
-          <BuyBox product={product} variants={variants} compact={compact} onOrder={order} onAddToCart={addToCart} feedback={feedback}/>
+          <BuyBox product={product} variants={variants} compact={compact} onOrder={order} onAddToCart={addToCart} feedback={feedback} orderable={!cartItem.isDemo}/>
         </div>
       </div>
     </div>
 
     <FloatingActions onImageSearch={() => setImageSearchOpen(true)}/>
-    <MobileActionBar slug={product.slug} onOrder={order}/>
+    <MobileActionBar slug={product.slug} onOrder={order} orderable={!cartItem.isDemo} title={product.title}/>
     <VariantSheet product={product} state={variants} open={sheetOpen} onClose={closeSheet}/>
     <ImageSearchDialog open={imageSearchOpen} onClose={closeImageSearch}/>
   </main>;

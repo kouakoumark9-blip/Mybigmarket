@@ -64,7 +64,7 @@
   padding: 3px 10px;
   border-radius: 999px;
   background: color-mix(in srgb, var(--orange) 12%, transparent);
-  color: #8a3f00;
+  color: var(--color-primary-strong);
   font-size: 12.6px;
   font-weight: 600;
 }
@@ -122,3 +122,55 @@
   .site-footer .footer-grid { gap: 24px; padding-top: 32px; }
   .site-footer .footer-bottom { flex-direction: column; }
 }
+
+/* Barre de recherche toujours visible dans l'en-tête (et non plus seulement au défilement). */
+.header-main .search-form.header-scroll-search { display: flex; min-width: 0; }
+@media (min-width: 721px) {
+  .header-main .search-form.header-scroll-search,
+  .header-main.is-scrolled .search-form.header-scroll-search {
+    grid-column: auto; grid-row: auto; width: 100%; max-width: 680px; justify-self: center;
+    border: 2px solid var(--color-primary);
+  }
+}
+@media (max-width: 720px) {
+  .header-main .search-form.header-scroll-search { grid-column: 1 / -1; grid-row: 2; width: 100%; }
+}
+@media (min-width: 721px) {
+  .site-header .header-main, .site-header .header-main.is-scrolled { grid-template-columns: auto minmax(260px, 1fr) auto; gap: 24px; }
+  .site-header .header-main > .header-actions { grid-column: 3; grid-row: 1; }
+}
+@media (min-width: 721px) and (max-width: 1180px) {
+  .site-header .header-main, .site-header .header-main.is-scrolled { gap: 16px; }
+  .header-currency, .header-locale > span > b { display: none; }
+}
+
+/* Produits d'exemple : badge sur la vignette, encart sur la fiche. */
+.product-visual .visual-demo-badge, .product-card .visual-demo-badge { color: var(--color-static-white) !important; }
+.visual-demo-badge {
+  position: absolute; left: 8px; top: 8px;
+  padding: 3px 8px; border-radius: 999px;
+  background: var(--color-text);
+  font-size: 11px; font-weight: 700; letter-spacing: .3px;
+}
+.pd-demo-note {
+  margin: 0 0 10px; padding: 10px 12px; border-radius: 8px;
+  background: var(--color-primary-soft); border: 1px solid var(--color-primary-muted);
+  color: var(--color-text); font-size: 13.5px; line-height: 1.45;
+}
+.pd-quote-link { display: inline-block; margin-top: 8px; font-size: 13px; font-weight: 600; color: var(--color-primary-strong); text-decoration: underline; }
+
+/* Page « Demande de devis ». */
+.quote-layout { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 28px; align-items: start; }
+.quote-form { margin-top: 18px; }
+.quote-form .field-hint { margin-top: 10px; font-size: 13px; color: var(--color-text-muted); }
+.quote-steps { padding: 22px; border: 1px solid var(--color-border); border-radius: 12px; background: var(--color-surface); }
+.quote-steps h2 { margin: 0 0 14px; font-size: 17px; }
+.quote-steps ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 16px; }
+.quote-steps li { display: flex; gap: 12px; align-items: flex-start; }
+.quote-steps li svg { flex: none; color: var(--color-primary); margin-top: 2px; }
+.quote-steps li span { display: grid; gap: 2px; font-size: 13.5px; color: var(--color-text-muted); }
+.quote-steps li b { color: var(--color-text); font-size: 14.4px; }
+@media (max-width: 960px) { .quote-layout { grid-template-columns: 1fr; } }
+
+/* Tunnel : aucun moyen de paiement ouvert pour le pays choisi. */
+.checkout-payment-closed { display: grid; gap: 8px; justify-items: start; padding: 14px 16px; border-radius: 10px; background: var(--color-primary-soft); border: 1px solid var(--color-primary-muted); font-size: 14px; line-height: 1.5; }
