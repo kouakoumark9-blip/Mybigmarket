@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound, permanentRedirect, redirect } from "next/navigation";
 import { getPdpProduct } from "@/lib/pdp/get-product";
-import { hasOpenPaymentMethod } from "@/lib/payments-open";
+import { listOpenPaymentMethodCodes } from "@/lib/payments-open";
 import { getPublishedReviewsForSlug } from "@/lib/reviews";
 import { ProductDetailPage } from "@/components/product-detail/product-page";
 import "@/components/product-detail/pdp.css";
@@ -46,7 +46,8 @@ export default async function ProductPage({ params }: Props) {
     notFound();
   }
   const { product, cartItem } = payload;
-  const [publishedReviews, paymentsOpen] = await Promise.all([getPublishedReviewsForSlug(product.slug), hasOpenPaymentMethod()]);
+  const [publishedReviews, paymentMethods] = await Promise.all([getPublishedReviewsForSlug(product.slug), listOpenPaymentMethodCodes()]);
+  const paymentsOpen = paymentMethods.length > 0;
   const url = `${siteUrl()}/produits/${product.slug}`;
   const reviewCount = product.reviews.count + publishedReviews.length;
 
@@ -79,7 +80,7 @@ export default async function ProductPage({ params }: Props) {
   const json = (value: unknown) => JSON.stringify(value).replace(/</g, "\\u003c");
 
   return <>
-    <ProductDetailPage product={product} cartItem={cartItem} publishedReviews={publishedReviews} paymentsOpen={paymentsOpen}/>
+    <ProductDetailPage product={product} cartItem={cartItem} publishedReviews={publishedReviews} paymentsOpen={paymentsOpen} paymentMethods={paymentMethods}/>
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: json(productJsonLd) }}/>
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: json(breadcrumbJsonLd) }}/>
   </>;

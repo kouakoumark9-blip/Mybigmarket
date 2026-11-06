@@ -6,6 +6,7 @@ import { ChevronDown, ChevronRight, MessageCircle, RotateCcw, ShieldCheck, Shopp
 import type { Product } from "@/lib/pdp/types";
 import { pdpConfig } from "@/lib/pdp/config";
 import { startConversationAction } from "@/actions/messages";
+import { PaymentLogos } from "@/components/payment-logos";
 import { useCountryPreferences } from "@/components/country-preferences";
 import { countryName } from "@/lib/west-africa";
 import { PriceBlock } from "@/components/product-detail/product-info";
@@ -23,10 +24,12 @@ type Props = {
   orderable?: boolean;
   /** Un moyen de paiement est ouvert : on peut alors afficher les garanties de paiement. */
   paymentsOpen?: boolean;
+  /** Codes des moyens de paiement ouverts (logos affichés dans « Protection des commandes »). */
+  paymentMethods?: string[];
 };
 
 /** Boîte d'achat. En mode compact (au défilement), elle reprend prix, MOQ et variantes. */
-export function BuyBox({ product, variants, compact, onOrder, onAddToCart, feedback, orderable = true, paymentsOpen = false }: Props) {
+export function BuyBox({ product, variants, compact, onOrder, onAddToCart, feedback, orderable = true, paymentsOpen = false, paymentMethods = [] }: Props) {
   const { language, formatPrice } = useCountryPreferences();
   const [shippingOpen, setShippingOpen] = useState(false);
   const [shipping, setShipping] = useState<ShippingChoice | null>(null);
@@ -64,7 +67,7 @@ export function BuyBox({ product, variants, compact, onOrder, onAddToCart, feedb
           <ShieldCheck size={18} strokeWidth={1.75} className="pd-ok" aria-hidden="true"/>
           <div>
             <b>{pdpConfig.securePaymentsTitle}</b>
-            <ul className="pd-payments" aria-label="Moyens de paiement acceptés">{pdpConfig.paymentMethods.map((method) => <li key={method}>{method}</li>)}</ul>
+            <PaymentLogos methods={paymentMethods} height={24} className="pd-payments"/>
             <p className="pd-muted">{pdpConfig.securePaymentsText}</p>
           </div>
         </div>

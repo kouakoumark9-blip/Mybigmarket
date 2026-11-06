@@ -10,6 +10,8 @@ import { useCountryPreferences } from "@/components/country-preferences";
 import { countryName, destinationCountries } from "@/lib/west-africa";
 import { headerNav, pdpConfig } from "@/lib/pdp/config";
 import { ImageSearchDialog } from "@/components/image-search-dialog";
+import { CountryFlag } from "@/components/country-flag";
+import { LocateButton } from "@/components/locate-button";
 
 const navIcons = { menu: Menu, badge: BadgeCheck, truck: Truck } as const;
 
@@ -61,7 +63,7 @@ export function SiteHeader() {
         </form>
         <div className="header-actions">
           <button className="header-locale" type="button" aria-haspopup="dialog" aria-expanded={countryPickerOpen} onClick={() => setCountryPickerOpen(true)}>
-            <span><b>{text("deliveryAddress")}</b><span className="header-locale-country"><span className={`header-country-marker ${country.code === "CI" ? "ci-country-marker" : ""}`} aria-hidden="true">{country.code === "CI" ? <i className="ci-flag"><i/><i/><i/></i> : country.code}</span><small>{countryLabel}</small></span></span>
+            <span><b>{text("deliveryAddress")}</b><span className="header-locale-country"><CountryFlag code={country.code} size={24} className="header-flag"/><small>{countryLabel}</small></span></span>
           </button>
           <span className="header-currency" aria-label={`${languageName} · ${currency}`}><Globe size={17}/><span>{languageName} · {currency}</span></span>
           <Link href="/panier" className="header-action cart-action" aria-label={`${text("cart")}${count ? `, ${count}` : ""}`}><span className="cart-icon"><ShoppingCart size={22}/>{count > 0 && <b>{count}</b>}</span></Link>
@@ -82,7 +84,7 @@ export function SiteHeader() {
           </div>
         </div>
       </nav>
-      <div className="mobile-contact"><MapPin size={14}/> {text("mobileContact")} <span>·</span> {currency}<button type="button" className="mobile-destination-button" onClick={() => setCountryPickerOpen(true)}><Globe size={13}/>{country.code} · {countryLabel}</button></div>
+      <div className="mobile-contact"><MapPin size={14}/> {text("mobileContact")} <span>·</span> {currency}<button type="button" className="mobile-destination-button" onClick={() => setCountryPickerOpen(true)}><CountryFlag code={country.code} size={18}/>{countryLabel}</button></div>
     </header>
     <nav className="mobile-tabbar" aria-label={text("catalog")}>
       <Link href="/" className={pathname === "/" ? "active" : ""} aria-current={pathname === "/" ? "page" : undefined}><Home size={20}/><span>{text("home")}</span></Link>
@@ -96,12 +98,13 @@ export function SiteHeader() {
       <section className="country-picker-modal" role="dialog" aria-modal="true" aria-labelledby="country-picker-title" dir={language === "ar" ? "rtl" : "ltr"}>
         <div className="country-picker-heading"><div><span className="country-picker-eyebrow"><Globe size={14}/> {text("deliveryAddress")}</span><h2 id="country-picker-title">{text("chooseDestination")}</h2><p>{text("destinationInstructions")}</p></div><button type="button" className="country-picker-close" onClick={() => setCountryPickerOpen(false)} aria-label={text("close")}><X size={20}/></button></div>
         <div className="country-picker-notice"><MapPin size={16}/><span>{text("deliveryToConfirm")}</span></div>
+        <LocateButton onLocated={(place) => { selectCountry(place.countryCode); window.setTimeout(() => { setCountryPickerOpen(false); setCountrySearch(""); }, 1400); }}/>
         <label className="country-picker-search"><Search size={17}/><input autoFocus value={countrySearch} onChange={(event) => setCountrySearch(event.target.value)} placeholder={text("searchCountries")}/></label>
         <div className="country-picker-list">
           {filteredCountries.map((item) => {
             const selected = country.code === item.code;
             return <button type="button" className={`country-picker-item ${selected ? "is-selected" : ""}`} key={item.code} onClick={() => chooseCountry(item.code)}>
-              <span className="country-picker-code">{item.code}</span><span className="country-picker-name"><b>{countryName(item.code, language)}</b><small>{item.languageName} · {item.currency}</small></span><span className="country-picker-confirm">{selected ? <><Check size={15}/>{text("selected")}</> : text("deliveryToConfirm")}</span>
+              <span className="country-picker-code"><CountryFlag code={item.code} size={32}/></span><span className="country-picker-name"><b>{countryName(item.code, language)}</b><small>{item.languageName} · {item.currency}</small></span><span className="country-picker-confirm">{selected ? <><Check size={15}/>{text("selected")}</> : text("deliveryToConfirm")}</span>
             </button>;
           })}
           {filteredCountries.length === 0 && <p className="country-picker-empty">{text("noCountryResults")}</p>}
