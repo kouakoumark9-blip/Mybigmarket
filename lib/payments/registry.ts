@@ -1,17 +1,18 @@
 import "server-only";
-import { CinetPayGateway, ManualGateway, MockGateway } from "./gateways";
+import { CinetPayGateway, GeniusPayGateway, ManualGateway, MockGateway } from "./gateways";
 import type { PaymentGateway, PaymentMethodCode } from "./types";
 
 /**
  * Choix du prestataire pour un moyen de paiement :
  *   - virement et paiement à la livraison : encaissement manuel ;
- *   - mobile money et carte : CinetPay s'il est configuré, sinon le paiement simulé hors production.
+ *   - mobile money et carte : GeniusPay ou CinetPay s'ils sont configurés, sinon le paiement simulé hors production.
  * Sans prestataire, le moyen n'est simplement pas proposé.
  */
 const registry: Record<string, PaymentGateway> = {
   mock: new MockGateway(),
   manual: new ManualGateway(),
   cinetpay: new CinetPayGateway(),
+  geniuspay: new GeniusPayGateway(),
 };
 
 export function gatewayByKey(key: string): PaymentGateway | null {
@@ -20,7 +21,7 @@ export function gatewayByKey(key: string): PaymentGateway | null {
 
 export function gatewayForMethod(method: PaymentMethodCode): PaymentGateway | null {
   if (method === "bank_transfer" || method === "cash_on_delivery") return registry.manual;
-  const preferred = [registry.cinetpay, registry.mock];
+  const preferred = [registry.geniuspay, registry.cinetpay, registry.mock];
   return preferred.find((gateway) => gateway.supports(method) && gateway.configured()) ?? null;
 }
 

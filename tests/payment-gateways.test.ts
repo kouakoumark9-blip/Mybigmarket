@@ -1,6 +1,6 @@
 import { createHmac } from "node:crypto";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { CINETPAY_TOKEN_FIELDS, CinetPayGateway, ManualGateway, MockGateway } from "@/lib/payments/gateways";
+import { CINETPAY_TOKEN_FIELDS, CinetPayGateway, GeniusPayGateway, ManualGateway, MockGateway } from "@/lib/payments/gateways";
 import { gatewayForMethod } from "@/lib/payments/registry";
 import { GatewayError, redact, type InitiateInput } from "@/lib/payments/types";
 
@@ -127,5 +127,61 @@ describe("choix du prestataire", () => {
     vi.unstubAllEnvs();
     vi.stubEnv("NODE_ENV", "production");
     expect(gatewayForMethod("card")).toBeNull();
+  });
+});
+
+describe("GeniusPay", () => {
+  const configure = () => {
+    vi.stubEnv("GENIUSPAY_API_KEY", "pk_test_x");
+    vi.stubEnv("GENIUSPAY_API_SECRET", "sk_test_y");
+    vi.stubEnv("GENIUSPAY_WEBHOOK_SECRET", "whsec_z");
+  };
+
+  it("initialise un paiement avec les en-têtes d'API et renvoie la page hébergée", async () => {
+    configure();
+    const calls: Array<{ url: string; headers: Record<string, string>; body: Record<string, unknown> }> = [];
+    const gateway = new GeniusPayGateway(async (url, init) => {
+      calls.push({ url, headers: init.headers as Record<string, string>, body: JSON.parse(String(init.body)) });
+      return new Response(JSON.stringify({ success: true, data: { reference: "MTX-1", checkout_url: "https://geniuspay.test/pay/MTX-1" } }), { status: 201 });
+    });
+    const result = await gateway.initiate({ ...initiateInput, method: "wave" });
+    expect(calls[0].url).toBe("https://geniuspay.ci/api/v1/merchant/payments");
+    expect(calls[0].headers["X-API-Key"]).toBe("pk_test_x");
+    expect(calls[0].body).toMatchObject({ amount: 23_600, currency: "XOF", payment_method: "wave", metadata: { intent_reference: initiateInput.reference } });
+    expect(result).toMatchObject({ status: "pending", providerReference: "MTX-1", checkoutUrl: "https://geniuspay.test/pay/MTX-1" });
+    // Moov : page hébergée, sans moyen imposé.
+    await gateway.initiate({ ...initiateInput, method: "moov_money" });
+    expect(calls[1].body.payment_method).toBeUndefined();
+  });
+
+  it("transforme un refus ou une panne en erreur lisible", async () => {
+    configure();
+    const refused = new GeniusPayGateway(async () => new Response(JSON.stringify({ error: { message: "montant trop bas" } }), { status: 422 }));
+    await expect(refused.initiate(initiateInput)).rejects.toMatchObject({ code: "refused" });
+    const down = new GeniusPayGateway(async () => { throw new Error("ECONNRESET"); });
+    await expect(down.initiate(initiateInput)).rejects.toMatchObject({ code: "unreachable" });
+  });
+
+  it("vérifie la signature horodatée des notifications", () => {
+    configure();
+    const gateway = new GeniusPayGateway();
+    const rawBody = JSON.stringify({ event: "payment.success", data: { reference: "MTX-1", amount: 23600, currency: "XOF", status: "completed", metadata: { intent_reference: "PAY-1" } } });
+    const ts = String(Math.floor(Date.now() / 1000));
+    const sig = createHmac("sha256", "whsec_z").update(`${ts}.${rawBody}`).digest("hex");
+    const ok = gateway.parseWebhook({ rawBody, headers: new Headers({ "x-webhook-signature": sig, "x-webhook-timestamp": ts, "x-webhook-event": "payment.success" }) });
+    expect(ok).toMatchObject({ signatureValid: true, reference: "PAY-1", amountXof: 23_600, needsConfirmation: true });
+    expect(gateway.parseWebhook({ rawBody, headers: new Headers({ "x-webhook-signature": "0".repeat(64), "x-webhook-timestamp": ts }) }).signatureValid).toBe(false);
+    const old = String(Math.floor(Date.now() / 1000) - 3600);
+    const oldSig = createHmac("sha256", "whsec_z").update(`${old}.${rawBody}`).digest("hex");
+    expect(gateway.parseWebhook({ rawBody, headers: new Headers({ "x-webhook-signature": oldSig, "x-webhook-timestamp": old }) }).signatureValid).toBe(false);
+  });
+
+  it("lit l'état réel du paiement", async () => {
+    configure();
+    const answer = (status: string) => new GeniusPayGateway(async () => new Response(JSON.stringify({ data: { reference: "MTX-1", amount: 23600, currency: "XOF", status, payment_method: "wave" } })));
+    expect((await answer("completed").check("PAY-1", "MTX-1")).status).toBe("succeeded");
+    expect((await answer("expired").check("PAY-1", "MTX-1")).status).toBe("cancelled");
+    expect((await answer("failed").check("PAY-1", "MTX-1")).status).toBe("failed");
+    expect((await answer("processing").check("PAY-1", "MTX-1")).status).toBe("pending");
   });
 });
