@@ -7,7 +7,6 @@ import type { DemoProduct } from "@/lib/demo-data";
 import type { Product, Review, ReviewSummary } from "@/lib/pdp/types";
 import { pdpConfig } from "@/lib/pdp/config";
 import { useCart } from "@/components/cart-provider";
-import { useCountryPreferences } from "@/components/country-preferences";
 import { ImageSearchDialog } from "@/components/image-search-dialog";
 import { Breadcrumb } from "@/components/product-detail/breadcrumb";
 import { ProductGallery } from "@/components/product-detail/product-gallery";
@@ -53,7 +52,6 @@ function useHeaderOffset() {
 export function ProductDetailPage({ product, cartItem, publishedReviews = [], paymentsOpen = false, paymentMethods = [] }: { product: Product; cartItem: DemoProduct; publishedReviews?: PublicReview[]; paymentsOpen?: boolean; paymentMethods?: string[] }) {
   const router = useRouter();
   const { addItem } = useCart();
-  const { tr } = useCountryPreferences();
   const [color, setColor] = useState(product.colorVariants[0]?.id || "");
   const [design, setDesign] = useState(product.designOptions[0]?.id || "");
   const [activeImage, setActiveImage] = useState(0);
@@ -92,7 +90,7 @@ export function ProductDetailPage({ product, cartItem, publishedReviews = [], pa
   const unitPrice = selectedVariant?.priceXof ?? product.priceMin;
 
   const order = () => { addItem(cartItem, product.minOrderQty); router.push("/checkout"); };
-  const addToCart = () => { addItem(cartItem, product.minOrderQty); setFeedback(tr("Ajouté au panier.")); };
+  const addToCart = () => { addItem(cartItem, product.minOrderQty); setFeedback("Ajouté au panier."); };
 
   // Boîte d'achat compacte quand le prix sort de l'écran ; onglets flottants après le bloc principal.
   useEffect(() => {
@@ -130,7 +128,7 @@ export function ProductDetailPage({ product, cartItem, publishedReviews = [], pa
             <div className="pd-area-info">
               <ProductInfo ref={priceRef} product={product} variants={variants} unitPrice={unitPrice}/>
               {(product.colorVariants.length > 0 || product.designOptions.length > 0) && <button type="button" className="pd-variant-summary" onClick={() => setSheetOpen(true)}>
-                <span><b>{tr("Options")}</b> {[selectedVariant?.label, product.designOptions.find((item) => item.id === design)?.label].filter(Boolean).join(" · ")}</span><ChevronRight size={18} strokeWidth={1.5}/>
+                <span><b>Options</b> {[selectedVariant?.label, product.designOptions.find((item) => item.id === design)?.label].filter(Boolean).join(" · ")}</span><ChevronRight size={18} strokeWidth={1.5}/>
               </button>}
             </div>
             <div className="pd-area-supplier"><SupplierCard supplier={product.supplier}/></div>

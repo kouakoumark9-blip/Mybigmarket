@@ -10,24 +10,22 @@ import { useCountryPreferences } from "@/components/country-preferences";
 
 function Card({ item }: { item: ProductCardData }) {
   const priceRange = usePriceRange();
-  const { formatPrice, tr } = useCountryPreferences();
+  const { formatPrice } = useCountryPreferences();
   const body = <>
     <div className="pd-card-image"><PdpImage src={item.image} alt={item.title} width={320} height={320} sizes="(max-width: 700px) 45vw, 18vw" loading="lazy"/></div>
     {(item.swatches?.length || item.colorCount) ? <p className="pd-card-colors">
       {item.swatches?.slice(0, 3).map((color) => <i key={color} style={{ backgroundColor: color }} aria-hidden="true"/>)}
-      {item.colorCount ? <span>{tr("{n} couleurs", { n: item.colorCount })}</span> : null}
+      {item.colorCount ? <span>{item.colorCount} couleurs</span> : null}
     </p> : null}
     <h3 className="pd-card-title">{item.title}</h3>
     <p className="pd-card-price">{priceRange(item.priceMin, item.priceMax)}</p>
     {item.compareAtPrice && item.discountPercent ? <p className="pd-card-discount"><s>{formatPrice(item.compareAtPrice)}</s> <span>-{item.discountPercent} %</span></p> : null}
-    <p className="pd-card-moq">{tr("MOQ : {n}", { n: item.minOrderQty })} {item.minOrderQty > 1 ? tr("pièces") : tr("pièce")}</p>
+    <p className="pd-card-moq">MOQ : {item.minOrderQty} pièce{item.minOrderQty > 1 ? "s" : ""}</p>
   </>;
   return item.slug ? <Link href={`/produits/${item.slug}`} onClick={markProductCardClick} className="pd-card">{body}</Link> : <article className="pd-card">{body}</article>;
 }
 
-export function ProductCarousel({ title: frTitle, items, id, anchorId }: { title: string; items: ProductCardData[]; id: string; anchorId?: string }) {
-  const { tr } = useCountryPreferences();
-  const title = tr(frTitle);
+export function ProductCarousel({ title, items, id, anchorId }: { title: string; items: ProductCardData[]; id: string; anchorId?: string }) {
   const rail = useRef<HTMLDivElement>(null);
   const [edges, setEdges] = useState({ start: true, end: false });
 
@@ -56,14 +54,14 @@ export function ProductCarousel({ title: frTitle, items, id, anchorId }: { title
   };
 
   if (!items.length) return null;
-  return <section className="pd-section pd-carousel" id={anchorId} aria-labelledby={`${id}-title`} aria-roledescription={tr("carrousel")}>
+  return <section className="pd-section pd-carousel" id={anchorId} aria-labelledby={`${id}-title`} aria-roledescription="carrousel">
     <h2 id={`${id}-title`} className="pd-section-title">{title}</h2>
     <div className="pd-carousel-frame">
-      <button type="button" className="pd-carousel-arrow is-prev" onClick={() => scroll(-1)} disabled={edges.start} aria-label={`${tr("Produits précédents")} : ${title}`}><ChevronLeft size={20} strokeWidth={1.5}/></button>
-      <div className="pd-carousel-rail" ref={rail} onScroll={update} onKeyDown={onKey} tabIndex={0} aria-label={`${title}, ${tr("utilisez les flèches pour faire défiler")}`}>
+      <button type="button" className="pd-carousel-arrow is-prev" onClick={() => scroll(-1)} disabled={edges.start} aria-label={`Produits précédents : ${title}`}><ChevronLeft size={20} strokeWidth={1.5}/></button>
+      <div className="pd-carousel-rail" ref={rail} onScroll={update} onKeyDown={onKey} tabIndex={0} aria-label={`${title}, utilisez les flèches pour faire défiler`}>
         {items.map((item) => <Card key={item.id} item={item}/>)}
       </div>
-      <button type="button" className="pd-carousel-arrow is-next" onClick={() => scroll(1)} disabled={edges.end} aria-label={`${tr("Produits suivants")} : ${title}`}><ChevronRight size={20} strokeWidth={1.5}/></button>
+      <button type="button" className="pd-carousel-arrow is-next" onClick={() => scroll(1)} disabled={edges.end} aria-label={`Produits suivants : ${title}`}><ChevronRight size={20} strokeWidth={1.5}/></button>
     </div>
   </section>;
 }

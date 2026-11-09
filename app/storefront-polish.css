@@ -348,10 +348,3 @@ body .locate-privacy { margin: 6px 0 0; font-size: 12px; line-height: 1.4; color
 
 /* Les logos portent déjà leur propre cadre : pas de pastille supplémentaire autour. */
 body .payment-logos li, body .pd-payments li { padding: 0; border: 0; background: transparent; min-height: 0; border-radius: 0; }
-
-/* Choix de la langue dans les pays qui en proposent deux (pied de page). */
-.footer-languages{display:inline-flex;gap:6px;flex-wrap:wrap}
-.footer-languages button{min-height:34px;padding:0 12px;border:1px solid rgba(255,255,255,.35);border-radius:999px;background:transparent;color:inherit;font:inherit;font-size:13px;cursor:pointer}
-.footer-languages button.is-active{background:#ff6a00;border-color:#ff6a00;color:#fff}
-@media (hover:hover){.footer-languages button:not(.is-active):hover{border-color:#ff6a00;color:#ff6a00}}
-.site-footer .footer-bottom{flex-wrap:wrap;align-items:center;gap:10px}

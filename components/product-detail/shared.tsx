@@ -23,21 +23,11 @@ export function usePriceRange() {
 }
 
 export function Stars({ value, size = 14, label }: { value: number; size?: number; label?: string }) {
-  const { tr, locale } = useCountryPreferences();
-  return <span className="pd-stars" role="img" aria-label={label ?? tr("Note {n} sur 5", { n: value.toLocaleString(locale) })}>
+  return <span className="pd-stars" role="img" aria-label={label ?? `Note ${value.toLocaleString("fr-FR")} sur 5`}>
     {Array.from({ length: 5 }, (_, index) => <Star key={index} size={size} strokeWidth={1.5} className={index < Math.round(value) ? "is-on" : ""} aria-hidden="true"/>)}
   </span>;
 }
 
 export function plural(count: number, word: string) {
   return `${count.toLocaleString("fr-FR")} ${word}${count > 1 ? "s" : ""}`;
-}
-
-/** Quantité avec unité traduite (pièce → piece, peça, قطعة). */
-export function usePlural() {
-  const { tr, locale } = useCountryPreferences();
-  return (count: number, word: string) => {
-    const unit = word === "pièce" ? (count > 1 ? tr("pièces") : tr("pièce")) : tr(count > 1 ? `${word}s` : word);
-    return `${count.toLocaleString(locale)} ${unit}`;
-  };
 }

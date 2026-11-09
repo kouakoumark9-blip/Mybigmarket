@@ -1,16 +1,18 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
+import Link from "next/link";
 import { CartProvider } from "@/components/cart-provider";
 import { CountryPreferencesProvider } from "@/components/country-preferences";
+import { LocaleCurrencyLabel } from "@/components/locale-currency-label";
 import { ProductCompareProvider } from "@/components/product-compare";
 import { FavoritesProvider } from "@/components/favorites-provider";
 import { SiteHeader } from "@/components/site-header";
-import { destinationByCode, localeForCountry, resolveCountryLanguage } from "@/lib/west-africa";
-import { LANGUAGE_COOKIE } from "@/lib/i18n";
-import { SiteFooter } from "@/components/site-footer";
+import { countryName, destinationByCode, destinationCountries } from "@/lib/west-africa";
 import "./globals.css";
 import "./storefront-polish.css";
 import { listOpenPaymentMethodCodes } from "@/lib/payments-open";
+import { PaymentLogos } from "@/components/payment-logos";
+import { CountryFlag } from "@/components/country-flag";
 import { getStoreWhatsapp } from "@/lib/store-contact";
 import { WhatsappButton } from "@/components/whatsapp-button";
 
@@ -25,7 +27,7 @@ export const metadata: Metadata = {
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const cookieStore = await cookies();
   const destination = destinationByCode(cookieStore.get("mybigmarket-country")?.value);
-  const language = resolveCountryLanguage(destination, cookieStore.get(LANGUAGE_COOKIE)?.value);
   const [openMethods, whatsapp] = await Promise.all([listOpenPaymentMethodCodes(), getStoreWhatsapp()]);
-  return <html lang={localeForCountry(destination, language)} dir={language === "ar" ? "rtl" : "ltr"}><body><CountryPreferencesProvider initialCountryCode={destination.code} initialLanguage={language}><FavoritesProvider><ProductCompareProvider><CartProvider><SiteHeader/>{children}<WhatsappButton number={whatsapp}/><SiteFooter openMethods={openMethods}/></CartProvider></ProductCompareProvider></FavoritesProvider></CountryPreferencesProvider></body></html>;
+  return <html lang={destination.locale} dir={destination.language === "ar" ? "rtl" : "ltr"}><body><CountryPreferencesProvider initialCountryCode={destination.code}><FavoritesProvider><ProductCompareProvider><CartProvider><SiteHeader/>{children}<WhatsappButton number={whatsapp}/><footer className="site-footer">  <div className="shell footer-grid">    <div className="footer-about">      <Link className="brand footer-brand" href="/"><span className="brand-wordmark"><span className="brand-initial">M</span>ybigmarket<small>CHINE → AFRIQUE DE L’OUEST</small></span></Link>      <p>Vos achats en Chine, livrés en Afrique de l’Ouest : prix affichés dans votre devise, devis gratuit pour les grandes quantités et suivi de chaque commande.</p>      <PaymentLogos methods={openMethods} height={26} className="footer-payments"/>
+      <div className="footer-countries"><b>Livraison en Afrique de l’Ouest</b><ul aria-label="Pays desservis">{destinationCountries.map((item) => <li key={item.code}><CountryFlag code={item.code} size={26}/><span className="sr-only">{countryName(item.code, "fr")}</span></li>)}</ul></div>    </div>    <nav aria-label="Boutique"><b>Boutique</b><Link href="/produits">Tout le catalogue</Link><Link href="/produits?categorie=mode-accessoires">Mode & accessoires</Link><Link href="/produits?categorie=electronique">Téléphones & high-tech</Link><Link href="/produits?categorie=maison-cuisine">Maison & beauté</Link></nav>    <nav aria-label="Mon compte"><b>Mon compte</b><Link href="/connexion">Se connecter</Link><Link href="/compte/commandes">Suivre mes commandes</Link><Link href="/favoris">Mes favoris</Link><Link href="/panier">Mon panier</Link></nav>    <nav aria-label="Aide"><b>Aide & informations</b><Link href="/comment-ca-marche">Comment ça marche</Link><Link href="/demande-de-devis">Demande de devis</Link><Link href="/conditions">Conditions de vente</Link><Link href="/confidentialite">Confidentialité</Link></nav>  </div>  <div className="shell footer-bottom"><span>© 2026 mybigmarket · Tous droits réservés</span><LocaleCurrencyLabel/></div></footer></CartProvider></ProductCompareProvider></FavoritesProvider></CountryPreferencesProvider></body></html>;
 }

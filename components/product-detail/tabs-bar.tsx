@@ -1,7 +1,6 @@
 "use client";
 
 import { forwardRef, useEffect, useState } from "react";
-import { useCountryPreferences } from "@/components/country-preferences";
 
 export type TabItem = { id: string; label: string };
 
@@ -24,7 +23,6 @@ export function useScrollSpy(ids: string[]) {
 type Props = { tabs: readonly TabItem[]; active: string; floating?: boolean; visible?: boolean };
 
 export const TabsBar = forwardRef<HTMLElement, Props>(function TabsBar({ tabs, active, floating = false, visible = true }, ref) {
-  const { tr } = useCountryPreferences();
   const go = (event: React.MouseEvent<HTMLAnchorElement>, id: string) => {
     const target = document.getElementById(id);
     if (!target) return;
@@ -33,9 +31,9 @@ export const TabsBar = forwardRef<HTMLElement, Props>(function TabsBar({ tabs, a
     target.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
     history.replaceState(null, "", `#${id}`);
   };
-  return <nav ref={ref} className={`pd-tabs${floating ? " is-floating" : ""}${floating && visible ? " is-visible" : ""}`} aria-label={tr("Sections de la fiche produit")} aria-hidden={floating && !visible ? true : undefined} inert={floating && !visible ? true : undefined}>
+  return <nav ref={ref} className={`pd-tabs${floating ? " is-floating" : ""}${floating && visible ? " is-visible" : ""}`} aria-label="Sections de la fiche produit" aria-hidden={floating && !visible ? true : undefined} inert={floating && !visible ? true : undefined}>
     <div className="pd-tabs-inner">
-      {tabs.map((tab) => <a key={tab.id} href={`#${tab.id}`} onClick={(event) => go(event, tab.id)} className={active === tab.id ? "is-active" : ""} aria-current={active === tab.id ? "true" : undefined}>{tr(tab.label)}</a>)}
+      {tabs.map((tab) => <a key={tab.id} href={`#${tab.id}`} onClick={(event) => go(event, tab.id)} className={active === tab.id ? "is-active" : ""} aria-current={active === tab.id ? "true" : undefined}>{tab.label}</a>)}
     </div>
   </nav>;
 });

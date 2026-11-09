@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { getTr } from "@/lib/i18n/server";
 import { notFound, permanentRedirect, redirect } from "next/navigation";
 import { getPdpProduct } from "@/lib/pdp/get-product";
 import { listOpenPaymentMethodCodes } from "@/lib/payments-open";
@@ -17,7 +16,7 @@ const siteUrl = () => process.env.NEXT_PUBLIC_SITE_URL || "https://mybigmarket.e
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const payload = await getPdpProduct(slug);
-  if (!payload) return { title: (await getTr())("Produit introuvable"), robots: { index: false } };
+  if (!payload) return { title: "Produit introuvable", robots: { index: false } };
   const { product } = payload;
   const url = `${siteUrl()}/produits/${product.slug}`;
   return {
