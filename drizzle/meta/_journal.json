@@ -162,13 +162,6 @@
       "when": 1794262430281,
       "tag": "0022_boutique_ci",
       "breakpoints": true
-    },
-    {
-      "idx": 23,
-      "version": "7",
-      "when": 1794270100000,
-      "tag": "0023_boutique_seed",
-      "breakpoints": true
     }
   ]
 }

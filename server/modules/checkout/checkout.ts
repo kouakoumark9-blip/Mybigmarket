@@ -13,7 +13,7 @@ import { and, eq, inArray, isNull, lt, or, sql } from "drizzle-orm";
 import { reserveOrderStock, StockLedgerError, type StockLine } from "@/lib/stock-ledger";
 import { nextDocumentNumber } from "@/lib/document-numbers";
 import type { PaymentMethodCode } from "@/lib/payments/types";
-import { countryName, destinationByCode, destinationCountries } from "@/lib/west-africa";
+import { countryName, destinationByCode, allDestinationCountries } from "@/lib/west-africa";
 import {
   carts, customerAddresses, orderEvents, orderItems, orderStatusHistory, orders, packItems, pickupPoints, products, promoCodeRedemptions, promoCodes, DEFAULT_SHOP_ID,
 } from "@/lib/db/schema";
@@ -55,7 +55,7 @@ export async function checkoutSchemaReady(executor: Executor): Promise<boolean> 
 }
 
 async function deliverySnapshot(executor: Executor, customer: CustomerContext, delivery: DeliveryInput): Promise<{ address: Record<string, string>; pickupPointId: number | null }> {
-  if (!destinationCountries.some((country) => country.code === delivery.countryCode)) throw errors.validation([{ path: "delivery.countryCode", message: "Pays de livraison non desservi." }]);
+  if (!allDestinationCountries.some((country) => country.code === delivery.countryCode)) throw errors.validation([{ path: "delivery.countryCode", message: "Pays de livraison non desservi." }]);
   const destination = destinationByCode(delivery.countryCode);
   if (!(destination.languageOptions || [destination.language]).includes(delivery.language)) throw errors.validation([{ path: "delivery.language", message: "Langue non proposée pour cette destination." }]);
   const common = { countryCode: delivery.countryCode, countryName: countryName(delivery.countryCode, "fr"), currency: destination.currency, language: delivery.language };

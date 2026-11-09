@@ -11,10 +11,28 @@ export type DestinationCountry = {
 };
 
 // West African destinations are selectable; shipping availability and charges must still be confirmed.
-/** La boutique ne livre qu'en Côte d'Ivoire (la fiche produit lit cette liste pour son choix de livraison). */
-export const destinationCountries: DestinationCountry[] = [
-  { code: "CI", currency: "XOF", locale: "fr-CI", language: "fr", languageName: "Français", callingCode: "+225" },
+/** Pays acceptés par l'API de commande (inchangé). */
+export const allDestinationCountries: DestinationCountry[] = [
+  { code: "BJ", currency: "XOF", locale: "fr-BJ", language: "fr", languageName: "Français", callingCode: "+229" },
+  { code: "BF", currency: "XOF", locale: "fr-BF", language: "fr", languageName: "Français", callingCode: "+226" },
+  { code: "CV", currency: "CVE", locale: "pt-CV", language: "pt", languageName: "Português", callingCode: "+238", languageOptions: ["pt", "en"] },
+  { code: "CI", currency: "XOF", locale: "fr-CI", language: "fr", languageName: "Français", callingCode: "+225", languageOptions: ["fr", "en"] },
+  { code: "GM", currency: "GMD", locale: "en-GM", language: "en", languageName: "English", callingCode: "+220" },
+  { code: "GH", currency: "GHS", locale: "en-GH", language: "en", languageName: "English", callingCode: "+233" },
+  { code: "GN", currency: "GNF", locale: "fr-GN", language: "fr", languageName: "Français", callingCode: "+224" },
+  { code: "GW", currency: "XOF", locale: "pt-GW", language: "pt", languageName: "Português", callingCode: "+245", languageOptions: ["pt", "fr"] },
+  { code: "LR", currency: "LRD", locale: "en-LR", language: "en", languageName: "English", callingCode: "+231" },
+  { code: "ML", currency: "XOF", locale: "fr-ML", language: "fr", languageName: "Français", callingCode: "+223" },
+  { code: "MR", currency: "MRU", locale: "ar-MR", language: "ar", languageName: "العربية", callingCode: "+222", languageOptions: ["ar", "fr"] },
+  { code: "NE", currency: "XOF", locale: "fr-NE", language: "fr", languageName: "Français", callingCode: "+227" },
+  { code: "NG", currency: "NGN", locale: "en-NG", language: "en", languageName: "English", callingCode: "+234" },
+  { code: "SN", currency: "XOF", locale: "fr-SN", language: "fr", languageName: "Français", callingCode: "+221" },
+  { code: "SL", currency: "SLE", locale: "en-SL", language: "en", languageName: "English", callingCode: "+232" },
+  { code: "TG", currency: "XOF", locale: "fr-TG", language: "fr", languageName: "Français", callingCode: "+228" },
 ];
+
+/** La boutique ne livre qu'en Côte d'Ivoire (la fiche produit lit cette liste pour son choix de livraison). */
+export const destinationCountries: DestinationCountry[] = allDestinationCountries.filter((country) => country.code === "CI");
 
 const regionNames = new Map<string, Intl.DisplayNames>();
 

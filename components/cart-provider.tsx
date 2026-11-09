@@ -38,7 +38,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     } catch {
       localStorage.removeItem(KEY);
     }
-    const timer = window.setTimeout(() => { setItems(saved); setHydrated(true); }, 0);
+    // Un ajout fait avant la lecture du panier enregistré ne doit pas être écrasé : on fusionne les deux.
+    const timer = window.setTimeout(() => { setItems((current) => [...current, ...saved.filter((item) => !current.some((line) => line.slug === item.slug))]); setHydrated(true); }, 0);
     return () => window.clearTimeout(timer);
   }, []);
 

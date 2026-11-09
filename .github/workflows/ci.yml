@@ -44,7 +44,6 @@ jobs:
       AUTH_TRUST_HOST: "true"
       ALLOW_MOCK_PAYMENTS: "true"
       NEXT_PUBLIC_SITE_URL: http://localhost:3000
-      ADMIN_API_BASE_URL: http://localhost:3000
       SEED_SUPERADMIN_EMAIL: admin-e2e@mybigmarket.test
       SEED_SUPERADMIN_PASSWORD: ci-only-admin-password-2026
       SEED_DEMO_PASSWORD: ci-only-demo-password
@@ -58,11 +57,11 @@ jobs:
           cache: npm
           cache-dependency-path: package-lock.json
       - run: npm ci
-      - name: Base de données (migrations, administrateur, démonstration)
+      - name: Base de données (migrations, administrateur)
         run: |
           npx drizzle-kit migrate
           npm run db:seed:admin
-          npm run db:seed:demo
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f scripts/seed-boutique.sql
           psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f scripts/e2e-prepare.sql
       - name: Builds de production
         run: |

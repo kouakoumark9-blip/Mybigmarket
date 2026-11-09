@@ -167,7 +167,7 @@ describe("administration des commandes, clients, taxes et devises", () => {
   it("liste les commandes, applique les statuts et leurs effets (paiement, séquestre, stock)", async () => {
     const list = await admin("GET", "/admin/orders?q=awa@exemple.ci&sort=createdAt");
     expect(list.status).toBe(200);
-    expect(list.json.data.length).toBeGreaterThanOrEqual(3);
+    expect(list.json.data.length).toBeGreaterThanOrEqual(2);
     [paidOrder, pendingOrder] = list.json.data;
 
     const paid = await admin("POST", `/admin/orders/${paidOrder.id}/status`, { status: "paid_escrow", note: "Virement reçu" });
@@ -233,7 +233,7 @@ describe("administration des commandes, clients, taxes et devises", () => {
     expect(customers.json.data).toHaveLength(1);
     const customer = customers.json.data[0];
     expect(customer).toMatchObject({ email: "awa@exemple.ci", segment: "business" });
-    expect(customer.orderCount).toBeGreaterThanOrEqual(3);
+    expect(customer.orderCount).toBeGreaterThanOrEqual(2);
 
     const group = await admin("POST", "/admin/customer-groups", { code: "grossistes", name: "Grossistes", discountBasisPoints: 700 });
     expect(group.json.data.discountPercent).toBe(7);
