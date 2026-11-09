@@ -1,5 +1,5 @@
 /**
- * Copie de adminnew/lib/totp.ts (TOTP RFC 6238, secret chiffré AES-256-GCM).
+ * TOTP RFC 6238, secret chiffré AES-256-GCM.
  * tests/totp-sync.test.ts vérifie que les deux copies restent identiques.
  */
 import { createCipheriv, createDecipheriv, createHmac, randomBytes, timingSafeEqual } from "node:crypto";

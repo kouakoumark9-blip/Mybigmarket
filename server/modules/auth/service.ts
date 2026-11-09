@@ -1,7 +1,7 @@
 /**
  * Authentification de l'API d'administration.
  *
- * Mêmes protections que la connexion du back-office (adminnew/auth.ts) :
+ * Mêmes protections que la connexion de l'administration :
  * 6 échecs par e-mail ou 18 par IP sur 15 minutes → refus ; verrouillage du compte
  * après 6 échecs ; TOTP obligatoire si activé ; réponse identique que le compte
  * existe ou non.

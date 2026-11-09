@@ -5,8 +5,6 @@
  * `needsRehash` signale qu'il faut remplacer le hash par un argon2id (migration
  * transparente, sans réinitialisation de mot de passe).
  *
- * Ce fichier est dupliqué dans adminnew/lib/password.ts (application déployée séparément) ;
- * tests/password-sync.test.ts vérifie que les deux copies restent identiques.
  */
 import { hash as argon2Hash, verify as argon2Verify } from "@node-rs/argon2";
 import bcrypt from "bcryptjs";

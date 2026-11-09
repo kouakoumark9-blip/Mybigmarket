@@ -16,8 +16,7 @@ export default defineConfig({
     // Les tests d'intégration utilisent PostgreSQL embarqué (PGlite), sans service externe.
     environment: "node",
     include: ["tests/**/*.test.ts"],
-    // `adminnew` a son propre tsconfig et ses propres dépendances.
-    exclude: ["node_modules", "adminnew", ".next"],
+    exclude: ["node_modules", ".next"],
     reporters: ["default"],
     testTimeout: 30_000,
     hookTimeout: 60_000,

@@ -25,7 +25,7 @@ const reviewSchema = z.object({
  *
  * Un avis n'est accepté que si l'acheteur possède une commande livrée contenant le produit.
  * Il est enregistré avec `verifiedPurchase = true` et `isPublished = false` :
- * la publication passe obligatoirement par la modération employé (adminnew/catalogue/avis).
+ * la publication passe obligatoirement par la modération employé.
  */
 export async function submitReviewAction(_previous: ReviewFormState, formData: FormData): Promise<ReviewFormState> {
   const parsed = reviewSchema.safeParse({

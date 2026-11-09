@@ -7,7 +7,6 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { contentSecurityPolicy, securityHeaders } from "@/lib/security-headers";
 import storefrontConfig from "@/next.config";
-import adminConfig from "@/adminnew/next.config";
 
 const directive = (policy: string, name: string) => policy.split("; ").find((part) => part.startsWith(`${name} `))?.slice(name.length + 1).split(" ") ?? [];
 const asMap = (headers: Array<{ key: string; value: string }>) => Object.fromEntries(headers.map((header) => [header.key.toLowerCase(), header.value]));
@@ -44,19 +43,5 @@ describe("en-têtes de sécurité", () => {
     expect(headers).toMatchObject({ "x-frame-options": "DENY", "x-content-type-options": "nosniff", "referrer-policy": "strict-origin-when-cross-origin", "cross-origin-opener-policy": "same-origin" });
     expect(headers["permissions-policy"]).toContain("camera=()");
     expect(headers["strict-transport-security"]).toContain("max-age=63072000");
-  });
-
-  it("s'applique à tout le back-office, jamais indexé ni intégrable", async () => {
-    const rules = await adminConfig.headers!();
-    const headers = asMap(rules[0].headers);
-    expect(rules[0].source).toBe("/:path*");
-    expect(headers["x-robots-tag"]).toContain("noindex");
-    expect(headers["content-security-policy"]).toContain("frame-ancestors 'none'");
-    expect(headers["content-security-policy"]).not.toContain("youtube");
-    expect(headers).toMatchObject({ "x-frame-options": "DENY", "referrer-policy": "same-origin" });
-  });
-
-  it("adminnew/lib/security-headers.ts est identique à lib/security-headers.ts", () => {
-    expect(readFileSync("adminnew/lib/security-headers.ts", "utf8")).toBe(readFileSync("lib/security-headers.ts", "utf8"));
   });
 });

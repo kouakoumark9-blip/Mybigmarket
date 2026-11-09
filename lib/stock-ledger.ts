@@ -1,7 +1,6 @@
 /**
- * Grand livre de stock (module 3) — partagé par la boutique, l'API v1 et le back-office.
+ * Grand livre de stock (module 3) — partagé par la boutique, l'API v1 et l'administration.
  *
- * Copie identique : adminnew/lib/stock-ledger.ts (vérifiée par tests/stock-ledger-sync.test.ts).
  * Écrit en SQL paramétré pour ne dépendre d'aucun des deux schémas Drizzle.
  *
  * Chaque fonction s'exécute DANS la transaction de l'appelant. Elle verrouille d'abord la ligne
