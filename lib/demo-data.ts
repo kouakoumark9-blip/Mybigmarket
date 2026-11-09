@@ -6,6 +6,10 @@ export type DemoProduct = {
   city: string; rating: number; reviewCount: number; icon: string; tone: string; quantity: number; imageUrl?: string; description?: string;
   /** Produit d'exemple (absent de la base) : visible en vitrine, mais ni commandable ni discutable. */
   isDemo?: boolean;
+  /** Boutique MyBigMarket : ancien prix, disponibilité, caractéristiques. */
+  comparePriceXof?: number | null; availability?: string; availabilityLabel?: string; powerLabel?: string | null;
+  energyClass?: string | null; badge?: string | null; isPlaceholder?: boolean; shortDescription?: string | null;
+  brandName?: string | null; categoryTrail?: Array<{ label: string; href: string }>; extraAttributes?: Array<{ label: string; value: string }>; images?: string[];
   tiers?: Array<{ minQuantity: number; maxQuantity: number | null; unitPriceXof: number; label: string }>;
 };
 

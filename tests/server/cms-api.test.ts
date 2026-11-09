@@ -95,7 +95,7 @@ describe("pages", () => {
     expect(renamed.json.data.url).toBe("/pages/livraison-afrique");
     const redirects = await admin("GET", "/admin/redirects?q=livraison");
     expect(redirects.json.data).toEqual([expect.objectContaining({ oldPath: "/pages/livraison", newPath: "/pages/livraison-afrique", statusCode: 301 })]);
-    const { default: CmsPage } = await import("@/app/pages/[slug]/page");
+    const { default: CmsPage } = await import("@/app/(boutique)/pages/[slug]/page");
     expect(await digestOf(CmsPage({ params: Promise.resolve({ slug: "livraison" }) }))).toContain("/pages/livraison-afrique");
     expect(await digestOf(CmsPage({ params: Promise.resolve({ slug: "inexistante" }) }))).toContain("404");
   });
@@ -180,7 +180,7 @@ describe("redirections", () => {
     expect((await admin("POST", "/admin/redirects", { oldPath: "/api/v1/shop/products", newPath: "/produits" })).status).toBe(400);
     await admin("POST", "/admin/redirects", { oldPath: "/promo", newPath: "https://exemple.ci/promo", statusCode: 302 });
 
-    const { default: UnknownPath } = await import("@/app/[...path]/page");
+    const { default: UnknownPath } = await import("@/app/(boutique)/[...path]/page");
     expect(await digestOf(UnknownPath({ params: Promise.resolve({ path: ["ancien-catalogue"] }) }))).toMatch(/NEXT_REDIRECT;.*\/produits;308/);
     expect(await digestOf(UnknownPath({ params: Promise.resolve({ path: ["promo"] }) }))).toMatch(/NEXT_REDIRECT;.*https:\/\/exemple\.ci\/promo;307/);
     expect(await digestOf(UnknownPath({ params: Promise.resolve({ path: ["nulle-part"] }) }))).toContain("404");

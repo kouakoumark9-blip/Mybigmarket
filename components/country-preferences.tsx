@@ -36,6 +36,8 @@ export function CountryPreferencesProvider({ children, initialCountryCode = "CI"
   const locale = localeForCountry(country, language);
 
   useEffect(() => {
+    // Boutique ivoirienne : français et FCFA, aucun taux de change à charger.
+    if (destinationByCode(initialCountryCode).currency === "XOF") return;
     const timer = window.setTimeout(() => setLanguage(resolveCountryLanguage(destinationByCode(initialCountryCode), navigator.language)), 0);
     fetch("/api/exchange-rates", { cache: "no-store" })
       .then((response) => response.json() as Promise<ExchangePayload>)

@@ -3,7 +3,6 @@
  * fonctions sensibles du navigateur coupées, HTTPS imposé hors développement.
  * Le back-office garde une copie identique du module (déploiement séparé).
  */
-import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { contentSecurityPolicy, securityHeaders } from "@/lib/security-headers";
 import storefrontConfig from "@/next.config";

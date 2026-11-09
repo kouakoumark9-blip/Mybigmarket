@@ -1,0 +1,48 @@
+/* Administration MyBigMarket : sobre, fonctionnelle, jamais indexée. */
+.gs{min-height:100vh;background:#f4f5f7;color:#1b2a41;font-family:"Roboto",Arial,sans-serif;font-size:15px}
+.gs *{box-sizing:border-box}
+.gs a{color:#b45309}
+.gs-top{background:#1b2a41;color:#fff}
+.gs-top-in{display:flex;flex-wrap:wrap;align-items:center;gap:6px 18px;max-width:1200px;margin:auto;padding:10px 16px}
+.gs-top b{font-size:17px;margin-right:8px}
+.gs-top a{color:#fff;padding:6px 8px;border-radius:4px;font-size:14px;text-decoration:none}
+.gs-top a:hover{background:rgba(255,255,255,.12)}
+.gs-top form{margin-left:auto}
+.gs-main{max-width:1200px;margin:auto;padding:20px 16px 60px}
+.gs h1{margin:0 0 14px;font-size:24px}
+.gs h2{margin:0 0 10px;font-size:17px}
+.gs-card{background:#fff;border:1px solid #e3e5e8;border-radius:5px;padding:16px;margin-bottom:16px}
+.gs-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:16px}
+.gs-stat{background:#fff;border:1px solid #e3e5e8;border-radius:5px;padding:14px}
+.gs-stat b{display:block;font-size:26px}
+.gs-btn{display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:0 16px;border:1px solid #f68b1e;border-radius:4px;background:#f68b1e;color:#1b2a41!important;font-weight:700;font-size:14px;cursor:pointer;text-decoration:none}
+.gs-btn:hover{background:#e07a10}
+.gs-btn--ghost{background:#fff;border-color:#c4c9d2;font-weight:500}
+.gs-btn--danger{background:#fff;border-color:#b3261e;color:#b3261e!important}
+.gs-table{width:100%;border-collapse:collapse;background:#fff;font-size:14px}
+.gs-table th,.gs-table td{padding:9px 10px;border-bottom:1px solid #e3e5e8;text-align:left;vertical-align:middle}
+.gs-table th{background:#f4f5f7;font-size:13px}
+.gs-scroll{overflow-x:auto;border:1px solid #e3e5e8;border-radius:5px}
+.gs-form{display:grid;gap:14px}
+.gs-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+.gs-field label{display:block;margin-bottom:5px;font-weight:700;font-size:13px}
+.gs-field small{display:block;margin-top:4px;color:#5b6577;font-size:12px}
+.gs-field input:not([type=checkbox]):not([type=file]),.gs-field select,.gs-field textarea{width:100%;min-height:40px;padding:8px 10px;border:1px solid #c4c9d2;border-radius:4px;font:inherit;background:#fff;color:#1b2a41}
+.gs-field textarea{min-height:100px}
+.gs-check{display:flex;align-items:center;gap:8px;font-weight:500}
+.gs-msg{padding:10px 12px;border-radius:4px;margin-bottom:12px;font-size:14px}
+.gs-msg--ok{background:#e9f6ee;border:1px solid #bfe3cc;color:#0b4d27}
+.gs-msg--err{background:#fdecea;border:1px solid #f5c2be;color:#7a1c16}
+.gs-msg--warn{background:#fff4e5;border:1px solid #fcd9a8;color:#4b3410}
+.gs-internal{border:2px dashed #b3261e;border-radius:5px;padding:14px;background:#fff8f7}
+.gs-internal h2{color:#b3261e}
+.gs-pill{display:inline-block;padding:2px 8px;border-radius:10px;background:#e3e5e8;font-size:12px;font-weight:700}
+.gs-pill--new{background:#fcd9a8}.gs-pill--ok{background:#bfe3cc}.gs-pill--no{background:#f5c2be}
+.gs-thumbs{display:flex;flex-wrap:wrap;gap:10px}
+.gs-thumb{width:96px;font-size:12px}
+.gs-thumb img{width:96px;height:96px;object-fit:cover;border:1px solid #e3e5e8;border-radius:4px;background:#fff}
+.gs-login{max-width:400px;margin:70px auto;padding:0 16px}
+.gs-actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.gs-filter{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.gs-filter a{padding:6px 12px;border:1px solid #c4c9d2;border-radius:16px;background:#fff;text-decoration:none;color:#1b2a41;font-size:13px}
+.gs-filter a[aria-current=true]{background:#1b2a41;color:#fff;border-color:#1b2a41}
