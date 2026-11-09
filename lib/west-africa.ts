@@ -11,7 +11,8 @@ export type DestinationCountry = {
 };
 
 // West African destinations are selectable; shipping availability and charges must still be confirmed.
-export const destinationCountries: DestinationCountry[] = [
+/** Pays acceptés par l'API de commande (inchangé). */
+export const allDestinationCountries: DestinationCountry[] = [
   { code: "BJ", currency: "XOF", locale: "fr-BJ", language: "fr", languageName: "Français", callingCode: "+229" },
   { code: "BF", currency: "XOF", locale: "fr-BF", language: "fr", languageName: "Français", callingCode: "+226" },
   { code: "CV", currency: "CVE", locale: "pt-CV", language: "pt", languageName: "Português", callingCode: "+238", languageOptions: ["pt", "en"] },
@@ -29,6 +30,9 @@ export const destinationCountries: DestinationCountry[] = [
   { code: "SL", currency: "SLE", locale: "en-SL", language: "en", languageName: "English", callingCode: "+232" },
   { code: "TG", currency: "XOF", locale: "fr-TG", language: "fr", languageName: "Français", callingCode: "+228" },
 ];
+
+/** La boutique ne livre qu'en Côte d'Ivoire (la fiche produit lit cette liste pour son choix de livraison). */
+export const destinationCountries: DestinationCountry[] = allDestinationCountries.filter((country) => country.code === "CI");
 
 const regionNames = new Map<string, Intl.DisplayNames>();
 

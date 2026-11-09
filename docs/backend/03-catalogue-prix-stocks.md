@@ -25,7 +25,7 @@ Tant que `0015` n'est pas appliquée, la boutique garde exactement son comportem
 
 ## 2. Le grand livre de stock (`lib/stock-ledger.ts`)
 
-Toute variation de stock passe par ce module, dans la transaction de l'opération. Il est partagé par la boutique, l'API et le back-office ; une copie identique vit dans `adminnew/lib/stock-ledger.ts`, et un test vérifie que les deux restent identiques.
+Toute variation de stock passe par ce module, dans la transaction de l'opération. Il est partagé par la boutique, l'API et le back-office ; une copie identique vit dans `l'ancien back-office, lib/stock-ledger.ts`, et un test vérifie que les deux restent identiques.
 
 | Notion | Définition |
 |---|---|
@@ -238,7 +238,7 @@ Ces écrans passent par l'API v1. Les règles métier ne sont donc écrites qu'u
 | Catalogue › Mouvements de stock, Alertes et réappro, Entrepôts | Journal filtrable, ruptures et commandes suggérées, entrepôts de transit |
 | Boutique › Bons de réduction, Règles de prix | Création, activation, suppression |
 
-**Configuration Vercel du projet `mybigmarket-adminnew`.**
+**Configuration Vercel du projet `l'ancien projet back-office (supprimé)`.**
 
 | Variable | Valeur |
 |---|---|

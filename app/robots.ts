@@ -1,5 +1,7 @@
 import type { MetadataRoute } from "next";
+import { SHOP } from "@/lib/shop/config";
+
+/** L'administration n'est pas citée ici (cela révélerait son adresse) : elle est protégée par noindex et par sa connexion. */
 export default function robots(): MetadataRoute.Robots {
-  const base=process.env.NEXT_PUBLIC_SITE_URL||"https://mybigmarket.example";
-  return {rules:{userAgent:"*",allow:"/",disallow:["/admin","/vendeur","/compte","/checkout"]},sitemap:`${base}/sitemap.xml`};
+  return { rules: { userAgent: "*", allow: "/", disallow: ["/panier", "/commande", "/suivi-commande", "/favoris", "/api/"] }, sitemap: `${SHOP.baseUrl}/sitemap.xml` };
 }

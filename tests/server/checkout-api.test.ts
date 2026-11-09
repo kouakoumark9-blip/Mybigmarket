@@ -160,39 +160,6 @@ describe("tunnel de commande", () => {
   });
 });
 
-describe("tunnel historique de la boutique (panier du navigateur)", () => {
-  it("passe par le calcul unique : taxe du pays, une commande par vendeur, stock réservé", async () => {
-    const categoryId = (await admin("POST", "/admin/categories", { name: "Électroménager" })).json.data.id;
-    const [taxGroup] = await rows<{ id: string }>(sql`select id from tax_rule_groups limit 1`);
-    const kettle = (await admin("POST", "/admin/products", { title: "Bouilloire inox", sellerId: SELLER_A, categoryId, priceXof: 10000, taxRuleGroupId: taxGroup.id, status: "approved", initialQuantity: 8 })).json.data;
-    session.current = { user: { id: BUYER, role: "buyer", email: "awa@exemple.ci" } };
-    const { createCheckoutAction } = await import("@/actions/checkout");
-    const form = new FormData();
-    form.set("cart", JSON.stringify([{ slug: kettle.slug, qty: 2 }]));
-    form.set("method", "orange_money");
-    form.set("deliveryMethod", "delivery");
-    form.set("countryCode", "CI");
-    form.set("language", "fr");
-    form.set("name", "Awa Koné");
-    form.set("phone", "0700000001");
-    form.set("address", "Rue des Jardins, Cocody");
-    form.set("city", "Abidjan");
-    const result = await createCheckoutAction(form);
-    expect(result.error).toBeUndefined();
-    expect(result.orderIds).toHaveLength(1);
-    const [order] = await rows<{ total_xof: number; tax_xof: number; reference: string }>(sql`select total_xof, tax_xof, reference from orders where id = ${result.orderIds![0]}`);
-    expect(order).toMatchObject({ total_xof: 23600, tax_xof: 3600 });
-    expect(order.reference).toMatch(/^CMD-/);
-    const [stock] = await rows<{ quantity: number }>(sql`select quantity from products where id = ${kettle.id}`);
-    expect(stock.quantity).toBe(6);
-
-    form.set("cart", JSON.stringify([{ slug: kettle.slug, qty: 50 }]));
-    const refused = await createCheckoutAction(form);
-    expect(refused.error).toContain("Bouilloire inox");
-    session.current = null;
-  });
-});
-
 describe("administration des commandes, clients, taxes et devises", () => {
   let paidOrder: { id: string; reference: string };
   let pendingOrder: { id: string };
@@ -200,7 +167,7 @@ describe("administration des commandes, clients, taxes et devises", () => {
   it("liste les commandes, applique les statuts et leurs effets (paiement, séquestre, stock)", async () => {
     const list = await admin("GET", "/admin/orders?q=awa@exemple.ci&sort=createdAt");
     expect(list.status).toBe(200);
-    expect(list.json.data.length).toBeGreaterThanOrEqual(3);
+    expect(list.json.data.length).toBeGreaterThanOrEqual(2);
     [paidOrder, pendingOrder] = list.json.data;
 
     const paid = await admin("POST", `/admin/orders/${paidOrder.id}/status`, { status: "paid_escrow", note: "Virement reçu" });
@@ -266,7 +233,7 @@ describe("administration des commandes, clients, taxes et devises", () => {
     expect(customers.json.data).toHaveLength(1);
     const customer = customers.json.data[0];
     expect(customer).toMatchObject({ email: "awa@exemple.ci", segment: "business" });
-    expect(customer.orderCount).toBeGreaterThanOrEqual(3);
+    expect(customer.orderCount).toBeGreaterThanOrEqual(2);
 
     const group = await admin("POST", "/admin/customer-groups", { code: "grossistes", name: "Grossistes", discountBasisPoints: 700 });
     expect(group.json.data.discountPercent).toBe(7);

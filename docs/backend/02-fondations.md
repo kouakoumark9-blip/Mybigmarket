@@ -25,8 +25,8 @@ La migration `0014` ne supprime aucune donnée. Elle ajoute des tables (`shops`,
 | Variable | Rôle | Obligatoire |
 |---|---|---|
 | `ADMIN_API_JWT_SECRET` | Signature des jetons de l'API admin (`openssl rand -base64 48`) | Oui, pour activer `/api/v1/admin` |
-| `ADMIN_TOTP_ENCRYPTION_KEY` | Même valeur que sur le projet `mybigmarket-adminnew` (double authentification) | Oui si des employés ont activé le TOTP |
-| `ADMIN_CORS_ALLOWED_ORIGINS` | `https://mybigmarket-adminnew.vercel.app` | Recommandé |
+| `ADMIN_TOTP_ENCRYPTION_KEY` | Même valeur que sur le projet `l'ancien projet back-office (supprimé)` (double authentification) | Oui si des employés ont activé le TOTP |
+| `ADMIN_CORS_ALLOWED_ORIGINS` | `https://l'ancien projet back-office (supprimé).vercel.app` | Recommandé |
 | `UPSTASH_REDIS_REST_URL` / `_TOKEN` | Limitation de débit dans Redis au lieu de PostgreSQL | Non |
 
 ## 3. L'API en bref

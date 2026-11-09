@@ -1,77 +1,90 @@
-/**
- * Parcours client complet sur la boutique : recherche, fiche produit, panier, création de compte,
- * commande enregistrée en base, suivi dans l'espace client, demande au service client.
- */
 import { expect, test } from "@playwright/test";
-import { uniqueEmail, watchConsole } from "./helpers";
+import { watchConsole } from "./helpers";
 
-test.describe.configure({ mode: "serial" });
+const ADMIN_EMAIL = process.env.E2E_ADMIN_EMAIL || "";
+const ADMIN_PASSWORD = process.env.E2E_ADMIN_PASSWORD || "";
 
-test("la boutique s'affiche avec ses en-têtes de sécurité", async ({ page }) => {
-  const console = watchConsole(page);
-  const response = await page.goto("/");
-  expect(response?.status()).toBe(200);
-  expect(response?.headers()["content-security-policy"]).toContain("frame-ancestors 'none'");
-  expect(response?.headers()["x-frame-options"]).toBe("DENY");
-  await expect(page.locator("header").first()).toBeVisible();
-  console.assertClean();
-});
-
-test("un client trouve un produit, commande et suit sa commande", async ({ page }) => {
-  const console = watchConsole(page);
-
-  // Recherche plein texte, tolérante aux accents.
-  await page.goto("/produits?q=mixeur");
-  const card = page.getByRole("link", { name: /Mixeur 3 vitesses 600 W/ }).first();
-  await expect(card).toBeVisible();
-  await card.click();
-  await expect(page.getByRole("heading", { level: 1, name: /Mixeur 3 vitesses 600 W/ })).toBeVisible();
-
-  // Panier (navigateur), puis création de compte qui ramène au tunnel.
-  await page.getByRole("button", { name: /Ajouter au panier/ }).first().click();
-  await page.goto("/panier");
-  await expect(page.getByText(/Mixeur 3 vitesses 600 W/).first()).toBeVisible();
-
-  const email = uniqueEmail("client");
-  await page.goto("/inscription?callbackUrl=%2Fcheckout");
-  await page.fill('input[name="name"]', "Client Parcours E2E");
-  await page.fill('input[name="email"]', email);
-  await page.fill('input[name="phone"]', "+225 07 11 22 33 44");
-  await page.fill('input[name="password"]', "Parcours-E2E-2026!");
-  await page.locator("form.auth-form button").click();
-  await page.waitForURL(/\/checkout/);
-
-  // Tunnel : adresse en Côte d'Ivoire, paiement mobile (prestataire simulé), commande en base.
-  await page.fill('input[name="name"]', "Client Parcours E2E");
-  await page.fill('input[name="phone"]', "+225 07 11 22 33 44");
-  await page.fill('[name="address"]', "Rue des Jardins, Cocody");
-  await page.fill('input[name="city"]', "Abidjan");
-  await page.getByRole("main").getByText("Wave", { exact: true }).click();
-  await page.getByRole("button", { name: /Confirmer la commande/ }).click();
-  await expect(page.getByRole("heading", { name: /Commande enregistrée/ })).toBeVisible();
-
-  // Espace client : commande en attente de paiement, montant calculé par le serveur
-  // (18 000 FCFA − 15 % de promotion = 15 300 HT, + TVA 18 % = 18 054 FCFA TTC).
-  await page.goto("/compte/commandes");
-  const order = page.getByRole("link", { name: /Commande #\w+ .*En attente de paiement.*18\s?054/ });
-  await expect(order).toBeVisible();
-  await order.click();
-  await expect(page.getByText(/Mixeur 3 vitesses 600 W/).first()).toBeVisible();
-
-  // Service client : demande liée au compte, visible dans l'historique.
-  await page.goto("/compte/support");
-  await page.fill('input[name="subject"]', "Délai de livraison à Abidjan");
-  await page.fill('textarea[name="message"]', "Bonjour, quel est le délai de livraison pour ma commande ?");
-  await page.getByRole("button", { name: /Envoyer ma demande/ }).click();
-  await expect(page.getByText(/Délai de livraison à Abidjan/).first()).toBeVisible();
-
-  console.assertClean();
-});
-
-test("une écriture envoyée depuis un autre site est refusée (CSRF)", async ({ request }) => {
-  const response = await request.post("/api/v1/shop/support/tickets", {
-    headers: { origin: "https://site-malveillant.example", "content-type": "application/json" },
-    data: { subject: "Test", message: "Message envoyé par un site tiers.", email: "tiers@exemple.ci", name: "Tiers" },
+test.describe("vitrine", () => {
+  test("accueil : menu des catégories, bannières, produits, sans trace de l'ancien positionnement", async ({ page }) => {
+    const console_ = watchConsole(page);
+    await page.goto("/");
+    await expect(page.getByRole("navigation", { name: "Catégories" }).first()).toBeVisible();
+    await expect(page.getByRole("region", { name: "Offres du moment" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Meilleures ventes" })).toBeVisible();
+    const text = (await page.locator("body").innerText()).toLowerCase();
+    for (const forbidden of ["chine →", "prix indicatif", "livraison à confirmer", "vendu par", "afrique de l’ouest", "exemple de démonstration"]) expect(text).not.toContain(forbidden);
+    console_.assertClean();
   });
-  expect(response.status()).toBe(403);
+
+  test("adresses propres des catégories, fil d'Ariane, filtres et FAQ", async ({ page }) => {
+    await page.goto("/climatiseurs");
+    await expect(page.getByRole("heading", { level: 1, name: "Climatiseurs" })).toBeVisible();
+    await expect(page.getByRole("form", { name: "Filtres" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Questions fréquentes" })).toBeVisible();
+    await expect(page).toHaveTitle(/Climatiseurs à Abidjan/);
+    await page.goto("/climatiseurs/inverter");
+    await expect(page.getByRole("navigation", { name: "Fil d'Ariane" }).getByText("Climatiseurs inverter")).toBeVisible();
+    const missing = await page.goto("/rubrique-qui-n-existe-pas");
+    expect(missing?.status()).toBe(404);
+  });
+
+  test("commande sans compte : panier, une page, confirmation WhatsApp, suivi", async ({ page }) => {
+    await page.goto("/petit-electromenager/friteuses-a-air");
+    await page.getByRole("button", { name: "Ajouter au panier" }).first().click();
+    await expect(page.getByRole("status")).toContainText("ajouté au panier");
+    await page.goto("/panier");
+    await expect(page.getByText("En stock à Abidjan").first()).toBeVisible();
+    await page.getByRole("link", { name: "Commander", exact: true }).click();
+    await page.getByLabel("Nom et prénom").fill("Awa Koné");
+    await page.getByLabel("Téléphone").fill("07 12 34 56 78");
+    await page.getByLabel("Commune ou ville").selectOption("Cocody");
+    await page.getByLabel("Adresse précise").fill("Riviera 2, rue des Jardins");
+    await expect(page.getByText("Paiement à la livraison").first()).toBeVisible();
+    await page.getByRole("button", { name: "Confirmer la commande" }).click();
+    await page.waitForURL(/\/commande\/confirmation\/MBM-/);
+    const reference = page.url().split("/").pop()!;
+    await expect(page.getByRole("link", { name: "Envoyer ma commande sur WhatsApp" })).toHaveAttribute("href", new RegExp(`wa\\.me/.*${reference}`));
+    await page.goto(`/suivi-commande?numero=${reference}&telephone=0712345678`);
+    await expect(page.getByText(`Commande ${reference}`)).toBeVisible();
+  });
+
+  test("la fiche produit fonctionne et affiche le délai de livraison", async ({ page }) => {
+    const console_ = watchConsole(page);
+    await page.goto("/produits/friteuse-a-air-4-5-l-fictif");
+    await expect(page.getByRole("heading", { level: 1 })).toContainText("Friteuse à air");
+    await expect(page.getByText("livraison 24 à 72 h").first()).toBeVisible();
+    console_.assertClean();
+  });
+});
+
+test.describe("administration", () => {
+  test("adresse protégée, jamais indexée, absente du sitemap", async ({ page, request }) => {
+    const response = await request.get("/gestion/connexion");
+    expect(response.headers()["x-robots-tag"]).toContain("noindex");
+    const sitemap = await (await request.get("/sitemap.xml")).text();
+    expect(sitemap).not.toContain("/gestion");
+    await page.goto("/gestion/produits");
+    await expect(page).toHaveURL(/\/gestion\/connexion/);
+  });
+
+  test("connexion, commande reçue, produit ajouté", async ({ page }) => {
+    test.skip(!ADMIN_EMAIL || !ADMIN_PASSWORD, "Identifiants d'administration non fournis.");
+    await page.goto("/gestion/connexion");
+    await page.getByLabel("Adresse e-mail").fill(ADMIN_EMAIL);
+    await page.getByLabel("Mot de passe").fill(ADMIN_PASSWORD);
+    await page.getByRole("button", { name: "Se connecter" }).click();
+    await expect(page.getByRole("heading", { name: "Tableau de bord" })).toBeVisible();
+    await page.goto("/gestion/commandes");
+    await expect(page.getByRole("link", { name: /^MBM-/ }).first()).toBeVisible();
+    await page.goto("/gestion/produits/nouveau");
+    await page.getByLabel("Nom du produit").fill("Bouilloire inox 1,7 L e2e");
+    await page.getByLabel("Catégorie").selectOption({ label: "Petit électroménager › Bouilloires" });
+    await page.getByLabel("Prix de vente (FCFA)").fill("12500");
+    await page.getByLabel("Description", { exact: true }).fill("Bouilloire inox de test.");
+    await page.getByRole("button", { name: "Enregistrer le produit" }).click();
+    await page.waitForURL(/\/gestion\/produits\/[0-9a-f-]{36}/);
+    await page.goto("/gestion");
+    await page.getByRole("button", { name: "Se déconnecter" }).click();
+    await expect(page).toHaveURL(/\/gestion\/connexion/);
+  });
 });

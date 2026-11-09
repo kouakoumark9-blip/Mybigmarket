@@ -16,7 +16,7 @@ import { PAYMENT_METHOD_INFO, type PaymentMethodCode } from "@/lib/payments/type
 import { BUILT_IN_TEMPLATES, builtInTemplate, formatXof, ordersTableHtml, paymentInstructionsHtml, plainTextHtml, submissionTableHtml, wrapLayout, type StoreIdentity } from "@/lib/notifications/templates";
 import { ticketAccessKey } from "@/server/modules/support/service";
 import { emailSender, emailTransport, toE164, whatsappTransport } from "@/lib/notifications/transports";
-import { destinationCountries } from "@/lib/west-africa";
+import { allDestinationCountries } from "@/lib/west-africa";
 import type { Db, Executor } from "@/server/core/db";
 import type { DomainEvent } from "@/server/core/events";
 import { errors } from "@/server/core/errors";
@@ -78,7 +78,7 @@ export async function queueTemplateEmail(database: Db, input: { to: string; code
   return row ? { queued: true as const, id: row.id } : { queued: false as const, reason: "duplicate" };
 }
 
-const callingCodeFor = (countryCode: string | null | undefined) => destinationCountries.find((country) => country.code === countryCode)?.callingCode ?? "+225";
+const callingCodeFor = (countryCode: string | null | undefined) => allDestinationCountries.find((country) => country.code === countryCode)?.callingCode ?? "+225";
 
 /** Message WhatsApp en file, si le canal est activé et le modèle Meta associé au code. */
 export async function queueWhatsApp(database: Db, config: NotificationConfig, input: { phone: string | null | undefined; countryCode?: string | null; code: string; variables: EmailVariables; dedupeKey: string }) {

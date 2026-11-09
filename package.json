@@ -12,13 +12,13 @@
     "db:seed": "tsx lib/db/seed-admin.ts",
     "payment:mock-webhook": "tsx scripts/mock-payment-webhook.ts",
     "db:seed:admin": "tsx lib/db/seed-admin.ts",
-    "db:seed:demo": "tsx --tsconfig tsconfig.scripts.json lib/db/seed.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "db:sql:all": "node scripts/build-migrate-all.mjs",
     "test:e2e": "playwright test",
-    "docs:db": "tsx scripts/db-diagram.ts"
+    "docs:db": "tsx scripts/db-diagram.ts",
+    "db:seed:boutique": "psql \"$DATABASE_URL\" -v ON_ERROR_STOP=1 -f scripts/seed-boutique.sql"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.5.0",

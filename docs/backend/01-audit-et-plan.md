@@ -1,3 +1,5 @@
+> **Note (novembre 2026)** : le back-office séparé décrit dans ce document a été supprimé. L'administration est désormais intégrée au projet principal, sous `/gestion` (voir le README). Ce document reste un historique de la conception de l'API.
+
 # Backend mybigmarket — Étape 1 : audit du dépôt et plan
 
 > Audit réalisé le 4 novembre 2026 sur `main` (commit `114edd5`).
@@ -15,7 +17,7 @@
 | Migrations | 14 migrations `drizzle/0000…0013`, `migrate-all.sql` généré, `drizzle-kit check` en CI |
 | Validation | Zod 4 |
 | Auth boutique | Auth.js v5 (Credentials), bcrypt, rôles `buyer` / `seller` / `admin` |
-| Auth back-office | App séparée `adminnew/` (projet Vercel distinct), Auth.js, bcrypt, **TOTP 2FA**, sessions invalidées au changement de mot de passe |
+| Auth back-office | App séparée l'ancien back-office (supprimé) (projet Vercel distinct), Auth.js, bcrypt, **TOTP 2FA**, sessions invalidées au changement de mot de passe |
 | Fichiers | Vercel Blob (public pour les images, privé pour les justificatifs) |
 | Tâches planifiées | Vercel Cron : `expire-orders`, `expire-quotes` |
 | Tests | Vitest, 16 fichiers, 319 tests (règles métier pures) |
@@ -45,7 +47,7 @@ Conventions observées : UUID (`defaultRandom`) sur la plupart des entités, `cr
 ### Points d'entrée
 
 - **Boutique** : server actions (`actions/*.ts`) pour l'authentification, le checkout, la messagerie, les devis, les avis et les vendeurs ; route handlers `/api/webhooks/payment` (HMAC, idempotent), `/api/transport/devis` (avec limite de débit en mémoire), `/api/exchange-rates`, `/api/health`, `/api/cron/*`.
-- **Back-office** (`adminnew/`) : 33 pages server-side avec server actions (catalogue, stock, clients, commandes, retours, factures, transport, employés, sécurité, service client), contrôle `requireEmployee(permission)` sur chaque action, export CSV des commandes.
+- **Back-office** (l'ancien back-office (supprimé)) : 33 pages server-side avec server actions (catalogue, stock, clients, commandes, retours, factures, transport, employés, sécurité, service client), contrôle `requireEmployee(permission)` sur chaque action, export CSV des commandes.
 
 ## 2. Ce qui est incomplet ou cassé
 
@@ -58,7 +60,7 @@ Conventions observées : UUID (`defaultRandom`) sur la plupart des entités, `cr
 
 ### Dette structurelle
 
-5. **Deux copies du schéma et des règles.** `adminnew/lib/db/schema.ts` (607 lignes, sous-ensemble écrit à la main) et des copies de `order-rules`, `customer-rules`, `shipping-quote` et `document-numbers`. Des tests de synchronisation limitent la dérive, mais toute évolution doit être faite deux fois.
+5. **Deux copies du schéma et des règles.** l'ancien schéma du back-office (607 lignes, sous-ensemble écrit à la main) et des copies de `order-rules`, `customer-rules`, `shipping-quote` et `document-numbers`. Des tests de synchronisation limitent la dérive, mais toute évolution doit être faite deux fois.
 6. **34 tables sans aucun code** : `addresses`, `promo_codes`, `tax_rules`, `tax_rule_groups`, `stock_movements`, `inventory_movements`, `order_status_history`, `return_requests`, `cms_pages`, `attribute_groups`, `attribute_values`, `product_categories`, `pack_items`, `product_tags`, `customer_consents`, `module_hooks`, `employee_sessions`, etc.
 7. **Doublons de concept** à unifier : `stock_movements` et `inventory_movements` ; `tax_rules` et `tax_rule_groups` ; `product_attributes` (clé/valeur libre) et `attribute_groups`/`attribute_values` ; `activity_logs`, `admin_audit_log` et `employee_audit_logs`.
 8. **Trois identités** : `users` (boutique, rôle `admin` hérité), `customers` (profil client, lié par `userId`) et `employees` (back-office). Le rôle `users.admin` fait doublon avec les employés.
@@ -100,7 +102,7 @@ Légende : ✅ en place · 🟡 partiel (schéma ou règles sans API) · ❌ abs
 
 ## 4. Architecture cible (dans le dépôt existant)
 
-Un seul backend, dans l'application Next.js racine, consommé par la boutique **et** par `adminnew`.
+Un seul backend, dans l'application Next.js racine, consommé par la boutique **et** par l'ancien back-office.
 
 ```text
 server/
@@ -117,7 +119,7 @@ app/api/v1/
   openapi.json     généré depuis les schémas Zod
 ```
 
-Règles : route → service → repository, jamais de SQL dans les routes ; les règles pures actuelles de `lib/*.ts` deviennent le cœur des services (elles sont déplacées, pas réécrites) ; `lib/db/schema.ts` reste la source unique du schéma, et `adminnew` cessera progressivement d'en garder une copie en appelant `/api/v1/admin`.
+Règles : route → service → repository, jamais de SQL dans les routes ; les règles pures actuelles de `lib/*.ts` deviennent le cœur des services (elles sont déplacées, pas réécrites) ; `lib/db/schema.ts` reste la source unique du schéma, et l'ancien back-office cessera progressivement d'en garder une copie en appelant `/api/v1/admin`.
 
 ## 5. Décisions à valider avant l'étape 2
 
@@ -125,7 +127,7 @@ Règles : route → service → repository, jamais de SQL dans les routes ; les 
 |---|---|---|
 | D1 | Mettre la base de production à jour (migration `0013` manquante) | L'appliquer après sauvegarde Neon (branche de secours), depuis un poste contrôlé. Je fournis la procédure ; je n'ai pas accès à la base. |
 | D2 | File d'attente, cache et limite de débit : Upstash Redis ou PostgreSQL ? | Interface unique avec **PostgreSQL d'abord** (la file d'e-mails `SKIP LOCKED` existe déjà) et adaptateur Upstash activé par variable d'environnement. Pas de nouveau service à payer tant que le trafic est faible. |
-| D3 | Où vit l'API ? | Dans l'application racine (`/api/v1/shop`, `/api/v1/admin`). `adminnew` reste l'interface et migre écran par écran vers l'API. |
+| D3 | Où vit l'API ? | Dans l'application racine (`/api/v1/shop`, `/api/v1/admin`). l'ancien back-office reste l'interface et migre écran par écran vers l'API. |
 | D4 | Identités | `users` = identifiants de connexion boutique, `customers` = profil client, `employees` = équipe. Le rôle `users.admin` est déprécié et remplacé par les employés. |
 | D5 | Doublons de tables | Garder `stock_movements`, `tax_rule_groups`, `attribute_groups`/`attribute_values` et `employee_audit_logs` comme références. Les anciennes tables restent en place, sans nouvelle écriture, jusqu'à migration des données. |
 | D6 | Marketplace | Conserver la dimension vendeur (`sellerId`, commande par vendeur, séquestre) **en plus** du `shopId` multi-boutique. |

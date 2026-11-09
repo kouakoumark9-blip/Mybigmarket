@@ -203,6 +203,10 @@ export const categories = pgTable("categories", {
   bannerUrl: text("banner_url"),
   metaTitle: varchar("meta_title", { length: 190 }),
   metaDescription: varchar("meta_description", { length: 320 }),
+  /** Texte d'introduction (haut de page), texte explicatif (bas de page) et questions fréquentes. */
+  introText: text("intro_text"),
+  bodyText: text("body_text"),
+  faq: jsonb("faq").$type<Array<{ question: string; answer: string }>>().notNull().default([]),
   deletedAt: timestamp("deleted_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
@@ -313,6 +317,19 @@ productType: productTypeEnum("product_type").notNull().default("standard"),
   redirectTargetType: redirectTargetTypeEnum("redirect_target_type"),
   /** Cible de la redirection d'un produit désactivé : slug, identifiant ou URL selon `redirectTargetType`. */
   redirectTarget: varchar("redirect_target", { length: 300 }),
+  /** Ancien prix barré (promotions). */
+  comparePriceXof: integer("compare_price_xof"),
+  /** « in_stock_abidjan » (livraison 24 à 72 h) ou « on_order » (délai = leadTimeDays). */
+  availability: varchar("availability", { length: 20 }).notNull().default("in_stock_abidjan"),
+  energyClass: varchar("energy_class", { length: 4 }),
+  /** Champs internes : jamais affichés aux clients. */
+  alibabaUrl: text("alibaba_url"),
+  importFeesXof: integer("import_fees_xof"),
+  powerLabel: varchar("power_label", { length: 40 }),
+  badge: varchar("badge", { length: 30 }),
+  isBestSeller: boolean("is_best_seller").notNull().default(false),
+  /** Produit fictif à remplacer : visible, mais non commandable. */
+  isPlaceholder: boolean("is_placeholder").notNull().default(false),
 }, (t) => [uniqueIndex("products_slug_unique").on(t.slug), uniqueIndex("products_sku_unique").on(t.sku), index("products_seller_idx").on(t.sellerId), index("products_supplier_idx").on(t.supplierId), index("products_brand_idx").on(t.brandId), index("products_category_idx").on(t.categoryId), index("products_listing_idx").on(t.status, t.categoryId), uniqueIndex("products_reference_unique").on(t.reference).where(sql`${t.deletedAt} IS NULL AND ${t.reference} IS NOT NULL`), index("products_ean13_idx").on(t.ean13), index("products_type_idx").on(t.productType, t.deletedAt), index("products_tax_rule_group_id_idx").on(t.taxRuleGroupId), index("products_available_for_order_created_at_idx").on(t.availableForOrder, t.createdAt), index("products_created_at_idx").on(t.createdAt), index("products_is_featured_created_at_idx").on(t.isFeatured, t.createdAt), index("products_price_xof_idx").on(t.priceXof), index("products_quantity_idx").on(t.quantity), index("products_title_idx").on(t.title), index("products_updated_at_idx").on(t.updatedAt), index("products_visibility_idx").on(t.visibility)]);
 
 export const productImages = pgTable("product_images", {
@@ -2262,3 +2279,36 @@ export const employeeShops = pgTable("employee_shops", {
   shopId: uuid("shop_id").notNull().references(() => shops.id, { onDelete: "cascade" }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [uniqueIndex("employee_shops_unique").on(t.employeeId, t.shopId), index("employee_shops_shop_idx").on(t.shopId)]);
+
+/**
+ * Commandes de la boutique (vendeuse unique, sans compte client obligatoire).
+ * Statuts : new, confirmed, delivering, delivered, cancelled.
+ */
+export const shopOrders = pgTable("shop_orders", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  reference: varchar("reference", { length: 24 }).notNull(),
+  status: varchar("status", { length: 20 }).notNull().default("new"),
+  customerName: varchar("customer_name", { length: 120 }).notNull(),
+  phone: varchar("phone", { length: 30 }).notNull(),
+  commune: varchar("commune", { length: 80 }).notNull(),
+  address: text("address").notNull(),
+  deliveryFeeXof: integer("delivery_fee_xof").notNull().default(0),
+  subtotalXof: integer("subtotal_xof").notNull(),
+  totalXof: integer("total_xof").notNull(),
+  paymentMethod: varchar("payment_method", { length: 30 }).notNull().default("cash_on_delivery"),
+  customerNote: text("customer_note").notNull().default(""),
+  internalNote: text("internal_note").notNull().default(""),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [uniqueIndex("shop_orders_reference_unique").on(t.reference), index("shop_orders_status_created_idx").on(t.status, t.createdAt)]);
+
+export const shopOrderItems = pgTable("shop_order_items", {
+  id: serial("id").primaryKey(),
+  orderId: uuid("order_id").notNull().references(() => shopOrders.id, { onDelete: "cascade" }),
+  productId: uuid("product_id").references(() => products.id, { onDelete: "set null" }),
+  title: varchar("title", { length: 190 }).notNull(),
+  unitPriceXof: integer("unit_price_xof").notNull(),
+  quantity: integer("quantity").notNull(),
+  /** Délai affiché au client au moment de la commande (jamais une promesse non tenable). */
+  availabilityLabel: varchar("availability_label", { length: 120 }).notNull().default(""),
+}, (t) => [index("shop_order_items_order_idx").on(t.orderId), index("shop_order_items_product_idx").on(t.productId)]);

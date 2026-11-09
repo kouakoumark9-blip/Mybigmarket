@@ -18,6 +18,9 @@ type CartContextValue = {
 const CartContext = createContext<CartContextValue | null>(null);
 const KEY = "mybigmarket-cart-v1";
 
+/** Un produit sur commande n'a pas de stock en boutique : on plafonne à 99 pièces par ligne. */
+const stockLimit = (product: DemoProduct) => (product.availability === "on_order" ? 99 : product.quantity);
+
 function unitPriceForQuantity(product: DemoProduct, quantity: number) {
   return product.tiers?.find((tier) => quantity >= tier.minQuantity && (tier.maxQuantity === null || quantity <= tier.maxQuantity))?.unitPriceXof ?? product.priceXof;
 }
@@ -35,7 +38,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     } catch {
       localStorage.removeItem(KEY);
     }
-    const timer = window.setTimeout(() => { setItems(saved); setHydrated(true); }, 0);
+    // Un ajout fait avant la lecture du panier enregistré ne doit pas être écrasé : on fusionne les deux.
+    const timer = window.setTimeout(() => { setItems((current) => [...current, ...saved.filter((item) => !current.some((line) => line.slug === item.slug))]); setHydrated(true); }, 0);
     return () => window.clearTimeout(timer);
   }, []);
 
@@ -49,12 +53,13 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const addItem = useCallback((product: DemoProduct, quantity = product.minimumQuantity) => {
-    if (product.isDemo) { showNotice("Produit d’exemple : il n’est pas encore disponible à la commande."); return; }
-    const safeQty = Math.min(product.quantity, Math.max(product.minimumQuantity, Math.floor(quantity)));
+    if (product.isDemo) { showNotice("Ce produit n’est pas encore disponible à la commande."); return; }
+    if (product.availability !== "on_order" && product.quantity < 1) { showNotice("Ce produit n’est plus en stock."); return; }
+    const safeQty = Math.min(stockLimit(product), Math.max(product.minimumQuantity, Math.floor(quantity)));
     setItems((current) => {
       const existing = current.find((item) => item.slug === product.slug);
       if (existing) {
-        const combinedQuantity = Math.min(product.quantity, existing.qty + safeQty);
+        const combinedQuantity = Math.min(stockLimit(product), existing.qty + safeQty);
         const tierProduct = product.tiers?.length ? product : existing;
         return current.map((item) => item.slug === product.slug ? { ...item, ...product, qty: combinedQuantity, priceXof: unitPriceForQuantity(tierProduct, combinedQuantity) } : item);
       }
@@ -66,7 +71,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const setQuantity = useCallback((slug: string, quantity: number) => {
     setItems((current) => current.map((item) => {
       if (item.slug !== slug) return item;
-      const qty = Math.max(item.minimumQuantity, Math.min(item.quantity, Math.floor(quantity)));
+      const qty = Math.max(item.minimumQuantity, Math.min(stockLimit(item), Math.floor(quantity)));
       return { ...item, qty, priceXof: unitPriceForQuantity(item, qty) };
     }));
   }, []);
@@ -81,7 +86,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     notice, addItem, setQuantity, removeItem, clearCart,
   }), [items, notice, addItem, setQuantity, removeItem, clearCart]);
 
-  return <CartContext.Provider value={value}>{children}{notice && <div className="toast" role="status">✓ {notice}</div>}</CartContext.Provider>;
+  return <CartContext.Provider value={value}>{children}{notice && <div className="toast" role="status">{notice}</div>}</CartContext.Provider>;
 }
 
 export function useCart() {

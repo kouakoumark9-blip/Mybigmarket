@@ -22,25 +22,6 @@ jobs:
         env:
           AUTH_SECRET: ci-only-secret-that-is-not-used-for-real-users
           NEXT_PUBLIC_SITE_URL: https://example.invalid
-  adminnew:
-    name: Admin (lint, types, build)
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: adminnew
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-          cache-dependency-path: adminnew/package-lock.json
-      - run: npm ci
-      - run: npm run lint
-      - run: npx tsc --noEmit
-      - run: npm run build
-        env:
-          AUTH_SECRET: ci-only-secret-that-is-not-used-for-real-users
   e2e:
     name: Bout en bout (navigateur, PostgreSQL)
     runs-on: ubuntu-latest
@@ -63,10 +44,8 @@ jobs:
       AUTH_TRUST_HOST: "true"
       ALLOW_MOCK_PAYMENTS: "true"
       NEXT_PUBLIC_SITE_URL: http://localhost:3000
-      ADMIN_API_BASE_URL: http://localhost:3000
       SEED_SUPERADMIN_EMAIL: admin-e2e@mybigmarket.test
       SEED_SUPERADMIN_PASSWORD: ci-only-admin-password-2026
-      SEED_DEMO_PASSWORD: ci-only-demo-password
       E2E_ADMIN_EMAIL: admin-e2e@mybigmarket.test
       E2E_ADMIN_PASSWORD: ci-only-admin-password-2026
     steps:
@@ -75,28 +54,22 @@ jobs:
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: |
-            package-lock.json
-            adminnew/package-lock.json
+          cache-dependency-path: package-lock.json
       - run: npm ci
-      - run: npm ci
-        working-directory: adminnew
-      - name: Base de données (migrations, administrateur, démonstration)
+      - name: Base de données (migrations, administrateur)
         run: |
           npx drizzle-kit migrate
           npm run db:seed:admin
-          npm run db:seed:demo
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f scripts/seed-boutique.sql
           psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f scripts/e2e-prepare.sql
       - name: Builds de production
         run: |
           npm run build
-          (cd adminnew && npm run build)
-      - name: Démarrage de la boutique et du back-office
+      - name: Démarrage de la boutique
         run: |
           nohup npx next start -p 3000 > storefront.log 2>&1 &
-          (cd adminnew && nohup npx next start -p 3002 > ../admin.log 2>&1 &)
           # Attente : le serveur répond (200 pour la boutique, redirection vers /login pour le back-office).
-          for port in 3000 3002; do
+          for port in 3000; do
             timeout 90 bash -c "until [ \"\$(curl -s -o /dev/null -w '%{http_code}' http://localhost:$port/)\" != 000 ]; do sleep 1; done"
           done
       - run: npx playwright install --with-deps chromium
@@ -109,5 +82,4 @@ jobs:
             playwright-report
             test-results
             storefront.log
-            admin.log
           retention-days: 7

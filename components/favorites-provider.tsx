@@ -3,9 +3,8 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { Heart } from "lucide-react";
 import type { DemoProduct } from "@/lib/demo-data";
-import { products } from "@/lib/demo-data";
 
-const STORAGE_KEY = "mybigmarket-favorites-v1";
+const STORAGE_KEY = "mybigmarket-favorites-v2";
 
 type FavoritesContextValue = {
   favorites: DemoProduct[];
@@ -18,17 +17,16 @@ type FavoritesContextValue = {
 
 const FavoritesContext = createContext<FavoritesContextValue | null>(null);
 
+/** Favoris du visiteur : enregistrés dans son navigateur (aucun compte nécessaire). */
 export function FavoritesProvider({ children }: { children: React.ReactNode }) {
-  const [slugs, setSlugs] = useState<string[]>([]);
+  const [favorites, setFavorites] = useState<DemoProduct[]>([]);
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
       try {
         const saved: unknown = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-        if (Array.isArray(saved)) {
-          setSlugs(saved.filter((slug): slug is string => typeof slug === "string" && products.some((product) => product.slug === slug)));
-        }
+        if (Array.isArray(saved)) setFavorites(saved.filter((item): item is DemoProduct => Boolean(item) && typeof (item as DemoProduct).slug === "string"));
       } catch {
         localStorage.removeItem(STORAGE_KEY);
       }
@@ -38,16 +36,15 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (hydrated) localStorage.setItem(STORAGE_KEY, JSON.stringify(slugs));
-  }, [hydrated, slugs]);
+    if (hydrated) localStorage.setItem(STORAGE_KEY, JSON.stringify(favorites));
+  }, [hydrated, favorites]);
 
-  const favorites = useMemo(() => slugs.map((slug) => products.find((product) => product.slug === slug)).filter((product): product is DemoProduct => Boolean(product)), [slugs]);
-  const isFavorite = useCallback((slug: string) => slugs.includes(slug), [slugs]);
+  const isFavorite = useCallback((slug: string) => favorites.some((item) => item.slug === slug), [favorites]);
   const toggle = useCallback((product: DemoProduct) => {
-    setSlugs((current) => current.includes(product.slug) ? current.filter((slug) => slug !== product.slug) : [...current, product.slug]);
+    setFavorites((current) => current.some((item) => item.slug === product.slug) ? current.filter((item) => item.slug !== product.slug) : [...current, product]);
   }, []);
-  const remove = useCallback((slug: string) => setSlugs((current) => current.filter((item) => item !== slug)), []);
-  const clear = useCallback(() => setSlugs([]), []);
+  const remove = useCallback((slug: string) => setFavorites((current) => current.filter((item) => item.slug !== slug)), []);
+  const clear = useCallback(() => setFavorites([]), []);
   const value = useMemo(() => ({ favorites, count: favorites.length, isFavorite, toggle, remove, clear }), [favorites, isFavorite, toggle, remove, clear]);
 
   return <FavoritesContext.Provider value={value}>{children}</FavoritesContext.Provider>;
