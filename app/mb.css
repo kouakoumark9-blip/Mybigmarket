@@ -6,7 +6,7 @@
  * de globals.css (héritées de l'ancien site) s'y appliquent à `main:not(.pd)`.
  */
 
-html body{background:#f5f6f8;color:var(--color-text);font-family:"Inter",Arial,sans-serif;font-size:15px;line-height:1.5;letter-spacing:0;font-feature-settings:"cv11","ss01";font-optical-sizing:auto}
+html body{background:#f1f1f2;color:var(--color-text);font-family:"Inter",Arial,sans-serif;font-size:15px;line-height:1.5;letter-spacing:0;font-feature-settings:"cv11","ss01";font-optical-sizing:auto}
 html body button,html body input,html body select,html body textarea{font-family:inherit}
 .mb-wrap{width:min(100% - 24px,1240px);margin-inline:auto}
 .mb-page{padding:16px 0 40px;min-height:50vh}
@@ -337,3 +337,61 @@ html body button,html body input,html body select,html body textarea{font-family
 @media (min-width:1101px){.mb-cat-layout .mb-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
 .mb-card .mb-btn{padding:0 10px;white-space:nowrap}
 .mb-reassurance svg{flex:none;width:22px;height:22px}
+
+
+/* ===================================================================================
+   Gabarit marketplace (style Jumia) : couche finale, prioritaire sur ce qui précède.
+   Coins de 6 à 8 px, filets fins, orange #F68B1E, prix en noir gras, remises en pastille orange clair.
+   =================================================================================== */
+.mb-btn,.mb-card .mb-btn{border-radius:8px}
+.mb-header{border-bottom:0;box-shadow:0 1px 4px rgba(0,0,0,.12)}
+.mb-strip{background:#313133;color:#e6e6e8;border-bottom:0}
+.mb-strip a{color:#fff}
+.mb-strip a:hover{color:var(--color-primary)}
+.mb-search{height:46px;padding:0;border:1px solid #c4c8cd;border-radius:8px;background:#fff}
+.mb-search:focus-within{border-color:var(--color-primary);box-shadow:0 0 0 2px var(--color-primary-muted)}
+.mb-search select{background:#f5f6f8;border-right:1px solid #c4c8cd;padding-left:14px}
+.mb-search button{border-radius:0;padding:0 26px;text-transform:uppercase;letter-spacing:.4px;font-size:13.5px}
+.mb-action{border-radius:8px}
+.mb-header-wa{border-radius:8px;height:42px}
+.mb-nav{box-shadow:none;border-bottom:1px solid var(--color-border)}
+.mb-nav-all>button{background:var(--color-primary);border-color:var(--color-primary);color:var(--color-on-primary);border-radius:8px;font-weight:700}
+.mb-nav-all>button:hover,.mb-nav-all:focus-within>button{background:var(--color-primary-hover);border-color:var(--color-primary-hover)}
+.mb-nav a.mb-nav-link:hover{border-bottom-color:var(--color-primary)}
+.mb-catmenu,.mb-hero,.mb-reassurance,.mb-section,.mb-box,.mb-filters,.mb-toolbar,.mb-textblock,.mb-info,.mb-info-nav{border-radius:8px;border-color:transparent;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.mb-catmenu .mb-sub{border-radius:8px}
+.mb-catmenu-title{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;padding:14px 16px 8px;color:#5f666d}
+.mb-catmenu>ul>li>a{font-weight:500}
+.mb-banner-fallback{background:var(--color-primary);border-left:0;color:var(--color-on-primary)}
+.mb-banner-fallback span{color:rgba(17,17,17,.82)}
+.mb-hero{border:0}
+.mb-reassurance>div{padding:14px 16px}
+.mb-reassurance svg{color:var(--color-primary-strong)}
+.mb-section-head{border-bottom:1px solid #f0f0f1;padding:14px 18px 10px}
+.mb-section-head h2{font-size:19px;position:relative;padding-left:12px}
+.mb-section-head h2::before{content:"";position:absolute;left:0;top:3px;bottom:3px;width:4px;border-radius:2px;background:var(--color-primary)}
+.mb-eyebrow{display:none}
+.mb-section-head--promo{background:var(--color-primary);border-bottom:0;border-radius:8px 8px 0 0}
+.mb-section-head--promo h2::before{background:var(--color-on-primary)}
+.mb-page .mb-section-head--promo .mb-link{color:var(--color-on-primary)}
+.mb-cat-tile-img{border-radius:50%;border-color:var(--color-border);background:#fff}
+.mb-cat-grid{grid-template-columns:repeat(6,minmax(0,130px))}
+.mb-grid{gap:10px}
+.mb-section .mb-grid{padding:14px 16px 18px}
+.mb-card{padding:10px;border:1px solid #ececed;border-radius:6px;box-shadow:none}
+.mb-card:hover{box-shadow:0 6px 18px rgba(0,0,0,.14);border-color:transparent}
+.mb-card-img{border-radius:4px}
+.mb-card-title{font-weight:400;font-size:13.5px;min-height:38px}
+.mb-price{color:var(--color-text);font-size:18px;font-weight:700;letter-spacing:0}
+.mb-price-old em{background:var(--color-primary-soft);color:var(--color-primary-strong);padding:2px 6px;border-radius:4px;font-weight:700}
+.mb-badge{border-radius:4px}
+.mb-badge--promo{background:var(--color-primary-soft);color:var(--color-primary-strong);border:1px solid var(--color-primary-muted)}
+.mb-avail{margin:6px 0 8px}
+@media (hover:hover){
+  .mb-card .mb-btn{opacity:0;transform:translateY(4px);transition:opacity .15s,transform .15s}
+  .mb-card:hover .mb-btn,.mb-card:focus-within .mb-btn{opacity:1;transform:none}
+}
+.mb-pager a,.mb-pager span{border-radius:6px}
+.mb-subcats a{border-radius:6px}
+.mb-footer{background:var(--color-surface-inverse)}
+@media (max-width:640px){.mb-cat-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
