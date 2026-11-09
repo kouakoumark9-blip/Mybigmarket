@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
-import { ChevronDown, Heart, Menu, MessageCircle, Search, ShoppingCart, Truck, X } from "lucide-react";
+import { ChevronDown, Menu, Search, ShoppingCart, Truck, X } from "lucide-react";
 import { useCart } from "@/components/cart-provider";
 import { SHOP, TOP_STRIP, whatsappLink } from "@/lib/shop/config";
 import { Logo } from "./logo";
@@ -52,7 +52,6 @@ export function SiteHeader({ categories }: { categories: MenuCategory[] }) {
             <ShoppingCart size={22} strokeWidth={1.75} aria-hidden="true"/><span>Panier</span>
             {count > 0 && <span className="mb-action-count" aria-hidden="true">{count}</span>}
           </Link>
-          <a className="mb-header-wa" href={whatsappLink()} rel="noopener" aria-label="WhatsApp"><MessageCircle size={20} strokeWidth={1.75} aria-hidden="true"/><span>WhatsApp</span></a>
         </div>
       </div>
       <nav className="mb-nav" aria-label="Catégories">
@@ -61,10 +60,6 @@ export function SiteHeader({ categories }: { categories: MenuCategory[] }) {
             <button type="button"><Menu size={18} strokeWidth={1.75} aria-hidden="true"/> Toutes les catégories <ChevronDown size={16} strokeWidth={1.75} aria-hidden="true"/></button>
             <div className="mb-nav-drop"><CategoryMenu categories={categories} title="Toutes les catégories"/></div>
           </div>
-          {categories.map((item) => <Link key={item.slug} className="mb-nav-link" href={`/${item.slug}`}>{item.name}</Link>)}
-          <span className="mb-nav-spacer"/>
-          <Link className="mb-nav-link mb-nav-link--promo" href="/promotions">Promotions</Link>
-          <Link className="mb-nav-link" href="/favoris"><Heart size={16} strokeWidth={1.75} aria-hidden="true" style={{ marginRight: 6 }}/>Favoris</Link>
         </div>
       </nav>
     </header>
