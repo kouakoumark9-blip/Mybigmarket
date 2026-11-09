@@ -46,7 +46,6 @@ jobs:
       NEXT_PUBLIC_SITE_URL: http://localhost:3000
       SEED_SUPERADMIN_EMAIL: admin-e2e@mybigmarket.test
       SEED_SUPERADMIN_PASSWORD: ci-only-admin-password-2026
-      SEED_DEMO_PASSWORD: ci-only-demo-password
       E2E_ADMIN_EMAIL: admin-e2e@mybigmarket.test
       E2E_ADMIN_PASSWORD: ci-only-admin-password-2026
     steps:

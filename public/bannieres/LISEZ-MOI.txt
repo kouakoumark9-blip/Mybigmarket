@@ -1,0 +1,15 @@
+BANNIÈRES DE LA PAGE D'ACCUEIL
+==============================
+
+Déposez vos images dans ce dossier, avec exactement ces noms (ou changez les noms dans lib/shop/banners.ts) :
+
+  slide-1-bureau.jpg   2172 x 274 px   ordinateur   (format panoramique : gardez le texte au centre, marges de 150 px)
+  slide-1-mobile.jpg   1080 x 540 px   mobile
+  slide-2-bureau.jpg   2172 x 274 px
+  slide-2-mobile.jpg   1080 x 540 px
+  slide-3-bureau.jpg   2172 x 274 px
+  slide-3-mobile.jpg   1080 x 540 px
+
+Pour ajouter une 4e ou une 5e bannière : ajoutez une ligne dans lib/shop/banners.ts (3 à 5 bannières).
+Tant qu'une image n'existe pas, un bandeau de texte s'affiche à sa place.
+Format conseillé : JPG, moins de 300 Ko par image.
