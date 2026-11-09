@@ -1,6 +1,6 @@
 "use server";
 
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
@@ -86,4 +86,14 @@ export async function importCsvAction(_previous: ImportState, formData: FormData
   const report = await importProductsCsv(await file.text());
   if (report.created) refreshShop();
   return { report };
+}
+
+/** Crée catégories, compte boutique et 6 fiches fictives (sans doublon si déjà fait). */
+export async function installSeedAction() {
+  await requireAdmin();
+  const { SEED_STATEMENTS } = await import("@/lib/gestion/seed-data");
+  const database = getDb();
+  await database.transaction(async (tx) => { for (const statement of SEED_STATEMENTS) await tx.execute(sql.raw(statement)); });
+  refreshShop();
+  redirect("/gestion?installe=1");
 }

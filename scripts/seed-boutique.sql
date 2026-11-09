@@ -9,7 +9,7 @@ INSERT INTO "users" ("name","email","password_hash","role","status")
 SELECT 'MyBigMarket','boutique@mybigmarket.ci','!compte-sans-connexion','seller','active'
 WHERE NOT EXISTS (SELECT 1 FROM "users" WHERE "email"='boutique@mybigmarket.ci');
 INSERT INTO "seller_profiles" ("user_id","university","city_china","verification_status")
-SELECT u."id",'MyBigMarket','Abidjan','approved' FROM "users" u
+SELECT u."id",'MyBigMarket','Abidjan','pending' FROM "users" u
 WHERE u."email"='boutique@mybigmarket.ci' AND NOT EXISTS (SELECT 1 FROM "seller_profiles" sp WHERE sp."user_id"=u."id");
 INSERT INTO "categories" ("name","slug","description","sort_order","meta_title","meta_description","intro_text","body_text","faq")
 VALUES ('Informatique','informatique','Ordinateurs portables, imprimantes, matériel réseau et accessoires : du matériel informatique pour la maison, l''école et le bureau, livré à Abidjan et dans toute la Côte d''Ivoire.',1,'Informatique à Abidjan : ordinateurs portables, imprimantes, Wi-Fi | MyBigMarket','Ordinateurs portables, imprimantes, routeurs Wi-Fi et accessoires informatiques à Abidjan et partout en Côte d''Ivoire. Paiement à la livraison.','Ordinateurs portables, imprimantes, matériel réseau et accessoires : du matériel informatique pour la maison, l''école et le bureau, livré à Abidjan et dans toute la Côte d''Ivoire.','Choisir son matériel informatique à Abidjan : pour le travail de bureau et les études, un ordinateur portable avec 8 Go de mémoire et un disque SSD suffit largement. Pour la maison ou une petite boutique, un routeur Wi-Fi à double bande couvre mieux les pièces et supporte plus d''appareils. Une imprimante laser coûte plus cher à l''achat mais revient moins cher à l''usage si vous imprimez souvent.
