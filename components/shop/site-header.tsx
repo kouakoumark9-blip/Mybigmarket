@@ -53,7 +53,7 @@ export function SiteHeader({ categories }: { categories: MenuCategory[] }) {
             <ShoppingCart size={22} strokeWidth={1.75} aria-hidden="true"/><span>Panier</span>
             {count > 0 && <span className="mb-action-count" aria-hidden="true">{count}</span>}
           </Link>
-          <a className="mb-header-wa" href={whatsappLink()} rel="noopener"><MessageCircle size={20} strokeWidth={1.75} aria-hidden="true"/><span>WhatsApp</span></a>
+          <a className="mb-header-wa" href={whatsappLink()} rel="noopener" aria-label="WhatsApp"><MessageCircle size={20} strokeWidth={1.75} aria-hidden="true"/><span>WhatsApp</span></a>
         </div>
       </div>
       <nav className="mb-nav" aria-label="Catégories">
