@@ -2,14 +2,14 @@
 
 > Fichier généré par `npm run docs:db` depuis `lib/db/schema.ts` (source unique). Ne pas modifier à la main : `tests/db-diagram-sync.test.ts` échoue s'il n'est plus à jour.
 
-**136 tables, 221 clés étrangères.** Un diagramme par domaine ; une table d'un autre domaine reliée à celui-ci y figure sans ses colonnes. Notation : `PK` clé primaire, `FK` clé étrangère ; `||--o{` « un à plusieurs », `|o--o{` lien facultatif.
+**138 tables, 223 clés étrangères.** Un diagramme par domaine ; une table d'un autre domaine reliée à celui-ci y figure sans ses colonnes. Notation : `PK` clé primaire, `FK` clé étrangère ; `||--o{` « un à plusieurs », `|o--o{` lien facultatif.
 
 ## Sommaire
 
 - [Équipe, sécurité et boutiques](#equipe-securite-et-boutiques) (15 tables)
 - [Catalogue](#catalogue) (30 tables)
 - [Prix et stock](#prix-et-stock) (9 tables)
-- [Clients, paniers et commandes](#clients-paniers-et-commandes) (26 tables)
+- [Clients, paniers et commandes](#clients-paniers-et-commandes) (28 tables)
 - [Paiement et livraison](#paiement-et-livraison) (19 tables)
 - [Communication, CMS et localisation](#communication-cms-et-localisation) (18 tables)
 - [Service client et assistant IA](#service-client-et-assistant-ia) (5 tables)
@@ -359,6 +359,9 @@ erDiagram
     text banner_url
     varchar meta_title
     varchar meta_description
+    text intro_text
+    text body_text
+    jsonb faq
     timestamp_with_time_zone deleted_at
     timestamp_with_time_zone created_at
     timestamp_with_time_zone updated_at
@@ -599,6 +602,15 @@ erDiagram
     redirect_type redirect_type
     redirect_target_type redirect_target_type
     varchar redirect_target
+    integer compare_price_xof
+    varchar availability
+    varchar energy_class
+    text alibaba_url
+    integer import_fees_xof
+    varchar power_label
+    varchar badge
+    boolean is_best_seller
+    boolean is_placeholder
   }
   RELATED_PRODUCTS {
     uuid id PK
@@ -666,6 +678,8 @@ erDiagram
   }
   SHIPPING_METHODS {
   }
+  SHOP_ORDER_ITEMS {
+  }
   SPECIFIC_PRICES {
   }
   STATS_DAILY_PRODUCTS {
@@ -732,6 +746,7 @@ erDiagram
   PRODUCTS ||--o{ RELATED_PRODUCTS : "product_id"
   PRODUCTS ||--o{ RELATED_PRODUCTS : "related_product_id"
   PRODUCTS ||--o{ REVIEWS : "product_id"
+  PRODUCTS |o--o{ SHOP_ORDER_ITEMS : "product_id"
   PRODUCTS |o--o{ SLUG_REDIRECTS : "product_id"
   PRODUCTS ||--o{ SPECIFIC_PRICES : "product_id"
   PRODUCTS ||--o{ STATS_DAILY_PRODUCTS : "product_id"
@@ -1305,6 +1320,32 @@ erDiagram
     timestamp_with_time_zone created_at
     timestamp_with_time_zone updated_at
   }
+  SHOP_ORDER_ITEMS {
+    serial id PK
+    uuid order_id FK
+    uuid product_id FK
+    varchar title
+    integer unit_price_xof
+    integer quantity
+    varchar availability_label
+  }
+  SHOP_ORDERS {
+    uuid id PK
+    varchar reference
+    varchar status
+    varchar customer_name
+    varchar phone
+    varchar commune
+    text address
+    integer delivery_fee_xof
+    integer subtotal_xof
+    integer total_xof
+    varchar payment_method
+    text customer_note
+    text internal_note
+    timestamp_with_time_zone created_at
+    timestamp_with_time_zone updated_at
+  }
   USERS {
     uuid id PK
     varchar name
@@ -1427,10 +1468,12 @@ erDiagram
   PRODUCTS ||--o{ ORDER_ITEMS : "product_id"
   PRODUCTS |o--o{ QUOTE_REQUESTS : "product_id"
   PRODUCTS ||--o{ REVIEWS : "product_id"
+  PRODUCTS |o--o{ SHOP_ORDER_ITEMS : "product_id"
   RETURN_REQUESTS |o--o{ REFUNDS : "return_request_id"
   RETURN_REQUESTS ||--o{ RETURN_REQUEST_ITEMS : "return_request_id"
   SHIPMENTS |o--o{ ORDERS : "shipment_id"
   SHIPPING_METHODS |o--o{ ORDERS : "shipping_method_id"
+  SHOP_ORDERS ||--o{ SHOP_ORDER_ITEMS : "order_id"
   SUPPLIERS |o--o{ REVIEWS : "supplier_id"
   USERS |o--o{ ADMIN_AUDIT_LOG : "actor_user_id"
   USERS ||--o{ CONVERSATIONS : "buyer_id"

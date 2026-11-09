@@ -1,4 +1,4 @@
--- Mybigmarket — application de toutes les migrations (22 fichiers)
+-- Mybigmarket — application de toutes les migrations (24 fichiers)
 -- Régénérer avec : npm run db:sql:all
 -- Appliquer avec : psql "$DATABASE_URL" -f migrate-all.sql
 --
@@ -2949,6 +2949,272 @@ CREATE INDEX "warehouses_manager_employee_id_idx" ON "warehouses" USING btree ("
 $sql$;
     INSERT INTO drizzle.__drizzle_migrations (hash, created_at)
       VALUES ('0021_hardening_indexes.sql:plain:87ad493540', (EXTRACT(EPOCH FROM now()) * 1000)::bigint);
+  END IF;
+END
+$migration$;
+
+
+-- ============ 0022_boutique_ci.sql ============
+DO $migration$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM drizzle.__drizzle_migrations WHERE hash IN ('0022_boutique_ci.sql:plain:b9de6150a5', '99edfa519f750365d03010f4946c97dcc796a8600b0084bfb1f2e1705c2a59d1')) THEN
+    EXECUTE $sql$
+CREATE TABLE "shop_order_items" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"order_id" uuid NOT NULL,
+	"product_id" uuid,
+	"title" varchar(190) NOT NULL,
+	"unit_price_xof" integer NOT NULL,
+	"quantity" integer NOT NULL,
+	"availability_label" varchar(120) DEFAULT '' NOT NULL
+);
+CREATE TABLE "shop_orders" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"reference" varchar(24) NOT NULL,
+	"status" varchar(20) DEFAULT 'new' NOT NULL,
+	"customer_name" varchar(120) NOT NULL,
+	"phone" varchar(30) NOT NULL,
+	"commune" varchar(80) NOT NULL,
+	"address" text NOT NULL,
+	"delivery_fee_xof" integer DEFAULT 0 NOT NULL,
+	"subtotal_xof" integer NOT NULL,
+	"total_xof" integer NOT NULL,
+	"payment_method" varchar(30) DEFAULT 'cash_on_delivery' NOT NULL,
+	"customer_note" text DEFAULT '' NOT NULL,
+	"internal_note" text DEFAULT '' NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+ALTER TABLE "categories" ADD COLUMN "intro_text" text;
+ALTER TABLE "categories" ADD COLUMN "body_text" text;
+ALTER TABLE "categories" ADD COLUMN "faq" jsonb DEFAULT '[]'::jsonb NOT NULL;
+ALTER TABLE "products" ADD COLUMN "compare_price_xof" integer;
+ALTER TABLE "products" ADD COLUMN "availability" varchar(20) DEFAULT 'in_stock_abidjan' NOT NULL;
+ALTER TABLE "products" ADD COLUMN "energy_class" varchar(4);
+ALTER TABLE "products" ADD COLUMN "alibaba_url" text;
+ALTER TABLE "products" ADD COLUMN "import_fees_xof" integer;
+ALTER TABLE "products" ADD COLUMN "power_label" varchar(40);
+ALTER TABLE "products" ADD COLUMN "badge" varchar(30);
+ALTER TABLE "products" ADD COLUMN "is_best_seller" boolean DEFAULT false NOT NULL;
+ALTER TABLE "products" ADD COLUMN "is_placeholder" boolean DEFAULT false NOT NULL;
+ALTER TABLE "shop_order_items" ADD CONSTRAINT "shop_order_items_order_id_shop_orders_id_fk" FOREIGN KEY ("order_id") REFERENCES "public"."shop_orders"("id") ON DELETE cascade ON UPDATE no action;
+ALTER TABLE "shop_order_items" ADD CONSTRAINT "shop_order_items_product_id_products_id_fk" FOREIGN KEY ("product_id") REFERENCES "public"."products"("id") ON DELETE set null ON UPDATE no action;
+CREATE INDEX "shop_order_items_order_idx" ON "shop_order_items" USING btree ("order_id");
+CREATE INDEX "shop_order_items_product_idx" ON "shop_order_items" USING btree ("product_id");
+CREATE UNIQUE INDEX "shop_orders_reference_unique" ON "shop_orders" USING btree ("reference");
+CREATE INDEX "shop_orders_status_created_idx" ON "shop_orders" USING btree ("status","created_at");
+$sql$;
+    INSERT INTO drizzle.__drizzle_migrations (hash, created_at)
+      VALUES ('0022_boutique_ci.sql:plain:b9de6150a5', (EXTRACT(EPOCH FROM now()) * 1000)::bigint);
+  END IF;
+END
+$migration$;
+
+
+-- ============ 0023_boutique_seed.sql ============
+DO $migration$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM drizzle.__drizzle_migrations WHERE hash IN ('0023_boutique_seed.sql:plain:f6d9736431', '06d546f3af935678d65f296f14e576db3c204f6694d714635f93d155e1e541b1')) THEN
+    EXECUTE $sql$
+-- Boutique MyBigMarket : catégories de la Côte d'Ivoire, vendeuse unique et 6 produits fictifs à remplacer.
+-- Script idempotent : peut être rejoué sans doublon.
+
+SELECT setval(pg_get_serial_sequence('categories','id'), GREATEST((SELECT COALESCE(MAX("id"),0) FROM "categories"),1));
+SELECT setval(pg_get_serial_sequence('brands','id'), GREATEST((SELECT COALESCE(MAX("id"),0) FROM "brands"),1));
+SELECT setval(pg_get_serial_sequence('product_images','id'), GREATEST((SELECT COALESCE(MAX("id"),0) FROM "product_images"),1));
+INSERT INTO "users" ("name","email","password_hash","role","status")
+SELECT 'MyBigMarket','boutique@mybigmarket.ci','!compte-sans-connexion','seller','active'
+WHERE NOT EXISTS (SELECT 1 FROM "users" WHERE "email"='boutique@mybigmarket.ci');
+INSERT INTO "seller_profiles" ("user_id","university","city_china","verification_status")
+SELECT u."id",'MyBigMarket','Abidjan','approved' FROM "users" u
+WHERE u."email"='boutique@mybigmarket.ci' AND NOT EXISTS (SELECT 1 FROM "seller_profiles" sp WHERE sp."user_id"=u."id");
+INSERT INTO "categories" ("name","slug","description","sort_order","meta_title","meta_description","intro_text","body_text","faq")
+VALUES ('Informatique','informatique','Ordinateurs portables, imprimantes, matériel réseau et accessoires : du matériel informatique pour la maison, l''école et le bureau, livré à Abidjan et dans toute la Côte d''Ivoire.',1,'Informatique à Abidjan : ordinateurs portables, imprimantes, Wi-Fi | MyBigMarket','Ordinateurs portables, imprimantes, routeurs Wi-Fi et accessoires informatiques à Abidjan et partout en Côte d''Ivoire. Paiement à la livraison.','Ordinateurs portables, imprimantes, matériel réseau et accessoires : du matériel informatique pour la maison, l''école et le bureau, livré à Abidjan et dans toute la Côte d''Ivoire.','Choisir son matériel informatique à Abidjan : pour le travail de bureau et les études, un ordinateur portable avec 8 Go de mémoire et un disque SSD suffit largement. Pour la maison ou une petite boutique, un routeur Wi-Fi à double bande couvre mieux les pièces et supporte plus d''appareils. Une imprimante laser coûte plus cher à l''achat mais revient moins cher à l''usage si vous imprimez souvent.
+
+Tous les produits affichent clairement s''ils sont en stock à Abidjan (livraison en 24 à 72 h) ou sur commande, avec le délai à respecter. Pour un conseil avant d''acheter, écrivez-nous sur WhatsApp.','[{"question": "Les ordinateurs sont-ils neufs ?", "answer": "Oui, tous les produits vendus sont neufs, dans leur emballage d''origine, sauf mention contraire sur la fiche."}, {"question": "Puis-je payer à la livraison ?", "answer": "Oui. Vous payez au livreur à la réception du produit, à Abidjan comme dans les autres villes."}, {"question": "Y a-t-il une garantie ?", "answer": "Oui, la durée de garantie est indiquée sur chaque fiche produit. Gardez votre numéro de commande."}]'::jsonb)
+ON CONFLICT ("slug") DO UPDATE SET "name"=EXCLUDED."name","description"=EXCLUDED."description","sort_order"=EXCLUDED."sort_order","meta_title"=EXCLUDED."meta_title","meta_description"=EXCLUDED."meta_description","intro_text"=EXCLUDED."intro_text","body_text"=EXCLUDED."body_text","faq"=EXCLUDED."faq";
+INSERT INTO "categories" ("name","slug","parent_id","description","sort_order","meta_title","meta_description","intro_text")
+VALUES ('Ordinateurs portables','informatique/ordinateurs-portables',(SELECT "id" FROM "categories" WHERE "slug"='informatique'),'Des ordinateurs portables neufs, du modèle d''étude au modèle de bureau.',1,'Ordinateurs portables à Abidjan | MyBigMarket','Ordinateurs portables neufs pour le travail, les études et la maison, livrés à Abidjan et en Côte d''Ivoire. Paiement à la livraison.','Des ordinateurs portables neufs, du modèle d''étude au modèle de bureau.')
+ON CONFLICT ("slug") DO UPDATE SET "name"=EXCLUDED."name","parent_id"=EXCLUDED."parent_id","description"=EXCLUDED."description","sort_order"=EXCLUDED."sort_order","meta_title"=EXCLUDED."meta_title","meta_description"=EXCLUDED."meta_description","intro_text"=EXCLUDED."intro_text";
+INSERT INTO "categories" ("name","slug","parent_id","description","sort_order","meta_title","meta_description","intro_text")
+VALUES ('Imprimantes','informatique/imprimantes',(SELECT "id" FROM "categories" WHERE "slug"='informatique'),'Imprimantes laser et jet d''encre, simples ou multifonctions.',2,'Imprimantes à Abidjan : laser, jet d''encre | MyBigMarket','Imprimantes laser et jet d''encre, multifonctions, pour la maison et le bureau. Livraison à Abidjan et partout en Côte d''Ivoire.','Imprimantes laser et jet d''encre, simples ou multifonctions.')
+ON CONFLICT ("slug") DO UPDATE SET "name"=EXCLUDED."name","parent_id"=EXCLUDED."parent_id","description"=EXCLUDED."description","sort_order"=EXCLUDED."sort_order","meta_title"=EXCLUDED."meta_title","meta_description"=EXCLUDED."meta_description","intro_text"=EXCLUDED."intro_text";
+INSERT INTO "categories" ("name","slug","parent_id","description","sort_order","meta_title","meta_description","intro_text")
+VALUES ('Réseau et Wi-Fi','informatique/reseau-wifi',(SELECT "id" FROM "categories" WHERE "slug"='informatique'),'Routeurs, répéteurs et câbles pour une connexion stable chez vous ou au bureau.',3,'Routeurs et matériel Wi-Fi à Abidjan | MyBigMarket','Routeurs Wi-Fi, répéteurs et câbles réseau. Livraison à Abidjan et en Côte d''Ivoire, paiement à la livraison.','Routeurs, répéteurs et câbles pour une connexion stable chez vous ou au bureau.')
+ON CONFLICT ("slug") DO UPDATE SET "name"=EXCLUDED."name","parent_id"=EXCLUDED."parent_id","description"=EXCLUDED."description","sort_order"=EXCLUDED."sort_order","meta_title"=EXCLUDED."meta_title","meta_description"=EXCLUDED."meta_description","intro_text"=EXCLUDED."intro_text";
+INSERT INTO "categories" ("name","slug","parent_id","description","sort_order","meta_title","meta_description","intro_text")
+VALUES ('Accessoires informatiques','informatique/accessoires',(SELECT "id" FROM "categories" WHERE "slug"='informatique'),'Souris, claviers, disques durs, câbles et sacoches.',4,'Accessoires informatiques à Abidjan | MyBigMarket','Souris, claviers, disques durs, câbles et sacoches pour ordinateur. Livraison à Abidjan et en Côte d''Ivoire.','Souris, claviers, disques durs, câbles et sacoches.')
+ON CONFLICT ("slug") DO UPDATE SET "name"=EXCLUDED."name","parent_id"=EXCLUDED."parent_id","description"=EXCLUDED."description","sort_order"=EXCLUDED."sort_order","meta_title"=EXCLUDED."meta_title","meta_description"=EXCLUDED."meta_description","intro_text"=EXCLUDED."intro_text";
+INSERT INTO "categories" ("name","slug","description","sort_order","meta_title","meta_description","intro_text","body_text","faq")
+VALUES ('Électrogène','electrogene','Groupes électrogènes et onduleurs pour garder le courant à la maison, à la boutique ou sur le chantier, avec la puissance indiquée sur chaque fiche.',2,'Groupes électrogènes et onduleurs à Abidjan | MyBigMarket','Groupes électrogènes et onduleurs pour la maison, la boutique et le chantier. Livraison à Abidjan et en Côte d''Ivoire, paiement à la livraison.','Groupes électrogènes et onduleurs pour garder le courant à la maison, à la boutique ou sur le chantier, avec la puissance indiquée sur chaque fiche.','Quelle puissance choisir ? Additionnez la puissance des appareils que vous voulez alimenter en même temps (réfrigérateur, téléviseur, éclairage, climatiseur) et gardez une marge de 20 à 30 %. Un climatiseur ou un congélateur demande un courant de démarrage plus élevé que sa puissance affichée.
+
+L''onduleur sert à protéger et à alimenter quelques minutes un ordinateur, une box ou une caisse en cas de coupure. Le groupe électrogène prend le relais pour de longues durées. Les délais de livraison sont affichés sur chaque fiche : en stock à Abidjan ou sur commande.','[{"question": "Quelle puissance pour une maison ?", "answer": "Pour l''éclairage, un téléviseur et un réfrigérateur, comptez 2 à 3 kVA. Avec un climatiseur, prévoyez 5 kVA ou plus. Écrivez-nous sur WhatsApp, nous vous conseillons selon vos appareils."}, {"question": "Le groupe est-il livré avec de l''huile ?", "answer": "Cela dépend du modèle : l''information figure dans la description. Dans le doute, demandez-nous avant de commander."}, {"question": "Qui s''occupe de l''installation ?", "answer": "La livraison est faite à l''adresse indiquée. L''installation électrique doit être confiée à un électricien."}]'::jsonb)
+ON CONFLICT ("slug") DO UPDATE SET "name"=EXCLUDED."name","description"=EXCLUDED."description","sort_order"=EXCLUDED."sort_order","meta_title"=EXCLUDED."meta_title","meta_description"=EXCLUDED."meta_description","intro_text"=EXCLUDED."intro_text","body_text"=EXCLUDED."body_text","faq"=EXCLUDED."faq";
+INSERT INTO "categories" ("name","slug","parent_id","description","sort_order","meta_title","meta_description","intro_text")
+VALUES ('Groupes électrogènes','electrogene/groupes-electrogenes',(SELECT "id" FROM "categories" WHERE "slug"='electrogene'),'Groupes électrogènes essence et diesel, de 1 à 20 kVA.',1,'Groupes électrogènes à Abidjan : essence, diesel | MyBigMarket','Groupes électrogènes essence et diesel de 1 à 20 kVA. Livraison à Abidjan et en Côte d''Ivoire, paiement à la livraison.','Groupes électrogènes essence et diesel, de 1 à 20 kVA.')
+ON CONFLICT ("slug") DO UPDATE SET "name"=EXCLUDED."name","parent_id"=EXCLUDED."parent_id","description"=EXCLUDED."description","sort_order"=EXCLUDED."sort_order","meta_title"=EXCLUDED."meta_title","meta_description"=EXCLUDED."meta_description","intro_text"=EXCLUDED."intro_text";
+INSERT INTO "categories" ("name","slug","parent_id","description","sort_order","meta_title","meta_description","intro_text")
+VALUES ('Onduleurs','electrogene/onduleurs',(SELECT "id" FROM "categories" WHERE "slug"='electrogene'),'Onduleurs pour protéger vos appareils des coupures et des variations de tension.',2,'Onduleurs à Abidjan : 650 VA à 3 kVA | MyBigMarket','Onduleurs pour ordinateurs, box et petits appareils. Livraison à Abidjan et en Côte d''Ivoire, paiement à la livraison.','Onduleurs pour protéger vos appareils des coupures et des variations de tension.')
+ON CONFLICT ("slug") DO UPDATE SET "name"=EXCLUDED."name","parent_id"=EXCLUDED."parent_id","description"=EXCLUDED."description","sort_order"=EXCLUDED."sort_order","meta_title"=EXCLUDED."meta_title","meta_description"=EXCLUDED."meta_description","intro_text"=EXCLUDED."intro_text";
+INSERT INTO "categories" ("name","slug","description","sort_order","meta_title","meta_description","intro_text","body_text","faq")
+VALUES ('Climatiseurs','climatiseurs','Climatiseurs split, inverter, mobiles et de fenêtre, avec la puissance en BTU et en CV indiquée sur chaque fiche. Livraison à Abidjan et dans toute la Côte d''Ivoire.',3,'Climatiseurs à Abidjan : split, inverter | MyBigMarket','Climatiseurs split, inverter, mobiles et de fenêtre à Abidjan et en Côte d''Ivoire. Prix en FCFA, paiement à la livraison, délais affichés.','Climatiseurs split, inverter, mobiles et de fenêtre, avec la puissance en BTU et en CV indiquée sur chaque fiche. Livraison à Abidjan et dans toute la Côte d''Ivoire.','Quelle puissance pour quelle pièce ? Comptez environ 9 000 BTU (1 CV) pour une pièce jusqu''à 15 m², 12 000 BTU (1,5 CV) jusqu''à 25 m² et 18 000 BTU (2 CV) jusqu''à 35 m². Une pièce très ensoleillée ou mal isolée demande un cran de plus.
+
+Un climatiseur inverter ajuste sa puissance au lieu de s''arrêter et de repartir : il consomme moins d''électricité, ce qui compte avec les tarifs actuels. Le split reste le plus silencieux. Le modèle mobile ou de fenêtre convient si vous ne pouvez pas fixer d''unité extérieure.
+
+L''installation n''est pas comprise dans le prix, sauf mention sur la fiche. Le délai de livraison s''affiche sur chaque produit : en stock à Abidjan ou sur commande.','[{"question": "Quelle puissance de climatiseur choisir ?", "answer": "1 CV (9 000 BTU) jusqu''à 15 m², 1,5 CV (12 000 BTU) jusqu''à 25 m², 2 CV (18 000 BTU) jusqu''à 35 m². Ajoutez un cran si la pièce est ensoleillée."}, {"question": "L''installation est-elle comprise ?", "answer": "Non, sauf mention contraire sur la fiche produit. Demandez-nous un conseil sur WhatsApp pour trouver un installateur à Abidjan."}, {"question": "Quelle est la différence avec un inverter ?", "answer": "L''inverter règle sa puissance en continu : il consomme moins et fait moins de bruit qu''un modèle classique."}, {"question": "Quel est le délai de livraison ?", "answer": "En stock à Abidjan : 24 à 72 h. Sur commande : le délai est indiqué sur la fiche et dans votre panier."}]'::jsonb)
+ON CONFLICT ("slug") DO UPDATE SET "name"=EXCLUDED."name","description"=EXCLUDED."description","sort_order"=EXCLUDED."sort_order","meta_title"=EXCLUDED."meta_title","meta_description"=EXCLUDED."meta_description","intro_text"=EXCLUDED."intro_text","body_text"=EXCLUDED."body_text","faq"=EXCLUDED."faq";
+INSERT INTO "categories" ("name","slug","parent_id","description","sort_order","meta_title","meta_description","intro_text")
+VALUES ('Climatiseurs split','climatiseurs/split',(SELECT "id" FROM "categories" WHERE "slug"='climatiseurs'),'Climatiseurs split muraux, silencieux, de 1 à 2,5 CV.',1,'Climatiseurs split à Abidjan | MyBigMarket','Climatiseurs split muraux de 9 000 à 24 000 BTU. Livraison à Abidjan et en Côte d''Ivoire, paiement à la livraison.','Climatiseurs split muraux, silencieux, de 1 à 2,5 CV.')
+ON CONFLICT ("slug") DO UPDATE SET "name"=EXCLUDED."name","parent_id"=EXCLUDED."parent_id","description"=EXCLUDED."description","sort_order"=EXCLUDED."sort_order","meta_title"=EXCLUDED."meta_title","meta_description"=EXCLUDED."meta_description","intro_text"=EXCLUDED."intro_text";
+INSERT INTO "categories" ("name","slug","parent_id","description","sort_order","meta_title","meta_description","intro_text")
+VALUES ('Climatiseurs inverter','climatiseurs/inverter',(SELECT "id" FROM "categories" WHERE "slug"='climatiseurs'),'Climatiseurs inverter : moins de consommation, moins de bruit.',2,'Climatiseurs inverter à Abidjan : économiques | MyBigMarket','Climatiseurs inverter à faible consommation, de 9 000 à 24 000 BTU. Livraison à Abidjan et en Côte d''Ivoire.','Climatiseurs inverter : moins de consommation, moins de bruit.')
+ON CONFLICT ("slug") DO UPDATE SET "name"=EXCLUDED."name","parent_id"=EXCLUDED."parent_id","description"=EXCLUDED."description","sort_order"=EXCLUDED."sort_order","meta_title"=EXCLUDED."meta_title","meta_description"=EXCLUDED."meta_description","intro_text"=EXCLUDED."intro_text";
+INSERT INTO "categories" ("name","slug","parent_id","description","sort_order","meta_title","meta_description","intro_text")
+VALUES ('Climatiseurs mobiles','climatiseurs/mobiles',(SELECT "id" FROM "categories" WHERE "slug"='climatiseurs'),'Climatiseurs mobiles sur roulettes, sans unité extérieure.',3,'Climatiseurs mobiles à Abidjan | MyBigMarket','Climatiseurs mobiles sur roulettes, sans unité extérieure. Livraison à Abidjan et en Côte d''Ivoire.','Climatiseurs mobiles sur roulettes, sans unité extérieure.')
+ON CONFLICT ("slug") DO UPDATE SET "name"=EXCLUDED."name","parent_id"=EXCLUDED."parent_id","description"=EXCLUDED."description","sort_order"=EXCLUDED."sort_order","meta_title"=EXCLUDED."meta_title","meta_description"=EXCLUDED."meta_description","intro_text"=EXCLUDED."intro_text";
+INSERT INTO "categories" ("name","slug","parent_id","description","sort_order","meta_title","meta_description","intro_text")
+VALUES ('Climatiseurs de fenêtre','climatiseurs/fenetre',(SELECT "id" FROM "categories" WHERE "slug"='climatiseurs'),'Climatiseurs de fenêtre en un seul bloc.',4,'Climatiseurs de fenêtre à Abidjan | MyBigMarket','Climatiseurs de fenêtre en un seul bloc, simples à poser. Livraison à Abidjan et en Côte d''Ivoire.','Climatiseurs de fenêtre en un seul bloc.')
+ON CONFLICT ("slug") DO UPDATE SET "name"=EXCLUDED."name","parent_id"=EXCLUDED."parent_id","description"=EXCLUDED."description","sort_order"=EXCLUDED."sort_order","meta_title"=EXCLUDED."meta_title","meta_description"=EXCLUDED."meta_description","intro_text"=EXCLUDED."intro_text";
+INSERT INTO "categories" ("name","slug","parent_id","description","sort_order","meta_title","meta_description","intro_text")
+VALUES ('Accessoires de climatisation','climatiseurs/accessoires',(SELECT "id" FROM "categories" WHERE "slug"='climatiseurs'),'Télécommandes, supports, tuyaux et kits d''installation.',5,'Accessoires de climatisation à Abidjan | MyBigMarket','Télécommandes, supports muraux, tuyaux et kits d''installation pour climatiseur. Livraison à Abidjan.','Télécommandes, supports, tuyaux et kits d''installation.')
+ON CONFLICT ("slug") DO UPDATE SET "name"=EXCLUDED."name","parent_id"=EXCLUDED."parent_id","description"=EXCLUDED."description","sort_order"=EXCLUDED."sort_order","meta_title"=EXCLUDED."meta_title","meta_description"=EXCLUDED."meta_description","intro_text"=EXCLUDED."intro_text";
+INSERT INTO "categories" ("name","slug","description","sort_order","meta_title","meta_description","intro_text","body_text","faq")
+VALUES ('Petit électroménager','petit-electromenager','Mixeurs, bouilloires, grille-pains, friteuses à air et autres appareils pour la cuisine de tous les jours, livrés à Abidjan et partout en Côte d''Ivoire.',4,'Petit électroménager à Abidjan : mixeurs, friteuses à air | MyBigMarket','Mixeurs, bouilloires, grille-pains, friteuses à air et plus. Petit électroménager livré à Abidjan et en Côte d''Ivoire, paiement à la livraison.','Mixeurs, bouilloires, grille-pains, friteuses à air et autres appareils pour la cuisine de tous les jours, livrés à Abidjan et partout en Côte d''Ivoire.','Pour équiper une cuisine sans se tromper : un mixeur de 500 à 1 000 W suffit pour les sauces et les jus, une bouilleire de 1,7 L convient à une famille, et une friteuse à air de 4 à 5 L permet de cuisiner pour 3 à 4 personnes avec très peu d''huile.
+
+Vérifiez la puissance indiquée sur la fiche et la prise : tous nos appareils sont adaptés au courant en Côte d''Ivoire (220 V). Le délai de livraison est précisé produit par produit.','[{"question": "Les appareils fonctionnent-ils sur le courant ivoirien ?", "answer": "Oui, ils sont prévus pour du 220 V - 50 Hz."}, {"question": "Y a-t-il une garantie ?", "answer": "Oui, elle est indiquée sur chaque fiche. Conservez votre numéro de commande."}, {"question": "Puis-je retourner un appareil ?", "answer": "Oui, selon les conditions de la page Retours et remboursements."}]'::jsonb)
+ON CONFLICT ("slug") DO UPDATE SET "name"=EXCLUDED."name","description"=EXCLUDED."description","sort_order"=EXCLUDED."sort_order","meta_title"=EXCLUDED."meta_title","meta_description"=EXCLUDED."meta_description","intro_text"=EXCLUDED."intro_text","body_text"=EXCLUDED."body_text","faq"=EXCLUDED."faq";
+INSERT INTO "categories" ("name","slug","parent_id","description","sort_order","meta_title","meta_description","intro_text")
+VALUES ('Mixeurs et blenders','petit-electromenager/mixeurs',(SELECT "id" FROM "categories" WHERE "slug"='petit-electromenager'),'Mixeurs, blenders et robots de cuisine.',1,'Mixeurs et blenders à Abidjan | MyBigMarket','Mixeurs, blenders et robots de cuisine. Livraison à Abidjan et en Côte d''Ivoire, paiement à la livraison.','Mixeurs, blenders et robots de cuisine.')
+ON CONFLICT ("slug") DO UPDATE SET "name"=EXCLUDED."name","parent_id"=EXCLUDED."parent_id","description"=EXCLUDED."description","sort_order"=EXCLUDED."sort_order","meta_title"=EXCLUDED."meta_title","meta_description"=EXCLUDED."meta_description","intro_text"=EXCLUDED."intro_text";
+INSERT INTO "categories" ("name","slug","parent_id","description","sort_order","meta_title","meta_description","intro_text")
+VALUES ('Bouilloires','petit-electromenager/bouilloires',(SELECT "id" FROM "categories" WHERE "slug"='petit-electromenager'),'Bouilloires électriques de 1 à 2 litres.',2,'Bouilloires électriques à Abidjan | MyBigMarket','Bouilloires électriques inox et plastique. Livraison à Abidjan et en Côte d''Ivoire.','Bouilloires électriques de 1 à 2 litres.')
+ON CONFLICT ("slug") DO UPDATE SET "name"=EXCLUDED."name","parent_id"=EXCLUDED."parent_id","description"=EXCLUDED."description","sort_order"=EXCLUDED."sort_order","meta_title"=EXCLUDED."meta_title","meta_description"=EXCLUDED."meta_description","intro_text"=EXCLUDED."intro_text";
+INSERT INTO "categories" ("name","slug","parent_id","description","sort_order","meta_title","meta_description","intro_text")
+VALUES ('Grille-pains','petit-electromenager/grille-pains',(SELECT "id" FROM "categories" WHERE "slug"='petit-electromenager'),'Grille-pains 2 et 4 fentes.',3,'Grille-pains à Abidjan | MyBigMarket','Grille-pains 2 et 4 fentes. Livraison à Abidjan et en Côte d''Ivoire.','Grille-pains 2 et 4 fentes.')
+ON CONFLICT ("slug") DO UPDATE SET "name"=EXCLUDED."name","parent_id"=EXCLUDED."parent_id","description"=EXCLUDED."description","sort_order"=EXCLUDED."sort_order","meta_title"=EXCLUDED."meta_title","meta_description"=EXCLUDED."meta_description","intro_text"=EXCLUDED."intro_text";
+INSERT INTO "categories" ("name","slug","parent_id","description","sort_order","meta_title","meta_description","intro_text")
+VALUES ('Friteuses à air','petit-electromenager/friteuses-a-air',(SELECT "id" FROM "categories" WHERE "slug"='petit-electromenager'),'Friteuses à air de 3 à 8 litres.',4,'Friteuses à air à Abidjan | MyBigMarket','Friteuses à air chaud de 3 à 8 litres, cuisine avec très peu d''huile. Livraison à Abidjan et en Côte d''Ivoire.','Friteuses à air de 3 à 8 litres.')
+ON CONFLICT ("slug") DO UPDATE SET "name"=EXCLUDED."name","parent_id"=EXCLUDED."parent_id","description"=EXCLUDED."description","sort_order"=EXCLUDED."sort_order","meta_title"=EXCLUDED."meta_title","meta_description"=EXCLUDED."meta_description","intro_text"=EXCLUDED."intro_text";
+INSERT INTO "categories" ("name","slug","description","sort_order","meta_title","meta_description","intro_text","body_text","faq")
+VALUES ('Gros électroménager','gros-electromenager','Réfrigérateurs, congélateurs et machines à laver, livrés à votre adresse à Abidjan et dans les autres villes de Côte d''Ivoire.',5,'Gros électroménager à Abidjan : réfrigérateurs, congélateurs | MyBigMarket','Réfrigérateurs, congélateurs et machines à laver livrés à Abidjan et en Côte d''Ivoire. Prix en FCFA, délais affichés, paiement à la livraison.','Réfrigérateurs, congélateurs et machines à laver, livrés à votre adresse à Abidjan et dans les autres villes de Côte d''Ivoire.','Pour un réfrigérateur, comptez environ 100 litres par personne dans le foyer. Les modèles classés A+ ou mieux consomment nettement moins d''électricité. Mesurez la porte d''entrée et l''emplacement avant de commander : un appareil volumineux doit pouvoir passer.
+
+La livraison des gros appareils se fait jusqu''à la porte ou au rez-de-chaussée ; précisez-nous s''il y a des escaliers. Le délai (stock à Abidjan ou sur commande) est indiqué sur chaque fiche.','[{"question": "La livraison monte-t-elle à l''étage ?", "answer": "La livraison se fait jusqu''à l''entrée de l''immeuble ou de la maison. Dites-nous s''il y a des escaliers, nous voyons avec le livreur."}, {"question": "Puis-je payer à la livraison ?", "answer": "Oui, vous payez à la réception, après avoir vérifié l''appareil."}, {"question": "Quelle est la garantie ?", "answer": "Elle est indiquée sur chaque fiche. Gardez votre numéro de commande."}]'::jsonb)
+ON CONFLICT ("slug") DO UPDATE SET "name"=EXCLUDED."name","description"=EXCLUDED."description","sort_order"=EXCLUDED."sort_order","meta_title"=EXCLUDED."meta_title","meta_description"=EXCLUDED."meta_description","intro_text"=EXCLUDED."intro_text","body_text"=EXCLUDED."body_text","faq"=EXCLUDED."faq";
+INSERT INTO "categories" ("name","slug","parent_id","description","sort_order","meta_title","meta_description","intro_text")
+VALUES ('Réfrigérateurs','gros-electromenager/refrigerateurs',(SELECT "id" FROM "categories" WHERE "slug"='gros-electromenager'),'Réfrigérateurs une porte, combinés et side-by-side.',1,'Réfrigérateurs à Abidjan | MyBigMarket','Réfrigérateurs une porte, combinés et side-by-side. Livraison à Abidjan et en Côte d''Ivoire, paiement à la livraison.','Réfrigérateurs une porte, combinés et side-by-side.')
+ON CONFLICT ("slug") DO UPDATE SET "name"=EXCLUDED."name","parent_id"=EXCLUDED."parent_id","description"=EXCLUDED."description","sort_order"=EXCLUDED."sort_order","meta_title"=EXCLUDED."meta_title","meta_description"=EXCLUDED."meta_description","intro_text"=EXCLUDED."intro_text";
+INSERT INTO "categories" ("name","slug","parent_id","description","sort_order","meta_title","meta_description","intro_text")
+VALUES ('Congélateurs','gros-electromenager/congelateurs',(SELECT "id" FROM "categories" WHERE "slug"='gros-electromenager'),'Congélateurs coffres et armoires.',2,'Congélateurs à Abidjan | MyBigMarket','Congélateurs coffres et armoires. Livraison à Abidjan et en Côte d''Ivoire, paiement à la livraison.','Congélateurs coffres et armoires.')
+ON CONFLICT ("slug") DO UPDATE SET "name"=EXCLUDED."name","parent_id"=EXCLUDED."parent_id","description"=EXCLUDED."description","sort_order"=EXCLUDED."sort_order","meta_title"=EXCLUDED."meta_title","meta_description"=EXCLUDED."meta_description","intro_text"=EXCLUDED."intro_text";
+INSERT INTO "categories" ("name","slug","parent_id","description","sort_order","meta_title","meta_description","intro_text")
+VALUES ('Machines à laver','gros-electromenager/machines-a-laver',(SELECT "id" FROM "categories" WHERE "slug"='gros-electromenager'),'Machines à laver à chargement frontal ou par le haut.',3,'Machines à laver à Abidjan | MyBigMarket','Machines à laver top et front. Livraison à Abidjan et en Côte d''Ivoire, paiement à la livraison.','Machines à laver à chargement frontal ou par le haut.')
+ON CONFLICT ("slug") DO UPDATE SET "name"=EXCLUDED."name","parent_id"=EXCLUDED."parent_id","description"=EXCLUDED."description","sort_order"=EXCLUDED."sort_order","meta_title"=EXCLUDED."meta_title","meta_description"=EXCLUDED."meta_description","intro_text"=EXCLUDED."intro_text";
+INSERT INTO "categories" ("name","slug","description","sort_order","meta_title","meta_description","intro_text","body_text","faq")
+VALUES ('Téléviseurs','televiseurs','Téléviseurs LED et Smart TV de 32 à 75 pouces, livrés à Abidjan et dans toute la Côte d''Ivoire, avec le délai indiqué sur chaque fiche.',6,'Téléviseurs à Abidjan : LED, Smart TV | MyBigMarket','Téléviseurs LED et Smart TV de 32 à 75 pouces. Livraison à Abidjan et en Côte d''Ivoire, prix en FCFA, paiement à la livraison.','Téléviseurs LED et Smart TV de 32 à 75 pouces, livrés à Abidjan et dans toute la Côte d''Ivoire, avec le délai indiqué sur chaque fiche.','Quelle taille choisir ? Pour un salon, comptez 43 à 55 pouces si vous êtes à 2,5 ou 3 mètres de l''écran. Un 32 pouces suffit pour une chambre. Une Smart TV se connecte au Wi-Fi pour regarder YouTube et les applications de streaming ; pensez à votre connexion internet.
+
+Vérifiez la présence d''un décodeur ou d''une antenne selon les chaînes que vous voulez recevoir. Le délai de livraison (stock à Abidjan ou sur commande) figure sur chaque fiche.','[{"question": "Les téléviseurs captent-ils la TNT ?", "answer": "La plupart sont équipés d''un tuner intégré ; vérifiez la mention sur la fiche, ou utilisez un décodeur."}, {"question": "Le support mural est-il fourni ?", "answer": "Non, sauf mention contraire. Il se vend séparément."}, {"question": "Puis-je payer à la livraison ?", "answer": "Oui, vous payez au livreur après avoir vérifié l''écran."}]'::jsonb)
+ON CONFLICT ("slug") DO UPDATE SET "name"=EXCLUDED."name","description"=EXCLUDED."description","sort_order"=EXCLUDED."sort_order","meta_title"=EXCLUDED."meta_title","meta_description"=EXCLUDED."meta_description","intro_text"=EXCLUDED."intro_text","body_text"=EXCLUDED."body_text","faq"=EXCLUDED."faq";
+INSERT INTO "brands" ("name","slug") SELECT 'Marque Alpha','marque-alpha' WHERE NOT EXISTS (SELECT 1 FROM "brands" WHERE "slug"='marque-alpha');
+INSERT INTO "brands" ("name","slug") SELECT 'Marque Beta','marque-beta' WHERE NOT EXISTS (SELECT 1 FROM "brands" WHERE "slug"='marque-beta');
+INSERT INTO "products" ("seller_id","brand_id","category_id","title","slug","short_description","description","price_xof","compare_price_xof","quantity","lead_time_days","availability","power_label","energy_class","badge","is_best_seller","is_placeholder","status","published_at","internal_note")
+SELECT (SELECT "id" FROM "users" WHERE "email"='boutique@mybigmarket.ci'),(SELECT "id" FROM "brands" WHERE "slug"='marque-alpha'),(SELECT "id" FROM "categories" WHERE "slug"='climatiseurs/inverter'),'Climatiseur split inverter 12 000 BTU (1,5 CV) — fiche fictive','climatiseur-split-inverter-12000-btu-fictif','Split mural inverter, silencieux, pour une pièce jusqu''à 25 m².','Climatiseur split mural inverter de 12 000 BTU (1,5 CV), adapté à une pièce jusqu''à 25 m². Télécommande fournie. Installation non comprise.
+
+Cette fiche est fictive : remplacez-la par votre produit depuis l''administration.',245000,285000,5,7,'in_stock_abidjan','12 000 BTU (1,5 CV)','A++','Promo',true,true,'approved',now(),'Produit fictif à remplacer'
+WHERE NOT EXISTS (SELECT 1 FROM "products" WHERE "slug"='climatiseur-split-inverter-12000-btu-fictif');
+INSERT INTO "product_images" ("product_id","url","alt","sort_order","is_primary")
+SELECT pr."id",'/produits-fictifs/fictif-climatiseur.svg','Climatiseur split inverter 12 000 BTU (1,5 CV) — fiche fictive',0,true FROM "products" pr WHERE pr."slug"='climatiseur-split-inverter-12000-btu-fictif' AND NOT EXISTS (SELECT 1 FROM "product_images" pi WHERE pi."product_id"=pr."id");
+INSERT INTO "product_attributes" ("product_id","name","value","sort_order")
+SELECT pr."id",'Puissance','12 000 BTU (1,5 CV)',0 FROM "products" pr WHERE pr."slug"='climatiseur-split-inverter-12000-btu-fictif' AND NOT EXISTS (SELECT 1 FROM "product_attributes" pa WHERE pa."product_id"=pr."id" AND pa."name"='Puissance');
+INSERT INTO "product_attributes" ("product_id","name","value","sort_order")
+SELECT pr."id",'Type','Split mural inverter',1 FROM "products" pr WHERE pr."slug"='climatiseur-split-inverter-12000-btu-fictif' AND NOT EXISTS (SELECT 1 FROM "product_attributes" pa WHERE pa."product_id"=pr."id" AND pa."name"='Type');
+INSERT INTO "product_attributes" ("product_id","name","value","sort_order")
+SELECT pr."id",'Classe énergétique','A++',2 FROM "products" pr WHERE pr."slug"='climatiseur-split-inverter-12000-btu-fictif' AND NOT EXISTS (SELECT 1 FROM "product_attributes" pa WHERE pa."product_id"=pr."id" AND pa."name"='Classe énergétique');
+INSERT INTO "product_attributes" ("product_id","name","value","sort_order")
+SELECT pr."id",'Pièce conseillée','Jusqu''à 25 m²',3 FROM "products" pr WHERE pr."slug"='climatiseur-split-inverter-12000-btu-fictif' AND NOT EXISTS (SELECT 1 FROM "product_attributes" pa WHERE pa."product_id"=pr."id" AND pa."name"='Pièce conseillée');
+INSERT INTO "product_attributes" ("product_id","name","value","sort_order")
+SELECT pr."id",'Garantie','1 an',4 FROM "products" pr WHERE pr."slug"='climatiseur-split-inverter-12000-btu-fictif' AND NOT EXISTS (SELECT 1 FROM "product_attributes" pa WHERE pa."product_id"=pr."id" AND pa."name"='Garantie');
+INSERT INTO "products" ("seller_id","brand_id","category_id","title","slug","short_description","description","price_xof","compare_price_xof","quantity","lead_time_days","availability","power_label","energy_class","badge","is_best_seller","is_placeholder","status","published_at","internal_note")
+SELECT (SELECT "id" FROM "users" WHERE "email"='boutique@mybigmarket.ci'),(SELECT "id" FROM "brands" WHERE "slug"='marque-beta'),(SELECT "id" FROM "categories" WHERE "slug"='electrogene/groupes-electrogenes'),'Groupe électrogène 5 kVA démarrage électrique — fiche fictive','groupe-electrogene-5-kva-fictif','Groupe essence 5 kVA, démarrage électrique, prises 220 V.','Groupe électrogène essence de 5 kVA avec démarrage électrique. Convient pour une maison ou une boutique.
+
+Cette fiche est fictive : remplacez-la par votre produit depuis l''administration.',689000,NULL,0,20,'on_order','5 kVA',NULL,NULL,false,true,'approved',now(),'Produit fictif à remplacer'
+WHERE NOT EXISTS (SELECT 1 FROM "products" WHERE "slug"='groupe-electrogene-5-kva-fictif');
+INSERT INTO "product_images" ("product_id","url","alt","sort_order","is_primary")
+SELECT pr."id",'/produits-fictifs/fictif-groupe.svg','Groupe électrogène 5 kVA démarrage électrique — fiche fictive',0,true FROM "products" pr WHERE pr."slug"='groupe-electrogene-5-kva-fictif' AND NOT EXISTS (SELECT 1 FROM "product_images" pi WHERE pi."product_id"=pr."id");
+INSERT INTO "product_attributes" ("product_id","name","value","sort_order")
+SELECT pr."id",'Puissance','5 kVA',0 FROM "products" pr WHERE pr."slug"='groupe-electrogene-5-kva-fictif' AND NOT EXISTS (SELECT 1 FROM "product_attributes" pa WHERE pa."product_id"=pr."id" AND pa."name"='Puissance');
+INSERT INTO "product_attributes" ("product_id","name","value","sort_order")
+SELECT pr."id",'Carburant','Essence',1 FROM "products" pr WHERE pr."slug"='groupe-electrogene-5-kva-fictif' AND NOT EXISTS (SELECT 1 FROM "product_attributes" pa WHERE pa."product_id"=pr."id" AND pa."name"='Carburant');
+INSERT INTO "product_attributes" ("product_id","name","value","sort_order")
+SELECT pr."id",'Démarrage','Électrique',2 FROM "products" pr WHERE pr."slug"='groupe-electrogene-5-kva-fictif' AND NOT EXISTS (SELECT 1 FROM "product_attributes" pa WHERE pa."product_id"=pr."id" AND pa."name"='Démarrage');
+INSERT INTO "product_attributes" ("product_id","name","value","sort_order")
+SELECT pr."id",'Autonomie','8 heures à mi-charge',3 FROM "products" pr WHERE pr."slug"='groupe-electrogene-5-kva-fictif' AND NOT EXISTS (SELECT 1 FROM "product_attributes" pa WHERE pa."product_id"=pr."id" AND pa."name"='Autonomie');
+INSERT INTO "product_attributes" ("product_id","name","value","sort_order")
+SELECT pr."id",'Garantie','1 an',4 FROM "products" pr WHERE pr."slug"='groupe-electrogene-5-kva-fictif' AND NOT EXISTS (SELECT 1 FROM "product_attributes" pa WHERE pa."product_id"=pr."id" AND pa."name"='Garantie');
+INSERT INTO "products" ("seller_id","brand_id","category_id","title","slug","short_description","description","price_xof","compare_price_xof","quantity","lead_time_days","availability","power_label","energy_class","badge","is_best_seller","is_placeholder","status","published_at","internal_note")
+SELECT (SELECT "id" FROM "users" WHERE "email"='boutique@mybigmarket.ci'),(SELECT "id" FROM "brands" WHERE "slug"='marque-alpha'),(SELECT "id" FROM "categories" WHERE "slug"='informatique/reseau-wifi'),'Routeur Wi-Fi 6 double bande AX1800 — fiche fictive','routeur-wifi-6-double-bande-fictif','Wi-Fi 6 double bande, 4 antennes, 4 ports Gigabit.','Routeur Wi-Fi 6 double bande jusqu''à 1 800 Mbit/s, 4 antennes et 4 ports Gigabit.
+
+Cette fiche est fictive : remplacez-la par votre produit depuis l''administration.',32000,NULL,15,7,'in_stock_abidjan',NULL,NULL,'Nouveau',true,true,'approved',now(),'Produit fictif à remplacer'
+WHERE NOT EXISTS (SELECT 1 FROM "products" WHERE "slug"='routeur-wifi-6-double-bande-fictif');
+INSERT INTO "product_images" ("product_id","url","alt","sort_order","is_primary")
+SELECT pr."id",'/produits-fictifs/fictif-routeur.svg','Routeur Wi-Fi 6 double bande AX1800 — fiche fictive',0,true FROM "products" pr WHERE pr."slug"='routeur-wifi-6-double-bande-fictif' AND NOT EXISTS (SELECT 1 FROM "product_images" pi WHERE pi."product_id"=pr."id");
+INSERT INTO "product_attributes" ("product_id","name","value","sort_order")
+SELECT pr."id",'Norme','Wi-Fi 6 (AX1800)',0 FROM "products" pr WHERE pr."slug"='routeur-wifi-6-double-bande-fictif' AND NOT EXISTS (SELECT 1 FROM "product_attributes" pa WHERE pa."product_id"=pr."id" AND pa."name"='Norme');
+INSERT INTO "product_attributes" ("product_id","name","value","sort_order")
+SELECT pr."id",'Bandes','2,4 GHz et 5 GHz',1 FROM "products" pr WHERE pr."slug"='routeur-wifi-6-double-bande-fictif' AND NOT EXISTS (SELECT 1 FROM "product_attributes" pa WHERE pa."product_id"=pr."id" AND pa."name"='Bandes');
+INSERT INTO "product_attributes" ("product_id","name","value","sort_order")
+SELECT pr."id",'Ports','4 × Gigabit',2 FROM "products" pr WHERE pr."slug"='routeur-wifi-6-double-bande-fictif' AND NOT EXISTS (SELECT 1 FROM "product_attributes" pa WHERE pa."product_id"=pr."id" AND pa."name"='Ports');
+INSERT INTO "product_attributes" ("product_id","name","value","sort_order")
+SELECT pr."id",'Garantie','1 an',3 FROM "products" pr WHERE pr."slug"='routeur-wifi-6-double-bande-fictif' AND NOT EXISTS (SELECT 1 FROM "product_attributes" pa WHERE pa."product_id"=pr."id" AND pa."name"='Garantie');
+INSERT INTO "products" ("seller_id","brand_id","category_id","title","slug","short_description","description","price_xof","compare_price_xof","quantity","lead_time_days","availability","power_label","energy_class","badge","is_best_seller","is_placeholder","status","published_at","internal_note")
+SELECT (SELECT "id" FROM "users" WHERE "email"='boutique@mybigmarket.ci'),(SELECT "id" FROM "brands" WHERE "slug"='marque-beta'),(SELECT "id" FROM "categories" WHERE "slug"='petit-electromenager/friteuses-a-air'),'Friteuse à air 4,5 L 1 500 W — fiche fictive','friteuse-a-air-4-5-l-fictif','Cuisine avec très peu d''huile, minuterie, 4,5 litres.','Friteuse à air chaud de 4,5 litres, 1 500 W, minuterie et thermostat réglable.
+
+Cette fiche est fictive : remplacez-la par votre produit depuis l''administration.',38500,45000,12,7,'in_stock_abidjan','1 500 W',NULL,'Promo',true,true,'approved',now(),'Produit fictif à remplacer'
+WHERE NOT EXISTS (SELECT 1 FROM "products" WHERE "slug"='friteuse-a-air-4-5-l-fictif');
+INSERT INTO "product_images" ("product_id","url","alt","sort_order","is_primary")
+SELECT pr."id",'/produits-fictifs/fictif-friteuse.svg','Friteuse à air 4,5 L 1 500 W — fiche fictive',0,true FROM "products" pr WHERE pr."slug"='friteuse-a-air-4-5-l-fictif' AND NOT EXISTS (SELECT 1 FROM "product_images" pi WHERE pi."product_id"=pr."id");
+INSERT INTO "product_attributes" ("product_id","name","value","sort_order")
+SELECT pr."id",'Capacité','4,5 litres',0 FROM "products" pr WHERE pr."slug"='friteuse-a-air-4-5-l-fictif' AND NOT EXISTS (SELECT 1 FROM "product_attributes" pa WHERE pa."product_id"=pr."id" AND pa."name"='Capacité');
+INSERT INTO "product_attributes" ("product_id","name","value","sort_order")
+SELECT pr."id",'Puissance','1 500 W',1 FROM "products" pr WHERE pr."slug"='friteuse-a-air-4-5-l-fictif' AND NOT EXISTS (SELECT 1 FROM "product_attributes" pa WHERE pa."product_id"=pr."id" AND pa."name"='Puissance');
+INSERT INTO "product_attributes" ("product_id","name","value","sort_order")
+SELECT pr."id",'Température','80 à 200 °C',2 FROM "products" pr WHERE pr."slug"='friteuse-a-air-4-5-l-fictif' AND NOT EXISTS (SELECT 1 FROM "product_attributes" pa WHERE pa."product_id"=pr."id" AND pa."name"='Température');
+INSERT INTO "product_attributes" ("product_id","name","value","sort_order")
+SELECT pr."id",'Garantie','1 an',3 FROM "products" pr WHERE pr."slug"='friteuse-a-air-4-5-l-fictif' AND NOT EXISTS (SELECT 1 FROM "product_attributes" pa WHERE pa."product_id"=pr."id" AND pa."name"='Garantie');
+INSERT INTO "products" ("seller_id","brand_id","category_id","title","slug","short_description","description","price_xof","compare_price_xof","quantity","lead_time_days","availability","power_label","energy_class","badge","is_best_seller","is_placeholder","status","published_at","internal_note")
+SELECT (SELECT "id" FROM "users" WHERE "email"='boutique@mybigmarket.ci'),(SELECT "id" FROM "brands" WHERE "slug"='marque-alpha'),(SELECT "id" FROM "categories" WHERE "slug"='gros-electromenager/refrigerateurs'),'Réfrigérateur combiné 300 L classe A+ — fiche fictive','refrigerateur-combine-300-l-fictif','Combiné 300 litres, froid ventilé, classe A+.','Réfrigérateur combiné de 300 litres, froid ventilé, classe énergétique A+.
+
+Cette fiche est fictive : remplacez-la par votre produit depuis l''administration.',365000,NULL,0,15,'on_order',NULL,'A+',NULL,false,true,'approved',now(),'Produit fictif à remplacer'
+WHERE NOT EXISTS (SELECT 1 FROM "products" WHERE "slug"='refrigerateur-combine-300-l-fictif');
+INSERT INTO "product_images" ("product_id","url","alt","sort_order","is_primary")
+SELECT pr."id",'/produits-fictifs/fictif-refrigerateur.svg','Réfrigérateur combiné 300 L classe A+ — fiche fictive',0,true FROM "products" pr WHERE pr."slug"='refrigerateur-combine-300-l-fictif' AND NOT EXISTS (SELECT 1 FROM "product_images" pi WHERE pi."product_id"=pr."id");
+INSERT INTO "product_attributes" ("product_id","name","value","sort_order")
+SELECT pr."id",'Capacité','300 litres',0 FROM "products" pr WHERE pr."slug"='refrigerateur-combine-300-l-fictif' AND NOT EXISTS (SELECT 1 FROM "product_attributes" pa WHERE pa."product_id"=pr."id" AND pa."name"='Capacité');
+INSERT INTO "product_attributes" ("product_id","name","value","sort_order")
+SELECT pr."id",'Classe énergétique','A+',1 FROM "products" pr WHERE pr."slug"='refrigerateur-combine-300-l-fictif' AND NOT EXISTS (SELECT 1 FROM "product_attributes" pa WHERE pa."product_id"=pr."id" AND pa."name"='Classe énergétique');
+INSERT INTO "product_attributes" ("product_id","name","value","sort_order")
+SELECT pr."id",'Froid','Ventilé',2 FROM "products" pr WHERE pr."slug"='refrigerateur-combine-300-l-fictif' AND NOT EXISTS (SELECT 1 FROM "product_attributes" pa WHERE pa."product_id"=pr."id" AND pa."name"='Froid');
+INSERT INTO "product_attributes" ("product_id","name","value","sort_order")
+SELECT pr."id",'Garantie','2 ans',3 FROM "products" pr WHERE pr."slug"='refrigerateur-combine-300-l-fictif' AND NOT EXISTS (SELECT 1 FROM "product_attributes" pa WHERE pa."product_id"=pr."id" AND pa."name"='Garantie');
+INSERT INTO "products" ("seller_id","brand_id","category_id","title","slug","short_description","description","price_xof","compare_price_xof","quantity","lead_time_days","availability","power_label","energy_class","badge","is_best_seller","is_placeholder","status","published_at","internal_note")
+SELECT (SELECT "id" FROM "users" WHERE "email"='boutique@mybigmarket.ci'),(SELECT "id" FROM "brands" WHERE "slug"='marque-beta'),(SELECT "id" FROM "categories" WHERE "slug"='televiseurs'),'Téléviseur LED 43 pouces Smart TV Full HD — fiche fictive','televiseur-led-43-pouces-fictif','Smart TV 43 pouces Full HD, Wi-Fi, 2 ports HDMI.','Téléviseur LED 43 pouces Full HD avec Smart TV, Wi-Fi et 2 ports HDMI.
+
+Cette fiche est fictive : remplacez-la par votre produit depuis l''administration.',189000,215000,8,7,'in_stock_abidjan',NULL,'A','Promo',true,true,'approved',now(),'Produit fictif à remplacer'
+WHERE NOT EXISTS (SELECT 1 FROM "products" WHERE "slug"='televiseur-led-43-pouces-fictif');
+INSERT INTO "product_images" ("product_id","url","alt","sort_order","is_primary")
+SELECT pr."id",'/produits-fictifs/fictif-televiseur.svg','Téléviseur LED 43 pouces Smart TV Full HD — fiche fictive',0,true FROM "products" pr WHERE pr."slug"='televiseur-led-43-pouces-fictif' AND NOT EXISTS (SELECT 1 FROM "product_images" pi WHERE pi."product_id"=pr."id");
+INSERT INTO "product_attributes" ("product_id","name","value","sort_order")
+SELECT pr."id",'Taille','43 pouces (108 cm)',0 FROM "products" pr WHERE pr."slug"='televiseur-led-43-pouces-fictif' AND NOT EXISTS (SELECT 1 FROM "product_attributes" pa WHERE pa."product_id"=pr."id" AND pa."name"='Taille');
+INSERT INTO "product_attributes" ("product_id","name","value","sort_order")
+SELECT pr."id",'Résolution','Full HD',1 FROM "products" pr WHERE pr."slug"='televiseur-led-43-pouces-fictif' AND NOT EXISTS (SELECT 1 FROM "product_attributes" pa WHERE pa."product_id"=pr."id" AND pa."name"='Résolution');
+INSERT INTO "product_attributes" ("product_id","name","value","sort_order")
+SELECT pr."id",'Smart TV','Oui, Wi-Fi',2 FROM "products" pr WHERE pr."slug"='televiseur-led-43-pouces-fictif' AND NOT EXISTS (SELECT 1 FROM "product_attributes" pa WHERE pa."product_id"=pr."id" AND pa."name"='Smart TV');
+INSERT INTO "product_attributes" ("product_id","name","value","sort_order")
+SELECT pr."id",'Ports','2 × HDMI, 1 × USB',3 FROM "products" pr WHERE pr."slug"='televiseur-led-43-pouces-fictif' AND NOT EXISTS (SELECT 1 FROM "product_attributes" pa WHERE pa."product_id"=pr."id" AND pa."name"='Ports');
+INSERT INTO "product_attributes" ("product_id","name","value","sort_order")
+SELECT pr."id",'Garantie','1 an',4 FROM "products" pr WHERE pr."slug"='televiseur-led-43-pouces-fictif' AND NOT EXISTS (SELECT 1 FROM "product_attributes" pa WHERE pa."product_id"=pr."id" AND pa."name"='Garantie');
+$sql$;
+    INSERT INTO drizzle.__drizzle_migrations (hash, created_at)
+      VALUES ('0023_boutique_seed.sql:plain:f6d9736431', (EXTRACT(EPOCH FROM now()) * 1000)::bigint);
   END IF;
 END
 $migration$;
