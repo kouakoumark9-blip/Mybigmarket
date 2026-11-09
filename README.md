@@ -16,7 +16,7 @@ Technique : Next.js 16 (App Router), React 19, TypeScript, PostgreSQL (Neon) ave
 | Changer le texte des pages À propos, Livraison, Retours, Conditions… | `lib/shop/pages.ts` |
 | Compléter les mentions légales (nom, adresse) | `LEGAL` dans `lib/shop/pages.ts` |
 | Changer le texte d'une catégorie (introduction, conseils, questions, titre Google) | l'administration, menu **Catégories** |
-| Changer les couleurs | `app/theme.css` (orange `#F68B1E`, bleu nuit `#1B2A41`) |
+| Changer les couleurs | `app/theme.css` (orange `#FF6A00`, noir) |
 
 ## Remplacer les 6 produits fictifs
 

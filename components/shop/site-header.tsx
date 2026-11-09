@@ -48,7 +48,6 @@ export function SiteHeader({ categories }: { categories: MenuCategory[] }) {
         </form>
         <div className="mb-header-actions">
           <Link className="mb-action mb-action--track" href="/suivi-commande"><Truck size={22} strokeWidth={1.75} aria-hidden="true"/><span>Suivi commande</span></Link>
-          <Link className="mb-action mb-action--fav" href="/favoris"><Heart size={22} strokeWidth={1.75} aria-hidden="true"/><span>Favoris</span></Link>
           <Link className="mb-action" href="/panier" aria-label={`Panier, ${count} article${count > 1 ? "s" : ""}`}>
             <ShoppingCart size={22} strokeWidth={1.75} aria-hidden="true"/><span>Panier</span>
             {count > 0 && <span className="mb-action-count" aria-hidden="true">{count}</span>}
@@ -63,7 +62,9 @@ export function SiteHeader({ categories }: { categories: MenuCategory[] }) {
             <div className="mb-nav-drop"><CategoryMenu categories={categories} title="Toutes les catégories"/></div>
           </div>
           {categories.map((item) => <Link key={item.slug} className="mb-nav-link" href={`/${item.slug}`}>{item.name}</Link>)}
+          <span className="mb-nav-spacer"/>
           <Link className="mb-nav-link mb-nav-link--promo" href="/promotions">Promotions</Link>
+          <Link className="mb-nav-link" href="/favoris"><Heart size={16} strokeWidth={1.75} aria-hidden="true" style={{ marginRight: 6 }}/>Favoris</Link>
         </div>
       </nav>
     </header>
