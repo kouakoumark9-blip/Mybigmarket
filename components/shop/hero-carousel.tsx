@@ -8,7 +8,7 @@ import type { Banner } from "@/lib/shop/banners";
 
 /**
  * Carrousel de bannières : 2172 × 274 px sur ordinateur, 1080 × 540 px sur mobile, image en cover (jamais déformée).
- * Défilement lent (6 s), arrêté au survol ou quand l'utilisateur préfère moins d'animations.
+ * Défilement toutes les 3,5 s, arrêté au survol ou quand l'utilisateur préfère moins d'animations.
  */
 export function HeroCarousel({ banners }: { banners: Banner[] }) {
   const [index, setIndex] = useState(0);
@@ -19,7 +19,7 @@ export function HeroCarousel({ banners }: { banners: Banner[] }) {
 
   useEffect(() => {
     if (count < 2 || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const timer = window.setInterval(() => { if (!paused.current) setIndex((current) => (current + 1) % count); }, 6000);
+    const timer = window.setInterval(() => { if (!paused.current) setIndex((current) => (current + 1) % count); }, 3500);
     return () => window.clearInterval(timer);
   }, [count]);
 
