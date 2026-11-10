@@ -218,11 +218,10 @@ html body button,html body input,html body select,html body textarea{font-family
 .mb-grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 .mb-pay{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border:1px solid var(--color-border-strong);border-radius:12px;background:#fff;margin-bottom:8px}
 .mb-pay input{margin-top:3px}
-.mb-pay--on{border-color:var(--color-primary);background:var(--color-primary-soft)}
-.mb-pay--off{opacity:.65;background:#f5f6f8}
+.mb-pay:has(input:checked){border-color:var(--color-primary);background:var(--color-primary-soft)}
+.mb-pay-intro{margin:0 0 12px;font-size:14px;color:#3f444b}
 .mb-pay b{display:block;font-size:14px}
 .mb-pay span{font-size:12.5px;color:#5b6577}
-.mb-pay-soon{margin-left:auto;font-size:11px;font-weight:700;padding:2px 6px;background:#e3e5e8;border-radius:3px;white-space:nowrap}
 .toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:120;max-width:90vw;padding:10px 16px;background:var(--color-text);color:#fff;border-radius:12px;font-size:14px;box-shadow:0 4px 14px rgba(0,0,0,.25)}
 
 /* Confirmation */
@@ -453,7 +452,7 @@ html body button,html body input,html body select,html body textarea{font-family
   .mb-reassurance span{font-size:9.5px;line-height:1.25;overflow-wrap:anywhere;margin-top:2px}
 }
 
-/* Cartes et grille « Alibaba » : photo pleine largeur arrondie en haut, titre, prix en gras, commande minimale, disponibilité */
+/* Cartes et grille « Alibaba » : photo pleine largeur arrondie en haut, titre  prix en gras, disponibilité */
 .mb-section{background:transparent;border:0;box-shadow:none;border-radius:0;overflow:visible}
 .mb-section .mb-section-head{background:#fff;border-radius:8px 8px 0 0}
 .mb-section .mb-grid{padding:10px 0 0;gap:10px;grid-template-columns:repeat(5,minmax(0,1fr))}
@@ -468,14 +467,13 @@ html body button,html body input,html body select,html body textarea{font-family
 .mb-card-body{padding:8px 10px 12px;display:flex;flex-direction:column;min-width:0}
 .mb-card-title{margin:0 0 6px;font-size:13.5px;line-height:1.35;min-height:36px}
 .mb-card .mb-price{font-size:18px;font-weight:800}
-.mb-card-moq{margin:2px 0 0;font-size:12px;color:#767676}
 .mb-card .mb-avail{margin:4px 0 0;font-size:11.5px;font-weight:500;color:#0b7a3b}
 .mb-card .mb-price-old{margin-top:0}
 @media (max-width:640px){
   .mb-card-body{padding:6px 8px 10px}
   .mb-card-title{font-size:12.5px;min-height:34px}
   .mb-card .mb-price{font-size:16px}
-  .mb-card-moq,.mb-card .mb-avail{font-size:11px}
+  .mb-card .mb-avail{font-size:11px}
 }
 
 /* Pages d'information : listes lisibles */
@@ -484,3 +482,32 @@ html body button,html body input,html body select,html body textarea{font-family
 .mb-info li{margin:4px 0;padding-left:2px}
 
 .mb-hero-slide{background:#ececee}
+
+/* ===== Hero de l'accueil : sobre, lisible, une seule action ===== */
+.mb-hero2{display:grid;grid-template-columns:minmax(0,6fr) minmax(0,5fr);background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.08);min-height:340px}
+.mb-hero2-copy{display:flex;flex-direction:column;justify-content:center;align-items:flex-start;padding:40px 44px}
+.mb-hero2-eyebrow{margin:0 0 14px;font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#5f666d}
+.mb-page .mb-hero2 h1{margin:0;max-width:16ch;font-size:clamp(28px,2.9vw,40px);font-weight:800;line-height:1.1;letter-spacing:-.02em;color:var(--color-text)!important}
+.mb-hero2-sub{margin:14px 0 28px;font-size:16px;line-height:1.5;color:#3f444b}
+.mb-hero2-cta{min-height:48px;padding:0 30px;font-size:15px;border-radius:6px}
+.mb-hero2-media{position:relative;min-height:260px;background:#ececee}
+.mb-hero2-media img{object-fit:cover;object-position:60% 50%}
+@media (max-width:760px){
+  .mb-hero2{grid-template-columns:1fr;min-height:0}
+  .mb-hero2-copy{padding:24px 20px 22px}
+  .mb-hero2-eyebrow{margin-bottom:10px;font-size:11px}
+  .mb-page .mb-hero2 h1{font-size:27px;max-width:18ch}
+  .mb-hero2-sub{margin:10px 0 20px;font-size:15px}
+  .mb-hero2-cta{width:100%;justify-content:center}
+  .mb-hero2-media{min-height:0;aspect-ratio:16/10}
+}
+
+/* Sections suivantes alignées sur le hero : mêmes arrondis, même hiérarchie de titres */
+.mb-catmenu-title{font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#5f666d;padding:20px 18px 10px}
+.mb-section{margin:20px 0}
+.mb-section-head{padding:20px 20px 14px;border-bottom:0;background:#fff}
+.mb-section-head h2{padding-left:0;font-size:22px;font-weight:800;letter-spacing:-.02em}
+.mb-section-head h2::before{display:none}
+.mb-section-head .mb-link{font-size:14px;font-weight:600;color:var(--color-text);text-decoration:underline;text-underline-offset:3px}
+.mb-section .mb-grid{padding-top:12px}
+@media (max-width:640px){.mb-section-head{padding:16px 14px 10px}.mb-section-head h2{font-size:19px}}

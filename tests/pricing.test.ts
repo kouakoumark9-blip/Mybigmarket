@@ -10,7 +10,7 @@ import {
 
 const base: PriceContext = { basePriceXof: 10_000, quantity: 1, purchasePriceXof: 4_000 };
 
-describe("paliers dégressifs (MOQ)", () => {
+describe("paliers dégressifs", () => {
   const tiers = [
     { minimumQuantity: 1, maximumQuantity: 9, unitPriceXof: 10_000 },
     { minimumQuantity: 10, maximumQuantity: 49, unitPriceXof: 9_000 },

@@ -1,7 +1,7 @@
 # MyBigMarket
 
 Boutique en ligne d'Abidjan (Côte d'Ivoire) : climatiseurs, groupes électrogènes, informatique, électroménager, téléviseurs.
-Une seule vendeuse, ses propres produits, prix en FCFA, **paiement à la livraison**.
+Une seule vendeuse, ses propres produits, prix en FCFA, **paiement par mobile money**.
 
 Technique : Next.js 16 (App Router), React 19, TypeScript, PostgreSQL (Neon) avec Drizzle, hébergement Vercel.
 

@@ -4,7 +4,7 @@ import { catalogToProduct, productToCartItem } from "../lib/pdp/adapters";
 import { sampleWatchProduct } from "../lib/pdp/sample-product";
 import type { DemoProduct } from "../lib/demo-data";
 
-const base: DemoProduct = { slug: "sac", title: "Sac", priceXof: 12_500, minimumQuantity: 2, leadTimeDays: 30, category: "Mode", categorySlug: "mode", seller: "Lina K.", sellerSlug: "lina-k", university: "Université", city: "Guangzhou", rating: 4.8, reviewCount: 24, icon: "", tone: "orange", quantity: 48 };
+const base: DemoProduct = { slug: "sac", title: "Sac", priceXof: 12_500, leadTimeDays: 30, category: "Mode", categorySlug: "mode", seller: "Lina K.", sellerSlug: "lina-k", university: "Université", city: "Guangzhou", rating: 4.8, reviewCount: 24, icon: "", tone: "orange", quantity: 48 };
 const products: DemoProduct[] = [base, { ...base, slug: "montre", title: "Montre" }, { ...base, slug: "lampe", title: "Lampe", categorySlug: "maison", sellerSlug: "aya-t" }];
 
 describe("calculateur de marge", () => {
@@ -43,7 +43,6 @@ describe("adaptateurs de la fiche produit", () => {
   it("produit un article de panier valide pour l'exemple", () => {
     const item = productToCartItem(sampleWatchProduct);
     expect(item.priceXof).toBe(919);
-    expect(item.minimumQuantity).toBe(1);
   });
   it("l'exemple respecte le format attendu", () => {
     expect(sampleWatchProduct.images.length).toBeGreaterThanOrEqual(6);

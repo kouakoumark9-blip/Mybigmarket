@@ -10,7 +10,7 @@ export const pdpConfig = {
   refundText: "Remboursement si la commande n'est pas expédiée, est manquante ou arrive avec des problèmes de qualité.",
   /** Moyens de paiement affichés sous forme de pastilles texte (pas de logos tiers). */
   paymentMethods: ["Visa", "Mastercard", "Mobile Money", "Wave"],
-  guaranteeNote: "Commande protégée de la confirmation à la livraison, sous réserve des conditions de vente.",
+  guaranteeNote: "Commande suivie de la confirmation jusqu'à la réception, sous réserve des conditions de vente.",
   imageSearch: "Recherche par image",
   messaging: "Messagerie",
   backToTop: "Haut de page",

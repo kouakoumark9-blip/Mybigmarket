@@ -27,7 +27,7 @@ type Props = {
   paymentMethods?: string[];
 };
 
-/** Boîte d'achat. En mode compact (au défilement), elle reprend prix, MOQ et variantes. */
+/** Boîte d'achat. En mode compact (au défilement), elle reprend prix et variantes. */
 export function BuyBox({ product, variants, compact, onOrder, onAddToCart, feedback, orderable = true, paymentsOpen = false, paymentMethods = [] }: Props) {
   const { language, formatPrice } = useCountryPreferences();
   const [shippingOpen, setShippingOpen] = useState(false);

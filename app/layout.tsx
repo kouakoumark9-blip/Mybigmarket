@@ -7,8 +7,8 @@ import "./mb.css";
 export const metadata: Metadata = {
   metadataBase: new URL(SHOP.baseUrl),
   title: { default: "MyBigMarket : climatiseurs, informatique, électroménager à Abidjan", template: "%s | MyBigMarket" },
-  description: "Boutique en ligne à Abidjan : climatiseurs, groupes électrogènes, informatique, électroménager et téléviseurs. Livraison partout en Côte d'Ivoire, paiement à la livraison.",
-  openGraph: { type: "website", locale: "fr_CI", siteName: "MyBigMarket", title: "MyBigMarket : boutique en ligne à Abidjan", description: "Climatiseurs, groupes électrogènes, informatique et électroménager. Livraison partout en Côte d'Ivoire, paiement à la livraison." },
+  description: "Boutique en ligne à Abidjan : climatiseurs, groupes électrogènes, informatique, électroménager et téléviseurs. Livraison partout en Côte d'Ivoire, paiement par mobile money.",
+  openGraph: { type: "website", locale: "fr_CI", siteName: "MyBigMarket", title: "MyBigMarket : boutique en ligne à Abidjan", description: "Climatiseurs, groupes électrogènes, informatique et électroménager. Livraison partout en Côte d'Ivoire, paiement par mobile money." },
   icons: { icon: "/favicon.svg", shortcut: "/favicon.svg" },
 };
 

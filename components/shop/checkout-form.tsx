@@ -32,6 +32,7 @@ export function CheckoutForm() {
       const result = await placeOrderAction({
         name: String(data.get("name") ?? ""), phone: String(data.get("phone") ?? ""), commune: String(data.get("commune") ?? ""),
         address: String(data.get("address") ?? ""), note: String(data.get("note") ?? ""),
+        payment: String(data.get("payment") ?? ""),
         cart: items.map((item) => ({ slug: item.slug, qty: item.qty })),
       });
       if (result.error || !result.reference) { setError(result.error ?? "La commande n'a pas pu être enregistrée."); window.scrollTo({ top: 0, behavior: "smooth" }); return; }
@@ -54,9 +55,9 @@ export function CheckoutForm() {
           <div className="mb-field"><label htmlFor="c-commune">Commune ou ville</label>
             <select id="c-commune" name="commune" required value={commune} onChange={(event) => setCommune(event.target.value)}>
               <option value="">Choisissez…</option>
-              {groups.map((group) => <optgroup key={group} label={group === "Abidjan" ? "Abidjan" : "Autres villes de Côte d'Ivoire"}>{DELIVERY_ZONES.filter((item) => item.group === group).map((item) => <option key={item.commune} value={item.commune}>{item.commune} : {formatFcfa(item.feeXof)}</option>)}</optgroup>)}
+              {groups.map((group) => <optgroup key={group} label={group === "Abidjan" ? "Abidjan" : "Autres villes de Côte d'Ivoire"}>{DELIVERY_ZONES.filter((item) => item.group === group).map((item) => <option key={item.commune} value={item.commune}>{item.commune}</option>)}</optgroup>)}
             </select>
-            {zone && <small>Livraison à {zone.commune} : {formatFcfa(zone.feeXof)}, délai de transport {zone.delay}.</small>}
+            {zone && <small>Délai de livraison : {zone.delay}.</small>}
           </div>
           <div className="mb-field"><label htmlFor="c-address">Adresse précise</label><textarea id="c-address" name="address" className="mb-input" required minLength={5} autoComplete="street-address" placeholder="Quartier, rue, immeuble, repère connu…"/></div>
           <div className="mb-field"><label htmlFor="c-note">Message (facultatif)</label><input id="c-note" name="note" className="mb-input" maxLength={500} placeholder="Étage, horaires de livraison…"/></div>
@@ -65,10 +66,10 @@ export function CheckoutForm() {
       <section className="mb-box" aria-label="Paiement">
         <h2>2. Paiement</h2>
         <div className="mb-box-body">
-          {PAYMENT_METHODS.map((method) => <label key={method.code} className={`mb-pay ${method.active ? "mb-pay--on" : "mb-pay--off"}`}>
-            <input type="radio" name="payment" value={method.code} defaultChecked={method.active} disabled={!method.active}/>
-            <span><b>{method.label}</b>{method.active && <span>Vous payez en espèces au livreur, après avoir vérifié le produit.</span>}</span>
-            {!method.active && <span className="mb-pay-soon">Bientôt</span>}
+          <p className="mb-pay-intro">Choisissez votre opérateur mobile money.</p>
+          {PAYMENT_METHODS.map((method) => <label key={method.code} className="mb-pay">
+            <input type="radio" name="payment" value={method.code} required/>
+            <span><b>{method.label}</b><span>Paiement par mobile money.</span></span>
           </label>)}
         </div>
       </section>
@@ -82,7 +83,7 @@ export function CheckoutForm() {
         <div className="mb-summary-row mb-summary-row--total"><span>Total à payer</span><span>{formatFcfa(total + fee)}</span></div>
         <ul style={{ margin: "12px 0 0", padding: "0 0 0 18px", fontSize: 12.5, color: "#5b6577" }}>{items.map((item) => <li key={item.slug}>{item.title} : {item.availabilityLabel}</li>)}</ul>
         <button type="submit" className="mb-btn mb-btn--block" disabled={pending} style={{ marginTop: 14 }}>{pending ? "Envoi…" : "Confirmer la commande"}</button>
-        <p style={{ margin: "10px 0 0", fontSize: 12.5, color: "#5b6577" }}>Aucun paiement maintenant. Je vous contacte pour confirmer la livraison.</p>
+        <p style={{ margin: "10px 0 0", fontSize: 12.5, color: "#5b6577" }}>Après validation, je vous envoie sur WhatsApp les instructions pour régler par mobile money.</p>
       </div>
     </aside>
   </form>;

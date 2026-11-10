@@ -52,10 +52,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     window.setTimeout(() => setNotice(""), 2600);
   }, []);
 
-  const addItem = useCallback((product: DemoProduct, quantity = product.minimumQuantity) => {
+  const addItem = useCallback((product: DemoProduct, quantity = 1) => {
     if (product.isDemo) { showNotice("Ce produit n’est pas encore disponible à la commande."); return; }
     if (product.availability !== "on_order" && product.quantity < 1) { showNotice("Ce produit n’est plus en stock."); return; }
-    const safeQty = Math.min(stockLimit(product), Math.max(product.minimumQuantity, Math.floor(quantity)));
+    const safeQty = Math.min(stockLimit(product), Math.max(1, Math.floor(quantity)));
     setItems((current) => {
       const existing = current.find((item) => item.slug === product.slug);
       if (existing) {
@@ -71,7 +71,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const setQuantity = useCallback((slug: string, quantity: number) => {
     setItems((current) => current.map((item) => {
       if (item.slug !== slug) return item;
-      const qty = Math.max(item.minimumQuantity, Math.min(stockLimit(item), Math.floor(quantity)));
+      const qty = Math.max(1, Math.min(stockLimit(item), Math.floor(quantity)));
       return { ...item, qty, priceXof: unitPriceForQuantity(item, qty) };
     }));
   }, []);

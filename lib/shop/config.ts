@@ -18,20 +18,20 @@ export const whatsappLink = (message = "Bonjour MyBigMarket, j'ai une question s
   `https://wa.me/${SHOP.whatsappNumber}?text=${encodeURIComponent(message)}`;
 
 /** Textes de la bande du haut et de la réassurance. */
-export const TOP_STRIP = "Livraison à Abidjan et partout en Côte d'Ivoire  •  Paiement à la livraison  •  WhatsApp";
+export const TOP_STRIP = "Livraison à Abidjan et partout en Côte d'Ivoire  •  Paiement mobile money  •  WhatsApp";
 
 export const REASSURANCE = [
-  { title: "Livraison à Abidjan et en Côte d'Ivoire", text: "En stock à Abidjan : 24 à 72 h" },
-  { title: "Paiement à la livraison", text: "Vous payez à la réception du produit" },
-  { title: "Retours sous 7 jours", text: "Si le produit ne convient pas ou arrive abîmé" },
-  { title: "Service client WhatsApp", text: `${SHOP.phoneDisplay}, ${SHOP.hours.toLowerCase()}` },
+  { title: "Paiement mobile money sécurisé", text: "Orange, MTN, Moov, Wave" },
+  { title: "Livraison à Abidjan", text: "En stock : 24 à 72 h" },
+  { title: "Produits vérifiés", text: "Contrôlés avant l'envoi" },
 ];
 
-/** Moyens de paiement : seul le paiement à la livraison est actif pour l'instant. */
+/** Moyens de paiement : mobile money uniquement. */
 export const PAYMENT_METHODS = [
-  { code: "cash_on_delivery", label: "Paiement à la livraison", active: true },
-  { code: "orange_money", label: "Orange Money", active: false },
-  { code: "mtn_momo", label: "MTN Mobile Money", active: false },
-  { code: "moov_money", label: "Moov Money", active: false },
-  { code: "wave", label: "Wave", active: false },
+  { code: "orange_money", label: "Orange Money" },
+  { code: "mtn_momo", label: "MTN MoMo" },
+  { code: "moov_money", label: "Moov Money" },
+  { code: "wave", label: "Wave" },
 ] as const;
+export type PaymentMethodCode = (typeof PAYMENT_METHODS)[number]["code"];
+export const paymentLabel = (code: string) => PAYMENT_METHODS.find((method) => method.code === code)?.label ?? "Mobile money";

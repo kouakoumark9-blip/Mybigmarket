@@ -42,7 +42,7 @@ async function queryCatalog(): Promise<DemoProduct[]> {
   for (const attribute of attributes) attributeMap.set(attribute.productId, [...(attributeMap.get(attribute.productId) ?? []), { label: attribute.name, value: attribute.value }]);
   return rows.map(({ product, category, brand }) => ({
     slug: product.slug, title: product.title, description: product.description, priceXof: product.priceXof,
-    minimumQuantity: product.minimumQuantity, leadTimeDays: product.leadTimeDays,
+    leadTimeDays: product.leadTimeDays,
     category: category.name, categorySlug: category.slug,
     seller: "MyBigMarket", sellerSlug: "mybigmarket", university: "Boutique en ligne", city: "Abidjan",
     rating: 0, reviewCount: 0, icon: "", tone: "sand", quantity: product.quantity,

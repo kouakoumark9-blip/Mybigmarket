@@ -46,7 +46,7 @@ export function CartView() {
         <div className="mb-summary-row mb-summary-row--total"><span>Total produits</span><span>{formatFcfa(total)}</span></div>
         {onOrder && <p className="mb-notice" style={{ marginTop: 12 }}>{inStock ? "Les produits en stock partent sous 24 à 72 h. " : ""}Les produits sur commande sont livrés sous {longest} jours{inStock ? " : ils peuvent arriver séparément" : ""}.</p>}
         <Link className="mb-btn mb-btn--block" href="/commande" style={{ marginTop: 12 }}>Commander</Link>
-        <p style={{ margin: "10px 0 0", fontSize: 12.5, color: "#5b6577" }}>Paiement à la livraison. Les frais de livraison s&apos;affichent à l&apos;étape suivante, avant validation.</p>
+        <p style={{ margin: "10px 0 0", fontSize: 12.5, color: "#5b6577" }}>Paiement par mobile money. Les frais de livraison s&apos;affichent à l&apos;étape suivante, avant validation.</p>
       </div>
     </aside>
   </div>;

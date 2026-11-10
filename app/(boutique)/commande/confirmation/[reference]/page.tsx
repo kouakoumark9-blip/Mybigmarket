@@ -4,7 +4,7 @@ import { CheckCircle2 } from "lucide-react";
 import { eq } from "drizzle-orm";
 import { getDb } from "@/lib/db";
 import { shopOrderItems, shopOrders } from "@/lib/db/schema";
-import { SHOP, whatsappLink } from "@/lib/shop/config";
+import { SHOP, paymentLabel, whatsappLink } from "@/lib/shop/config";
 import { formatFcfa } from "@/lib/shop/format";
 import { statusLabel } from "@/lib/shop/orders";
 
@@ -19,13 +19,13 @@ export default async function ConfirmationPage({ params }: { params: Promise<{ r
   if (!order) notFound();
   const items = await db.select().from(shopOrderItems).where(eq(shopOrderItems.orderId, order.id));
   const lines = items.map((item) => `- ${item.quantity} x ${item.title} (${formatFcfa(item.unitPriceXof * item.quantity)})`).join("\n");
-  const message = `Bonjour MyBigMarket, je viens de passer la commande ${order.reference}.\n${lines}\nTotal : ${formatFcfa(order.totalXof)} (livraison ${order.commune}).\nNom : ${order.customerName}\nMerci de me confirmer la livraison.`;
+  const message = `Bonjour MyBigMarket, je viens de passer la commande ${order.reference}.\n${lines}\nTotal : ${formatFcfa(order.totalXof)} (livraison ${order.commune}).\nPaiement : ${paymentLabel(order.paymentMethod)}.\nNom : ${order.customerName}\nMerci de m'envoyer les instructions de paiement.`;
   return <div className="mb-wrap mb-page" id="contenu" role="main">
     <div className="mb-confirm">
       <CheckCircle2 size={44} strokeWidth={1.5} aria-hidden="true" style={{ color: "#0b7a3b" }}/>
       <h1 className="mb-title" style={{ marginTop: 8 }}>Merci, votre commande est enregistrée</h1>
       <div className="mb-confirm-ref" aria-label={`Numéro de commande ${order.reference}`}>{order.reference}</div>
-      <p className="mb-intro" style={{ marginInline: "auto" }}>Gardez ce numéro. Je vous contacte sur le {order.phone.replace(/(\d{2})(?=\d)/g, "$1 ")} pour confirmer la livraison. Vous payez à la livraison.</p>
+      <p className="mb-intro" style={{ marginInline: "auto" }}>Gardez ce numéro. Je vous contacte sur le {order.phone.replace(/(\d{2})(?=\d)/g, "$1 ")} pour confirmer la livraison. Vous réglez par {paymentLabel(order.paymentMethod)} : je vous envoie les instructions de paiement sur WhatsApp.</p>
       <a className="mb-btn mb-btn--whatsapp" href={`https://wa.me/${SHOP.whatsappNumber}?text=${encodeURIComponent(message)}`} rel="noopener">Envoyer ma commande sur WhatsApp</a>
       <div className="mb-box" style={{ marginTop: 20, textAlign: "left" }}>
         <h2>Récapitulatif · {statusLabel(order.status)}</h2>

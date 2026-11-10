@@ -17,14 +17,13 @@ export function demoToCard(product: DemoProduct): ProductCardData {
     title: product.title,
     image: product.imageUrl || "/product-home.jpg",
     priceMin: product.priceXof,
-    minOrderQty: product.minimumQuantity,
     ...(percent ? { compareAtPrice: product.comparePriceXof ?? undefined, discountPercent: percent } : {}),
   };
 }
 
 const FAQ: Product["faq"] = [
   { question: "Quand vais-je être livré ?", answer: "Produit en stock à Abidjan : 24 à 72 h. Produit sur commande : le délai est indiqué sur la fiche et dans votre panier. Hors Abidjan, comptez quelques jours de plus." },
-  { question: "Comment payer ?", answer: "Vous payez à la livraison, au livreur, après avoir vérifié votre produit. D'autres moyens (Orange Money, MTN, Moov, Wave) seront ajoutés." },
+  { question: "Comment payer ?", answer: "Par mobile money : Orange Money, MTN MoMo, Moov Money ou Wave. Après votre commande, je vous envoie les instructions de paiement sur WhatsApp." },
   { question: "Puis-je retourner un produit ?", answer: "Oui, sous 7 jours si le produit ne convient pas ou arrive abîmé. Contactez-nous sur WhatsApp avec votre numéro de commande." },
 ];
 
@@ -55,7 +54,6 @@ export function catalogToProduct(product: DemoProduct, all: DemoProduct[], descr
     priceMin: product.priceXof,
     priceMax: product.priceXof,
     currency: "XOF",
-    minOrderQty: product.minimumQuantity,
     unit: "pièce",
     lowestPriceBadge: percent ? `Promotion : -${percent} %` : undefined,
     availability: inStock ? "InStock" : "PreOrder",
@@ -65,7 +63,7 @@ export function catalogToProduct(product: DemoProduct, all: DemoProduct[], descr
     summary: product.shortDescription || description.split(/\n{2,}/)[0] || "",
     highlights: [
       { lead: "Livraison :", text: delivery + "." },
-      { lead: "Paiement :", text: "à la livraison, après vérification du produit." },
+      { lead: "Paiement :", text: "par mobile money (Orange Money, MTN MoMo, Moov Money, Wave)." },
       { lead: "Retours :", text: "sous 7 jours si le produit ne convient pas ou arrive abîmé." },
     ],
     attributes: [{ label: "Catégorie", value: product.category }, ...(product.extraAttributes ?? []), ...(product.brandName && !product.extraAttributes?.some((item) => item.label === "Marque") ? [{ label: "Marque", value: product.brandName }] : [])],
@@ -108,7 +106,6 @@ export function productToCartItem(product: Product, source?: DemoProduct): DemoP
     slug: product.slug,
     title: product.title,
     priceXof: product.priceMin,
-    minimumQuantity: product.minOrderQty,
     leadTimeDays: 15,
     category: product.category.label,
     categorySlug: product.category.slug,

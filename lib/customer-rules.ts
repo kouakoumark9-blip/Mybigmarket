@@ -6,7 +6,7 @@
  *
  * Règles verrouillées ici (ne pas régresser) :
  *  - une quantité de ligne est TOUJOURS ramenée à un multiple du pas de
- *    commande, jamais sous le minimum (MOQ) et jamais au-dessus du plafond ;
+ *    commande, jamais sous le minimum du produit et jamais au-dessus du plafond ;
  *  - la remise de groupe n'est ni cumulable avec elle-même ni appliquée à un
  *    groupe inactif ; elle s'exprime en points de base pour éviter les flottants ;
  *  - un panier invité fusionné additionne les quantités du MÊME article, sans

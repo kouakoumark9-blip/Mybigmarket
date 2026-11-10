@@ -5,11 +5,13 @@ const ADMIN_EMAIL = process.env.E2E_ADMIN_EMAIL || "";
 const ADMIN_PASSWORD = process.env.E2E_ADMIN_PASSWORD || "";
 
 test.describe("vitrine", () => {
-  test("accueil : menu des catégories, bannières, produits, sans trace de l'ancien positionnement", async ({ page }) => {
+  test("accueil : menu des catégories, hero, réassurance, produits, sans trace de l'ancien positionnement", async ({ page }) => {
     const console_ = watchConsole(page);
     await page.goto("/");
     await expect(page.getByRole("navigation", { name: "Catégories" }).first()).toBeVisible();
-    await expect(page.getByRole("region", { name: "Offres du moment" })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Tout pour la maison, livré chez vous");
+    await expect(page.getByRole("link", { name: "Découvrir nos produits" })).toBeVisible();
+    await expect(page.getByText("Paiement mobile money sécurisé")).toBeVisible();
     await expect(page.getByRole("heading", { name: "Meilleures ventes" })).toBeVisible();
     const text = (await page.locator("body").innerText()).toLowerCase();
     for (const forbidden of ["chine →", "prix indicatif", "livraison à confirmer", "vendu par", "afrique de l’ouest", "exemple de démonstration"]) expect(text).not.toContain(forbidden);
@@ -43,7 +45,11 @@ test.describe("vitrine", () => {
     await page.getByLabel("Téléphone").fill("07 12 34 56 78");
     await page.getByLabel("Commune ou ville").selectOption("Cocody");
     await page.getByLabel("Adresse précise").fill("Riviera 2, rue des Jardins");
-    await expect(page.getByText("Paiement à la livraison").first()).toBeVisible();
+    // Paiement : uniquement le mobile money, aucune mention du paiement à la livraison, aucun prix dans la liste des communes
+    await expect(page.getByRole("radio")).toHaveCount(4);
+    await expect(page.getByText(/à la livraison/i)).toHaveCount(0);
+    expect(await page.locator("#c-commune option").allInnerTexts()).not.toContainEqual(expect.stringMatching(/FCFA|\d/));
+    await page.getByRole("radio", { name: /Orange Money/ }).check();
     await page.getByRole("button", { name: "Confirmer la commande" }).click();
     await page.waitForURL(/\/commande\/confirmation\/MBM-/);
     const reference = page.url().split("/").pop()!;

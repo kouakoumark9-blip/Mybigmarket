@@ -57,7 +57,7 @@ export const ProductInfo = forwardRef<HTMLDivElement, Props>(function ProductInf
     <hr className="pd-rule"/>
 
     <VariantPicker product={product} state={variants} idPrefix="pd-main"/>
-    {orderable && <QuantityPicker value={quantity} onChange={onQuantity} min={Math.max(1, product.minOrderQty || 1)} unitPrice={unitPrice} max={maxQuantity}/>}
+    {orderable && <QuantityPicker value={quantity} onChange={onQuantity} min={1} unitPrice={unitPrice} max={maxQuantity}/>}
     <SpecsGrid items={product.keySpecs}/>
 
     {product.highlights.length > 0 && <section className="pd-block" aria-labelledby="pd-glance-title">
