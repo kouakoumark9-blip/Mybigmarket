@@ -33,11 +33,11 @@ test.describe("vitrine", () => {
     await expect(page.getByRole("navigation", { name: "Fil d'Ariane" }).getByText("Lits 2 places")).toBeVisible();
     expect((await page.goto("/lits/lits-1-place"))?.status()).toBe(200);
     await expect(page.locator(".mb-cat-banner")).toHaveCount(1);
-    for (const withBanner of ["lits-2-5-places", "lits-3-places", "lits-pliables", "lits-en-bois", "lits-metal"]) {
+    for (const withBanner of ["lits-2-5-places", "lits-3-places", "lits-pliables", "lits-en-bois", "lits-metal", "lits-enfants", "lits-superposes", "lits-mezzanine", "lits-avec-chevets", "lits-avec-rangement"]) {
       await page.goto(`/lits/${withBanner}`);
       await expect(page.locator(".mb-cat-banner"), withBanner).toHaveCount(1);
     }
-    await page.goto("/lits/lits-enfants");
+    await page.goto("/lits/pack-lit-matelas");
     await expect(page.locator(".mb-cat-banner")).toHaveCount(0); // pas de bannière pour cette catégorie
     for (const path of ["lits-1-place", "lits-2-5-places", "lits-3-places", "lits-enfants", "lits-superposes", "lits-pliables", "lits-mezzanine", "lits-avec-chevets", "lits-avec-rangement", "lits-en-bois", "lits-metal", "pack-lit-matelas"]) {
       expect((await page.goto(`/lits/${path}`))?.status(), path).toBe(200);
