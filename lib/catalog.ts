@@ -52,6 +52,7 @@ async function queryCatalog(): Promise<DemoProduct[]> {
     powerLabel: product.powerLabel, energyClass: product.energyClass, badge: product.badge,
     isPlaceholder: product.isPlaceholder, shortDescription: product.shortDescription, brandName: brand, categoryTrail: trailOf(product.categoryId),
     extraAttributes: attributeMap.get(product.id) ?? [],
+    seoTitle: product.seoTitle, seoDescription: product.seoDescription,
   }));
 }
 
