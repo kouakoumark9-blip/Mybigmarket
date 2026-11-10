@@ -101,12 +101,10 @@ UPDATE "categories" SET "sort_order"=99 WHERE "slug" IN ('electronique','mode-ac
 INSERT INTO "brands" ("name","slug") SELECT 'Marque Alpha','marque-alpha' WHERE NOT EXISTS (SELECT 1 FROM "brands" WHERE "slug"='marque-alpha');
 INSERT INTO "brands" ("name","slug") SELECT 'Marque Beta','marque-beta' WHERE NOT EXISTS (SELECT 1 FROM "brands" WHERE "slug"='marque-beta');
 INSERT INTO "products" ("seller_id","brand_id","category_id","title","slug","short_description","description","price_xof","compare_price_xof","quantity","lead_time_days","availability","power_label","energy_class","badge","is_best_seller","is_placeholder","status","published_at","internal_note")
-SELECT (SELECT "id" FROM "users" WHERE "email"='boutique@mybigmarket.ci'),(SELECT "id" FROM "brands" WHERE "slug"='marque-alpha'),(SELECT "id" FROM "categories" WHERE "slug"='climatiseurs/inverter'),'Climatiseur split inverter 12 000 BTU (1,5 CV) — fiche fictive','climatiseur-split-inverter-12000-btu-fictif','Split mural inverter, silencieux, pour une pièce jusqu''à 25 m².','Climatiseur split mural inverter de 12 000 BTU (1,5 CV), adapté à une pièce jusqu''à 25 m². Télécommande fournie. Installation non comprise.
-
-Cette fiche est fictive : remplacez-la par votre produit depuis l''administration.',245000,285000,5,7,'in_stock_abidjan','12 000 BTU (1,5 CV)','A++','Promo',true,true,'approved',now(),'Produit fictif à remplacer'
+SELECT (SELECT "id" FROM "users" WHERE "email"='boutique@mybigmarket.ci'),(SELECT "id" FROM "brands" WHERE "slug"='marque-alpha'),(SELECT "id" FROM "categories" WHERE "slug"='climatiseurs/inverter'),'Climatiseur split inverter 12 000 BTU (1,5 CV)','climatiseur-split-inverter-12000-btu-fictif','Split mural inverter, silencieux, pour une pièce jusqu''à 25 m².','Climatiseur split mural inverter de 12 000 BTU (1,5 CV), adapté à une pièce jusqu''à 25 m². Télécommande fournie. Installation non comprise.',245000,285000,5,7,'in_stock_abidjan','12 000 BTU (1,5 CV)','A++','Promo',true,true,'approved',now(),'Produit fictif à remplacer'
 WHERE NOT EXISTS (SELECT 1 FROM "products" WHERE "slug"='climatiseur-split-inverter-12000-btu-fictif');
 INSERT INTO "product_images" ("product_id","url","alt","sort_order","is_primary")
-SELECT pr."id",'/produits-fictifs/fictif-climatiseur.svg','Climatiseur split inverter 12 000 BTU (1,5 CV) — fiche fictive',0,true FROM "products" pr WHERE pr."slug"='climatiseur-split-inverter-12000-btu-fictif' AND NOT EXISTS (SELECT 1 FROM "product_images" pi WHERE pi."product_id"=pr."id");
+SELECT pr."id",'/produits-fictifs/fictif-climatiseur.svg','Climatiseur split inverter 12 000 BTU (1,5 CV)',0,true FROM "products" pr WHERE pr."slug"='climatiseur-split-inverter-12000-btu-fictif' AND NOT EXISTS (SELECT 1 FROM "product_images" pi WHERE pi."product_id"=pr."id");
 INSERT INTO "product_attributes" ("product_id","name","value","sort_order")
 SELECT pr."id",'Puissance','12 000 BTU (1,5 CV)',0 FROM "products" pr WHERE pr."slug"='climatiseur-split-inverter-12000-btu-fictif' AND NOT EXISTS (SELECT 1 FROM "product_attributes" pa WHERE pa."product_id"=pr."id" AND pa."name"='Puissance');
 INSERT INTO "product_attributes" ("product_id","name","value","sort_order")
@@ -118,12 +116,10 @@ SELECT pr."id",'Pièce conseillée','Jusqu''à 25 m²',3 FROM "products" pr WHER
 INSERT INTO "product_attributes" ("product_id","name","value","sort_order")
 SELECT pr."id",'Garantie','1 an',4 FROM "products" pr WHERE pr."slug"='climatiseur-split-inverter-12000-btu-fictif' AND NOT EXISTS (SELECT 1 FROM "product_attributes" pa WHERE pa."product_id"=pr."id" AND pa."name"='Garantie');
 INSERT INTO "products" ("seller_id","brand_id","category_id","title","slug","short_description","description","price_xof","compare_price_xof","quantity","lead_time_days","availability","power_label","energy_class","badge","is_best_seller","is_placeholder","status","published_at","internal_note")
-SELECT (SELECT "id" FROM "users" WHERE "email"='boutique@mybigmarket.ci'),(SELECT "id" FROM "brands" WHERE "slug"='marque-beta'),(SELECT "id" FROM "categories" WHERE "slug"='electrogene/groupes-electrogenes'),'Groupe électrogène 5 kVA démarrage électrique — fiche fictive','groupe-electrogene-5-kva-fictif','Groupe essence 5 kVA, démarrage électrique, prises 220 V.','Groupe électrogène essence de 5 kVA avec démarrage électrique. Convient pour une maison ou une boutique.
-
-Cette fiche est fictive : remplacez-la par votre produit depuis l''administration.',689000,NULL,6,20,'in_stock_abidjan','5 kVA',NULL,NULL,false,true,'approved',now(),'Produit fictif à remplacer'
+SELECT (SELECT "id" FROM "users" WHERE "email"='boutique@mybigmarket.ci'),(SELECT "id" FROM "brands" WHERE "slug"='marque-beta'),(SELECT "id" FROM "categories" WHERE "slug"='electrogene/groupes-electrogenes'),'Groupe électrogène 5 kVA démarrage électrique','groupe-electrogene-5-kva-fictif','Groupe essence 5 kVA, démarrage électrique, prises 220 V.','Groupe électrogène essence de 5 kVA avec démarrage électrique. Convient pour une maison ou une boutique.',689000,NULL,6,20,'in_stock_abidjan','5 kVA',NULL,NULL,false,true,'approved',now(),'Produit fictif à remplacer'
 WHERE NOT EXISTS (SELECT 1 FROM "products" WHERE "slug"='groupe-electrogene-5-kva-fictif');
 INSERT INTO "product_images" ("product_id","url","alt","sort_order","is_primary")
-SELECT pr."id",'/produits-fictifs/fictif-groupe.svg','Groupe électrogène 5 kVA démarrage électrique — fiche fictive',0,true FROM "products" pr WHERE pr."slug"='groupe-electrogene-5-kva-fictif' AND NOT EXISTS (SELECT 1 FROM "product_images" pi WHERE pi."product_id"=pr."id");
+SELECT pr."id",'/produits-fictifs/fictif-groupe.svg','Groupe électrogène 5 kVA démarrage électrique',0,true FROM "products" pr WHERE pr."slug"='groupe-electrogene-5-kva-fictif' AND NOT EXISTS (SELECT 1 FROM "product_images" pi WHERE pi."product_id"=pr."id");
 INSERT INTO "product_attributes" ("product_id","name","value","sort_order")
 SELECT pr."id",'Puissance','5 kVA',0 FROM "products" pr WHERE pr."slug"='groupe-electrogene-5-kva-fictif' AND NOT EXISTS (SELECT 1 FROM "product_attributes" pa WHERE pa."product_id"=pr."id" AND pa."name"='Puissance');
 INSERT INTO "product_attributes" ("product_id","name","value","sort_order")
@@ -135,12 +131,10 @@ SELECT pr."id",'Autonomie','8 heures à mi-charge',3 FROM "products" pr WHERE pr
 INSERT INTO "product_attributes" ("product_id","name","value","sort_order")
 SELECT pr."id",'Garantie','1 an',4 FROM "products" pr WHERE pr."slug"='groupe-electrogene-5-kva-fictif' AND NOT EXISTS (SELECT 1 FROM "product_attributes" pa WHERE pa."product_id"=pr."id" AND pa."name"='Garantie');
 INSERT INTO "products" ("seller_id","brand_id","category_id","title","slug","short_description","description","price_xof","compare_price_xof","quantity","lead_time_days","availability","power_label","energy_class","badge","is_best_seller","is_placeholder","status","published_at","internal_note")
-SELECT (SELECT "id" FROM "users" WHERE "email"='boutique@mybigmarket.ci'),(SELECT "id" FROM "brands" WHERE "slug"='marque-alpha'),(SELECT "id" FROM "categories" WHERE "slug"='informatique/reseau-wifi'),'Routeur Wi-Fi 6 double bande AX1800 — fiche fictive','routeur-wifi-6-double-bande-fictif','Wi-Fi 6 double bande, 4 antennes, 4 ports Gigabit.','Routeur Wi-Fi 6 double bande jusqu''à 1 800 Mbit/s, 4 antennes et 4 ports Gigabit.
-
-Cette fiche est fictive : remplacez-la par votre produit depuis l''administration.',32000,NULL,15,7,'in_stock_abidjan',NULL,NULL,'Nouveau',true,true,'approved',now(),'Produit fictif à remplacer'
+SELECT (SELECT "id" FROM "users" WHERE "email"='boutique@mybigmarket.ci'),(SELECT "id" FROM "brands" WHERE "slug"='marque-alpha'),(SELECT "id" FROM "categories" WHERE "slug"='informatique/reseau-wifi'),'Routeur Wi-Fi 6 double bande AX1800','routeur-wifi-6-double-bande-fictif','Wi-Fi 6 double bande, 4 antennes, 4 ports Gigabit.','Routeur Wi-Fi 6 double bande jusqu''à 1 800 Mbit/s, 4 antennes et 4 ports Gigabit.',32000,NULL,15,7,'in_stock_abidjan',NULL,NULL,'Nouveau',true,true,'approved',now(),'Produit fictif à remplacer'
 WHERE NOT EXISTS (SELECT 1 FROM "products" WHERE "slug"='routeur-wifi-6-double-bande-fictif');
 INSERT INTO "product_images" ("product_id","url","alt","sort_order","is_primary")
-SELECT pr."id",'/produits-fictifs/fictif-routeur.svg','Routeur Wi-Fi 6 double bande AX1800 — fiche fictive',0,true FROM "products" pr WHERE pr."slug"='routeur-wifi-6-double-bande-fictif' AND NOT EXISTS (SELECT 1 FROM "product_images" pi WHERE pi."product_id"=pr."id");
+SELECT pr."id",'/produits-fictifs/fictif-routeur.svg','Routeur Wi-Fi 6 double bande AX1800',0,true FROM "products" pr WHERE pr."slug"='routeur-wifi-6-double-bande-fictif' AND NOT EXISTS (SELECT 1 FROM "product_images" pi WHERE pi."product_id"=pr."id");
 INSERT INTO "product_attributes" ("product_id","name","value","sort_order")
 SELECT pr."id",'Norme','Wi-Fi 6 (AX1800)',0 FROM "products" pr WHERE pr."slug"='routeur-wifi-6-double-bande-fictif' AND NOT EXISTS (SELECT 1 FROM "product_attributes" pa WHERE pa."product_id"=pr."id" AND pa."name"='Norme');
 INSERT INTO "product_attributes" ("product_id","name","value","sort_order")
@@ -150,12 +144,10 @@ SELECT pr."id",'Ports','4 × Gigabit',2 FROM "products" pr WHERE pr."slug"='rout
 INSERT INTO "product_attributes" ("product_id","name","value","sort_order")
 SELECT pr."id",'Garantie','1 an',3 FROM "products" pr WHERE pr."slug"='routeur-wifi-6-double-bande-fictif' AND NOT EXISTS (SELECT 1 FROM "product_attributes" pa WHERE pa."product_id"=pr."id" AND pa."name"='Garantie');
 INSERT INTO "products" ("seller_id","brand_id","category_id","title","slug","short_description","description","price_xof","compare_price_xof","quantity","lead_time_days","availability","power_label","energy_class","badge","is_best_seller","is_placeholder","status","published_at","internal_note")
-SELECT (SELECT "id" FROM "users" WHERE "email"='boutique@mybigmarket.ci'),(SELECT "id" FROM "brands" WHERE "slug"='marque-beta'),(SELECT "id" FROM "categories" WHERE "slug"='petit-electromenager/friteuses-a-air'),'Friteuse à air 4,5 L 1 500 W — fiche fictive','friteuse-a-air-4-5-l-fictif','Cuisine avec très peu d''huile, minuterie, 4,5 litres.','Friteuse à air chaud de 4,5 litres, 1 500 W, minuterie et thermostat réglable.
-
-Cette fiche est fictive : remplacez-la par votre produit depuis l''administration.',38500,45000,12,7,'in_stock_abidjan','1 500 W',NULL,'Promo',true,true,'approved',now(),'Produit fictif à remplacer'
+SELECT (SELECT "id" FROM "users" WHERE "email"='boutique@mybigmarket.ci'),(SELECT "id" FROM "brands" WHERE "slug"='marque-beta'),(SELECT "id" FROM "categories" WHERE "slug"='petit-electromenager/friteuses-a-air'),'Friteuse à air 4,5 L 1 500 W','friteuse-a-air-4-5-l-fictif','Cuisine avec très peu d''huile, minuterie, 4,5 litres.','Friteuse à air chaud de 4,5 litres, 1 500 W, minuterie et thermostat réglable.',38500,45000,12,7,'in_stock_abidjan','1 500 W',NULL,'Promo',true,true,'approved',now(),'Produit fictif à remplacer'
 WHERE NOT EXISTS (SELECT 1 FROM "products" WHERE "slug"='friteuse-a-air-4-5-l-fictif');
 INSERT INTO "product_images" ("product_id","url","alt","sort_order","is_primary")
-SELECT pr."id",'/produits-fictifs/fictif-friteuse.svg','Friteuse à air 4,5 L 1 500 W — fiche fictive',0,true FROM "products" pr WHERE pr."slug"='friteuse-a-air-4-5-l-fictif' AND NOT EXISTS (SELECT 1 FROM "product_images" pi WHERE pi."product_id"=pr."id");
+SELECT pr."id",'/produits-fictifs/fictif-friteuse.svg','Friteuse à air 4,5 L 1 500 W',0,true FROM "products" pr WHERE pr."slug"='friteuse-a-air-4-5-l-fictif' AND NOT EXISTS (SELECT 1 FROM "product_images" pi WHERE pi."product_id"=pr."id");
 INSERT INTO "product_attributes" ("product_id","name","value","sort_order")
 SELECT pr."id",'Capacité','4,5 litres',0 FROM "products" pr WHERE pr."slug"='friteuse-a-air-4-5-l-fictif' AND NOT EXISTS (SELECT 1 FROM "product_attributes" pa WHERE pa."product_id"=pr."id" AND pa."name"='Capacité');
 INSERT INTO "product_attributes" ("product_id","name","value","sort_order")
@@ -165,12 +157,10 @@ SELECT pr."id",'Température','80 à 200 °C',2 FROM "products" pr WHERE pr."slu
 INSERT INTO "product_attributes" ("product_id","name","value","sort_order")
 SELECT pr."id",'Garantie','1 an',3 FROM "products" pr WHERE pr."slug"='friteuse-a-air-4-5-l-fictif' AND NOT EXISTS (SELECT 1 FROM "product_attributes" pa WHERE pa."product_id"=pr."id" AND pa."name"='Garantie');
 INSERT INTO "products" ("seller_id","brand_id","category_id","title","slug","short_description","description","price_xof","compare_price_xof","quantity","lead_time_days","availability","power_label","energy_class","badge","is_best_seller","is_placeholder","status","published_at","internal_note")
-SELECT (SELECT "id" FROM "users" WHERE "email"='boutique@mybigmarket.ci'),(SELECT "id" FROM "brands" WHERE "slug"='marque-alpha'),(SELECT "id" FROM "categories" WHERE "slug"='gros-electromenager/refrigerateurs'),'Réfrigérateur combiné 300 L classe A+ — fiche fictive','refrigerateur-combine-300-l-fictif','Combiné 300 litres, froid ventilé, classe A+.','Réfrigérateur combiné de 300 litres, froid ventilé, classe énergétique A+.
-
-Cette fiche est fictive : remplacez-la par votre produit depuis l''administration.',365000,NULL,6,15,'in_stock_abidjan',NULL,'A+',NULL,false,true,'approved',now(),'Produit fictif à remplacer'
+SELECT (SELECT "id" FROM "users" WHERE "email"='boutique@mybigmarket.ci'),(SELECT "id" FROM "brands" WHERE "slug"='marque-alpha'),(SELECT "id" FROM "categories" WHERE "slug"='gros-electromenager/refrigerateurs'),'Réfrigérateur combiné 300 L classe A+','refrigerateur-combine-300-l-fictif','Combiné 300 litres, froid ventilé, classe A+.','Réfrigérateur combiné de 300 litres, froid ventilé, classe énergétique A+.',365000,NULL,6,15,'in_stock_abidjan',NULL,'A+',NULL,false,true,'approved',now(),'Produit fictif à remplacer'
 WHERE NOT EXISTS (SELECT 1 FROM "products" WHERE "slug"='refrigerateur-combine-300-l-fictif');
 INSERT INTO "product_images" ("product_id","url","alt","sort_order","is_primary")
-SELECT pr."id",'/produits-fictifs/fictif-refrigerateur.svg','Réfrigérateur combiné 300 L classe A+ — fiche fictive',0,true FROM "products" pr WHERE pr."slug"='refrigerateur-combine-300-l-fictif' AND NOT EXISTS (SELECT 1 FROM "product_images" pi WHERE pi."product_id"=pr."id");
+SELECT pr."id",'/produits-fictifs/fictif-refrigerateur.svg','Réfrigérateur combiné 300 L classe A+',0,true FROM "products" pr WHERE pr."slug"='refrigerateur-combine-300-l-fictif' AND NOT EXISTS (SELECT 1 FROM "product_images" pi WHERE pi."product_id"=pr."id");
 INSERT INTO "product_attributes" ("product_id","name","value","sort_order")
 SELECT pr."id",'Capacité','300 litres',0 FROM "products" pr WHERE pr."slug"='refrigerateur-combine-300-l-fictif' AND NOT EXISTS (SELECT 1 FROM "product_attributes" pa WHERE pa."product_id"=pr."id" AND pa."name"='Capacité');
 INSERT INTO "product_attributes" ("product_id","name","value","sort_order")
@@ -180,12 +170,10 @@ SELECT pr."id",'Froid','Ventilé',2 FROM "products" pr WHERE pr."slug"='refriger
 INSERT INTO "product_attributes" ("product_id","name","value","sort_order")
 SELECT pr."id",'Garantie','2 ans',3 FROM "products" pr WHERE pr."slug"='refrigerateur-combine-300-l-fictif' AND NOT EXISTS (SELECT 1 FROM "product_attributes" pa WHERE pa."product_id"=pr."id" AND pa."name"='Garantie');
 INSERT INTO "products" ("seller_id","brand_id","category_id","title","slug","short_description","description","price_xof","compare_price_xof","quantity","lead_time_days","availability","power_label","energy_class","badge","is_best_seller","is_placeholder","status","published_at","internal_note")
-SELECT (SELECT "id" FROM "users" WHERE "email"='boutique@mybigmarket.ci'),(SELECT "id" FROM "brands" WHERE "slug"='marque-beta'),(SELECT "id" FROM "categories" WHERE "slug"='televiseurs'),'Téléviseur LED 43 pouces Smart TV Full HD — fiche fictive','televiseur-led-43-pouces-fictif','Smart TV 43 pouces Full HD, Wi-Fi, 2 ports HDMI.','Téléviseur LED 43 pouces Full HD avec Smart TV, Wi-Fi et 2 ports HDMI.
-
-Cette fiche est fictive : remplacez-la par votre produit depuis l''administration.',189000,215000,8,7,'in_stock_abidjan',NULL,'A','Promo',true,true,'approved',now(),'Produit fictif à remplacer'
+SELECT (SELECT "id" FROM "users" WHERE "email"='boutique@mybigmarket.ci'),(SELECT "id" FROM "brands" WHERE "slug"='marque-beta'),(SELECT "id" FROM "categories" WHERE "slug"='televiseurs'),'Téléviseur LED 43 pouces Smart TV Full HD','televiseur-led-43-pouces-fictif','Smart TV 43 pouces Full HD, Wi-Fi, 2 ports HDMI.','Téléviseur LED 43 pouces Full HD avec Smart TV, Wi-Fi et 2 ports HDMI.',189000,215000,8,7,'in_stock_abidjan',NULL,'A','Promo',true,true,'approved',now(),'Produit fictif à remplacer'
 WHERE NOT EXISTS (SELECT 1 FROM "products" WHERE "slug"='televiseur-led-43-pouces-fictif');
 INSERT INTO "product_images" ("product_id","url","alt","sort_order","is_primary")
-SELECT pr."id",'/produits-fictifs/fictif-televiseur.svg','Téléviseur LED 43 pouces Smart TV Full HD — fiche fictive',0,true FROM "products" pr WHERE pr."slug"='televiseur-led-43-pouces-fictif' AND NOT EXISTS (SELECT 1 FROM "product_images" pi WHERE pi."product_id"=pr."id");
+SELECT pr."id",'/produits-fictifs/fictif-televiseur.svg','Téléviseur LED 43 pouces Smart TV Full HD',0,true FROM "products" pr WHERE pr."slug"='televiseur-led-43-pouces-fictif' AND NOT EXISTS (SELECT 1 FROM "product_images" pi WHERE pi."product_id"=pr."id");
 INSERT INTO "product_attributes" ("product_id","name","value","sort_order")
 SELECT pr."id",'Taille','43 pouces (108 cm)',0 FROM "products" pr WHERE pr."slug"='televiseur-led-43-pouces-fictif' AND NOT EXISTS (SELECT 1 FROM "product_attributes" pa WHERE pa."product_id"=pr."id" AND pa."name"='Taille');
 INSERT INTO "product_attributes" ("product_id","name","value","sort_order")
@@ -197,12 +185,10 @@ SELECT pr."id",'Ports','2 × HDMI, 1 × USB',3 FROM "products" pr WHERE pr."slug
 INSERT INTO "product_attributes" ("product_id","name","value","sort_order")
 SELECT pr."id",'Garantie','1 an',4 FROM "products" pr WHERE pr."slug"='televiseur-led-43-pouces-fictif' AND NOT EXISTS (SELECT 1 FROM "product_attributes" pa WHERE pa."product_id"=pr."id" AND pa."name"='Garantie');
 INSERT INTO "products" ("seller_id","brand_id","category_id","title","slug","short_description","description","price_xof","compare_price_xof","quantity","lead_time_days","availability","power_label","energy_class","badge","is_best_seller","is_placeholder","status","published_at","internal_note")
-SELECT (SELECT "id" FROM "users" WHERE "email"='boutique@mybigmarket.ci'),(SELECT "id" FROM "brands" WHERE "slug"='marque-beta'),(SELECT "id" FROM "categories" WHERE "slug"='climatiseurs/split'),'Climatiseur split 9 000 BTU (1 CV) — fiche fictive','climatiseur-split-9000-btu-fictif','Split mural 1 CV pour une petite pièce jusqu''à 15 m².','Climatiseur split mural de 9 000 BTU (1 CV), adapté à une chambre ou un petit bureau jusqu''à 15 m². Télécommande fournie. Installation non comprise.
-
-Cette fiche est fictive : remplacez-la par votre produit depuis l''administration.',185000,NULL,8,5,'in_stock_abidjan','9 000 BTU (1 CV)','A+',NULL,false,true,'approved',now(),'Produit fictif à remplacer'
+SELECT (SELECT "id" FROM "users" WHERE "email"='boutique@mybigmarket.ci'),(SELECT "id" FROM "brands" WHERE "slug"='marque-beta'),(SELECT "id" FROM "categories" WHERE "slug"='climatiseurs/split'),'Climatiseur split 9 000 BTU (1 CV)','climatiseur-split-9000-btu-fictif','Split mural 1 CV pour une petite pièce jusqu''à 15 m².','Climatiseur split mural de 9 000 BTU (1 CV), adapté à une chambre ou un petit bureau jusqu''à 15 m². Télécommande fournie. Installation non comprise.',185000,NULL,8,5,'in_stock_abidjan','9 000 BTU (1 CV)','A+',NULL,false,true,'approved',now(),'Produit fictif à remplacer'
 WHERE NOT EXISTS (SELECT 1 FROM "products" WHERE "slug"='climatiseur-split-9000-btu-fictif');
 INSERT INTO "product_images" ("product_id","url","alt","sort_order","is_primary")
-SELECT pr."id",'/produits-fictifs/fictif-climatiseur.svg','Climatiseur split 9 000 BTU (1 CV) — fiche fictive',0,true FROM "products" pr WHERE pr."slug"='climatiseur-split-9000-btu-fictif' AND NOT EXISTS (SELECT 1 FROM "product_images" pi WHERE pi."product_id"=pr."id");
+SELECT pr."id",'/produits-fictifs/fictif-climatiseur.svg','Climatiseur split 9 000 BTU (1 CV)',0,true FROM "products" pr WHERE pr."slug"='climatiseur-split-9000-btu-fictif' AND NOT EXISTS (SELECT 1 FROM "product_images" pi WHERE pi."product_id"=pr."id");
 INSERT INTO "product_attributes" ("product_id","name","value","sort_order")
 SELECT pr."id",'Puissance','9 000 BTU (1 CV)',0 FROM "products" pr WHERE pr."slug"='climatiseur-split-9000-btu-fictif' AND NOT EXISTS (SELECT 1 FROM "product_attributes" pa WHERE pa."product_id"=pr."id" AND pa."name"='Puissance');
 INSERT INTO "product_attributes" ("product_id","name","value","sort_order")
@@ -212,12 +198,10 @@ SELECT pr."id",'Pièce conseillée','Jusqu''à 15 m²',2 FROM "products" pr WHER
 INSERT INTO "product_attributes" ("product_id","name","value","sort_order")
 SELECT pr."id",'Garantie','1 an',3 FROM "products" pr WHERE pr."slug"='climatiseur-split-9000-btu-fictif' AND NOT EXISTS (SELECT 1 FROM "product_attributes" pa WHERE pa."product_id"=pr."id" AND pa."name"='Garantie');
 INSERT INTO "products" ("seller_id","brand_id","category_id","title","slug","short_description","description","price_xof","compare_price_xof","quantity","lead_time_days","availability","power_label","energy_class","badge","is_best_seller","is_placeholder","status","published_at","internal_note")
-SELECT (SELECT "id" FROM "users" WHERE "email"='boutique@mybigmarket.ci'),(SELECT "id" FROM "brands" WHERE "slug"='marque-alpha'),(SELECT "id" FROM "categories" WHERE "slug"='climatiseurs/split'),'Climatiseur split 18 000 BTU (2 CV) — fiche fictive','climatiseur-split-18000-btu-fictif','Split mural 2 CV pour un salon jusqu''à 35 m².','Climatiseur split mural de 18 000 BTU (2 CV) pour un salon ou une boutique jusqu''à 35 m². Télécommande fournie. Installation non comprise.
-
-Cette fiche est fictive : remplacez-la par votre produit depuis l''administration.',340000,385000,4,7,'in_stock_abidjan','18 000 BTU (2 CV)','A++','Promo',true,true,'approved',now(),'Produit fictif à remplacer'
+SELECT (SELECT "id" FROM "users" WHERE "email"='boutique@mybigmarket.ci'),(SELECT "id" FROM "brands" WHERE "slug"='marque-alpha'),(SELECT "id" FROM "categories" WHERE "slug"='climatiseurs/split'),'Climatiseur split 18 000 BTU (2 CV)','climatiseur-split-18000-btu-fictif','Split mural 2 CV pour un salon jusqu''à 35 m².','Climatiseur split mural de 18 000 BTU (2 CV) pour un salon ou une boutique jusqu''à 35 m². Télécommande fournie. Installation non comprise.',340000,385000,4,7,'in_stock_abidjan','18 000 BTU (2 CV)','A++','Promo',true,true,'approved',now(),'Produit fictif à remplacer'
 WHERE NOT EXISTS (SELECT 1 FROM "products" WHERE "slug"='climatiseur-split-18000-btu-fictif');
 INSERT INTO "product_images" ("product_id","url","alt","sort_order","is_primary")
-SELECT pr."id",'/produits-fictifs/fictif-climatiseur.svg','Climatiseur split 18 000 BTU (2 CV) — fiche fictive',0,true FROM "products" pr WHERE pr."slug"='climatiseur-split-18000-btu-fictif' AND NOT EXISTS (SELECT 1 FROM "product_images" pi WHERE pi."product_id"=pr."id");
+SELECT pr."id",'/produits-fictifs/fictif-climatiseur.svg','Climatiseur split 18 000 BTU (2 CV)',0,true FROM "products" pr WHERE pr."slug"='climatiseur-split-18000-btu-fictif' AND NOT EXISTS (SELECT 1 FROM "product_images" pi WHERE pi."product_id"=pr."id");
 INSERT INTO "product_attributes" ("product_id","name","value","sort_order")
 SELECT pr."id",'Puissance','18 000 BTU (2 CV)',0 FROM "products" pr WHERE pr."slug"='climatiseur-split-18000-btu-fictif' AND NOT EXISTS (SELECT 1 FROM "product_attributes" pa WHERE pa."product_id"=pr."id" AND pa."name"='Puissance');
 INSERT INTO "product_attributes" ("product_id","name","value","sort_order")
@@ -227,12 +211,10 @@ SELECT pr."id",'Pièce conseillée','Jusqu''à 35 m²',2 FROM "products" pr WHER
 INSERT INTO "product_attributes" ("product_id","name","value","sort_order")
 SELECT pr."id",'Garantie','1 an',3 FROM "products" pr WHERE pr."slug"='climatiseur-split-18000-btu-fictif' AND NOT EXISTS (SELECT 1 FROM "product_attributes" pa WHERE pa."product_id"=pr."id" AND pa."name"='Garantie');
 INSERT INTO "products" ("seller_id","brand_id","category_id","title","slug","short_description","description","price_xof","compare_price_xof","quantity","lead_time_days","availability","power_label","energy_class","badge","is_best_seller","is_placeholder","status","published_at","internal_note")
-SELECT (SELECT "id" FROM "users" WHERE "email"='boutique@mybigmarket.ci'),(SELECT "id" FROM "brands" WHERE "slug"='marque-alpha'),(SELECT "id" FROM "categories" WHERE "slug"='electrogene/groupes-electrogenes'),'Groupe électrogène 3 kVA essence — fiche fictive','groupe-electrogene-3-kva-fictif','Groupe essence 3 kVA, démarrage manuel, prises 220 V.','Groupe électrogène essence de 3 kVA à démarrage manuel. Pour éclairage, ventilateurs, téléviseur et petit électroménager.
-
-Cette fiche est fictive : remplacez-la par votre produit depuis l''administration.',265000,NULL,6,7,'in_stock_abidjan','3 kVA',NULL,'Nouveau',false,true,'approved',now(),'Produit fictif à remplacer'
+SELECT (SELECT "id" FROM "users" WHERE "email"='boutique@mybigmarket.ci'),(SELECT "id" FROM "brands" WHERE "slug"='marque-alpha'),(SELECT "id" FROM "categories" WHERE "slug"='electrogene/groupes-electrogenes'),'Groupe électrogène 3 kVA essence','groupe-electrogene-3-kva-fictif','Groupe essence 3 kVA, démarrage manuel, prises 220 V.','Groupe électrogène essence de 3 kVA à démarrage manuel. Pour éclairage, ventilateurs, téléviseur et petit électroménager.',265000,NULL,6,7,'in_stock_abidjan','3 kVA',NULL,'Nouveau',false,true,'approved',now(),'Produit fictif à remplacer'
 WHERE NOT EXISTS (SELECT 1 FROM "products" WHERE "slug"='groupe-electrogene-3-kva-fictif');
 INSERT INTO "product_images" ("product_id","url","alt","sort_order","is_primary")
-SELECT pr."id",'/produits-fictifs/fictif-groupe.svg','Groupe électrogène 3 kVA essence — fiche fictive',0,true FROM "products" pr WHERE pr."slug"='groupe-electrogene-3-kva-fictif' AND NOT EXISTS (SELECT 1 FROM "product_images" pi WHERE pi."product_id"=pr."id");
+SELECT pr."id",'/produits-fictifs/fictif-groupe.svg','Groupe électrogène 3 kVA essence',0,true FROM "products" pr WHERE pr."slug"='groupe-electrogene-3-kva-fictif' AND NOT EXISTS (SELECT 1 FROM "product_images" pi WHERE pi."product_id"=pr."id");
 INSERT INTO "product_attributes" ("product_id","name","value","sort_order")
 SELECT pr."id",'Puissance','3 kVA',0 FROM "products" pr WHERE pr."slug"='groupe-electrogene-3-kva-fictif' AND NOT EXISTS (SELECT 1 FROM "product_attributes" pa WHERE pa."product_id"=pr."id" AND pa."name"='Puissance');
 INSERT INTO "product_attributes" ("product_id","name","value","sort_order")
@@ -242,12 +224,10 @@ SELECT pr."id",'Démarrage','Manuel',2 FROM "products" pr WHERE pr."slug"='group
 INSERT INTO "product_attributes" ("product_id","name","value","sort_order")
 SELECT pr."id",'Garantie','1 an',3 FROM "products" pr WHERE pr."slug"='groupe-electrogene-3-kva-fictif' AND NOT EXISTS (SELECT 1 FROM "product_attributes" pa WHERE pa."product_id"=pr."id" AND pa."name"='Garantie');
 INSERT INTO "products" ("seller_id","brand_id","category_id","title","slug","short_description","description","price_xof","compare_price_xof","quantity","lead_time_days","availability","power_label","energy_class","badge","is_best_seller","is_placeholder","status","published_at","internal_note")
-SELECT (SELECT "id" FROM "users" WHERE "email"='boutique@mybigmarket.ci'),(SELECT "id" FROM "brands" WHERE "slug"='marque-beta'),(SELECT "id" FROM "categories" WHERE "slug"='electrogene/onduleurs'),'Onduleur 1 000 VA pour ordinateur et box — fiche fictive','onduleur-1000-va-fictif','Onduleur 1 000 VA, 4 prises, protège contre les coupures.','Onduleur de 1 000 VA avec 4 prises protégées. Garde votre ordinateur et votre box allumés pendant les coupures.
-
-Cette fiche est fictive : remplacez-la par votre produit depuis l''administration.',58000,64000,12,5,'in_stock_abidjan','1 000 VA',NULL,'Promo',false,true,'approved',now(),'Produit fictif à remplacer'
+SELECT (SELECT "id" FROM "users" WHERE "email"='boutique@mybigmarket.ci'),(SELECT "id" FROM "brands" WHERE "slug"='marque-beta'),(SELECT "id" FROM "categories" WHERE "slug"='electrogene/onduleurs'),'Onduleur 1 000 VA pour ordinateur et box','onduleur-1000-va-fictif','Onduleur 1 000 VA, 4 prises, protège contre les coupures.','Onduleur de 1 000 VA avec 4 prises protégées. Garde votre ordinateur et votre box allumés pendant les coupures.',58000,64000,12,5,'in_stock_abidjan','1 000 VA',NULL,'Promo',false,true,'approved',now(),'Produit fictif à remplacer'
 WHERE NOT EXISTS (SELECT 1 FROM "products" WHERE "slug"='onduleur-1000-va-fictif');
 INSERT INTO "product_images" ("product_id","url","alt","sort_order","is_primary")
-SELECT pr."id",'/produits-fictifs/fictif-groupe.svg','Onduleur 1 000 VA pour ordinateur et box — fiche fictive',0,true FROM "products" pr WHERE pr."slug"='onduleur-1000-va-fictif' AND NOT EXISTS (SELECT 1 FROM "product_images" pi WHERE pi."product_id"=pr."id");
+SELECT pr."id",'/produits-fictifs/fictif-groupe.svg','Onduleur 1 000 VA pour ordinateur et box',0,true FROM "products" pr WHERE pr."slug"='onduleur-1000-va-fictif' AND NOT EXISTS (SELECT 1 FROM "product_images" pi WHERE pi."product_id"=pr."id");
 INSERT INTO "product_attributes" ("product_id","name","value","sort_order")
 SELECT pr."id",'Puissance','1 000 VA',0 FROM "products" pr WHERE pr."slug"='onduleur-1000-va-fictif' AND NOT EXISTS (SELECT 1 FROM "product_attributes" pa WHERE pa."product_id"=pr."id" AND pa."name"='Puissance');
 INSERT INTO "product_attributes" ("product_id","name","value","sort_order")
@@ -257,12 +237,10 @@ SELECT pr."id",'Autonomie','10 à 15 minutes',2 FROM "products" pr WHERE pr."slu
 INSERT INTO "product_attributes" ("product_id","name","value","sort_order")
 SELECT pr."id",'Garantie','1 an',3 FROM "products" pr WHERE pr."slug"='onduleur-1000-va-fictif' AND NOT EXISTS (SELECT 1 FROM "product_attributes" pa WHERE pa."product_id"=pr."id" AND pa."name"='Garantie');
 INSERT INTO "products" ("seller_id","brand_id","category_id","title","slug","short_description","description","price_xof","compare_price_xof","quantity","lead_time_days","availability","power_label","energy_class","badge","is_best_seller","is_placeholder","status","published_at","internal_note")
-SELECT (SELECT "id" FROM "users" WHERE "email"='boutique@mybigmarket.ci'),(SELECT "id" FROM "brands" WHERE "slug"='marque-alpha'),(SELECT "id" FROM "categories" WHERE "slug"='informatique/ordinateurs-portables'),'Ordinateur portable 15,6 pouces 8 Go / 256 Go — fiche fictive','ordinateur-portable-15-pouces-fictif','Portable 15,6 pouces, 8 Go de mémoire, SSD 256 Go.','Ordinateur portable 15,6 pouces avec 8 Go de mémoire et un SSD de 256 Go. Pour le travail, les études et la maison.
-
-Cette fiche est fictive : remplacez-la par votre produit depuis l''administration.',295000,330000,5,5,'in_stock_abidjan',NULL,NULL,'Promo',true,true,'approved',now(),'Produit fictif à remplacer'
+SELECT (SELECT "id" FROM "users" WHERE "email"='boutique@mybigmarket.ci'),(SELECT "id" FROM "brands" WHERE "slug"='marque-alpha'),(SELECT "id" FROM "categories" WHERE "slug"='informatique/ordinateurs-portables'),'Ordinateur portable 15,6 pouces 8 Go / 256 Go','ordinateur-portable-15-pouces-fictif','Portable 15,6 pouces, 8 Go de mémoire, SSD 256 Go.','Ordinateur portable 15,6 pouces avec 8 Go de mémoire et un SSD de 256 Go. Pour le travail, les études et la maison.',295000,330000,5,5,'in_stock_abidjan',NULL,NULL,'Promo',true,true,'approved',now(),'Produit fictif à remplacer'
 WHERE NOT EXISTS (SELECT 1 FROM "products" WHERE "slug"='ordinateur-portable-15-pouces-fictif');
 INSERT INTO "product_images" ("product_id","url","alt","sort_order","is_primary")
-SELECT pr."id",'/produits-fictifs/fictif-routeur.svg','Ordinateur portable 15,6 pouces 8 Go / 256 Go — fiche fictive',0,true FROM "products" pr WHERE pr."slug"='ordinateur-portable-15-pouces-fictif' AND NOT EXISTS (SELECT 1 FROM "product_images" pi WHERE pi."product_id"=pr."id");
+SELECT pr."id",'/produits-fictifs/fictif-routeur.svg','Ordinateur portable 15,6 pouces 8 Go / 256 Go',0,true FROM "products" pr WHERE pr."slug"='ordinateur-portable-15-pouces-fictif' AND NOT EXISTS (SELECT 1 FROM "product_images" pi WHERE pi."product_id"=pr."id");
 INSERT INTO "product_attributes" ("product_id","name","value","sort_order")
 SELECT pr."id",'Écran','15,6 pouces',0 FROM "products" pr WHERE pr."slug"='ordinateur-portable-15-pouces-fictif' AND NOT EXISTS (SELECT 1 FROM "product_attributes" pa WHERE pa."product_id"=pr."id" AND pa."name"='Écran');
 INSERT INTO "product_attributes" ("product_id","name","value","sort_order")
@@ -272,12 +250,10 @@ SELECT pr."id",'Stockage','SSD 256 Go',2 FROM "products" pr WHERE pr."slug"='ord
 INSERT INTO "product_attributes" ("product_id","name","value","sort_order")
 SELECT pr."id",'Garantie','1 an',3 FROM "products" pr WHERE pr."slug"='ordinateur-portable-15-pouces-fictif' AND NOT EXISTS (SELECT 1 FROM "product_attributes" pa WHERE pa."product_id"=pr."id" AND pa."name"='Garantie');
 INSERT INTO "products" ("seller_id","brand_id","category_id","title","slug","short_description","description","price_xof","compare_price_xof","quantity","lead_time_days","availability","power_label","energy_class","badge","is_best_seller","is_placeholder","status","published_at","internal_note")
-SELECT (SELECT "id" FROM "users" WHERE "email"='boutique@mybigmarket.ci'),(SELECT "id" FROM "brands" WHERE "slug"='marque-beta'),(SELECT "id" FROM "categories" WHERE "slug"='informatique/imprimantes'),'Imprimante multifonction jet d''encre Wi-Fi — fiche fictive','imprimante-multifonction-fictif','Imprimante, copieur et scanner, connexion Wi-Fi.','Imprimante multifonction jet d''encre avec impression, copie et numérisation. Connexion Wi-Fi.
-
-Cette fiche est fictive : remplacez-la par votre produit depuis l''administration.',89000,NULL,7,5,'in_stock_abidjan',NULL,NULL,NULL,false,true,'approved',now(),'Produit fictif à remplacer'
+SELECT (SELECT "id" FROM "users" WHERE "email"='boutique@mybigmarket.ci'),(SELECT "id" FROM "brands" WHERE "slug"='marque-beta'),(SELECT "id" FROM "categories" WHERE "slug"='informatique/imprimantes'),'Imprimante multifonction jet d''encre Wi-Fi','imprimante-multifonction-fictif','Imprimante, copieur et scanner, connexion Wi-Fi.','Imprimante multifonction jet d''encre avec impression, copie et numérisation. Connexion Wi-Fi.',89000,NULL,7,5,'in_stock_abidjan',NULL,NULL,NULL,false,true,'approved',now(),'Produit fictif à remplacer'
 WHERE NOT EXISTS (SELECT 1 FROM "products" WHERE "slug"='imprimante-multifonction-fictif');
 INSERT INTO "product_images" ("product_id","url","alt","sort_order","is_primary")
-SELECT pr."id",'/produits-fictifs/fictif-routeur.svg','Imprimante multifonction jet d''encre Wi-Fi — fiche fictive',0,true FROM "products" pr WHERE pr."slug"='imprimante-multifonction-fictif' AND NOT EXISTS (SELECT 1 FROM "product_images" pi WHERE pi."product_id"=pr."id");
+SELECT pr."id",'/produits-fictifs/fictif-routeur.svg','Imprimante multifonction jet d''encre Wi-Fi',0,true FROM "products" pr WHERE pr."slug"='imprimante-multifonction-fictif' AND NOT EXISTS (SELECT 1 FROM "product_images" pi WHERE pi."product_id"=pr."id");
 INSERT INTO "product_attributes" ("product_id","name","value","sort_order")
 SELECT pr."id",'Fonctions','Impression, copie, scan',0 FROM "products" pr WHERE pr."slug"='imprimante-multifonction-fictif' AND NOT EXISTS (SELECT 1 FROM "product_attributes" pa WHERE pa."product_id"=pr."id" AND pa."name"='Fonctions');
 INSERT INTO "product_attributes" ("product_id","name","value","sort_order")
@@ -285,12 +261,10 @@ SELECT pr."id",'Connexion','Wi-Fi, USB',1 FROM "products" pr WHERE pr."slug"='im
 INSERT INTO "product_attributes" ("product_id","name","value","sort_order")
 SELECT pr."id",'Garantie','1 an',2 FROM "products" pr WHERE pr."slug"='imprimante-multifonction-fictif' AND NOT EXISTS (SELECT 1 FROM "product_attributes" pa WHERE pa."product_id"=pr."id" AND pa."name"='Garantie');
 INSERT INTO "products" ("seller_id","brand_id","category_id","title","slug","short_description","description","price_xof","compare_price_xof","quantity","lead_time_days","availability","power_label","energy_class","badge","is_best_seller","is_placeholder","status","published_at","internal_note")
-SELECT (SELECT "id" FROM "users" WHERE "email"='boutique@mybigmarket.ci'),(SELECT "id" FROM "brands" WHERE "slug"='marque-beta'),(SELECT "id" FROM "categories" WHERE "slug"='petit-electromenager/mixeurs'),'Blender 1,5 L 600 W — fiche fictive','blender-1-5-l-fictif','Blender 1,5 L, 600 W, bol en verre.','Blender de 1,5 L avec bol en verre et moteur de 600 W. Pour jus, sauces et soupes.
-
-Cette fiche est fictive : remplacez-la par votre produit depuis l''administration.',24500,28000,14,3,'in_stock_abidjan','600 W',NULL,'Promo',true,true,'approved',now(),'Produit fictif à remplacer'
+SELECT (SELECT "id" FROM "users" WHERE "email"='boutique@mybigmarket.ci'),(SELECT "id" FROM "brands" WHERE "slug"='marque-beta'),(SELECT "id" FROM "categories" WHERE "slug"='petit-electromenager/mixeurs'),'Blender 1,5 L 600 W','blender-1-5-l-fictif','Blender 1,5 L, 600 W, bol en verre.','Blender de 1,5 L avec bol en verre et moteur de 600 W. Pour jus, sauces et soupes.',24500,28000,14,3,'in_stock_abidjan','600 W',NULL,'Promo',true,true,'approved',now(),'Produit fictif à remplacer'
 WHERE NOT EXISTS (SELECT 1 FROM "products" WHERE "slug"='blender-1-5-l-fictif');
 INSERT INTO "product_images" ("product_id","url","alt","sort_order","is_primary")
-SELECT pr."id",'/produits-fictifs/fictif-friteuse.svg','Blender 1,5 L 600 W — fiche fictive',0,true FROM "products" pr WHERE pr."slug"='blender-1-5-l-fictif' AND NOT EXISTS (SELECT 1 FROM "product_images" pi WHERE pi."product_id"=pr."id");
+SELECT pr."id",'/produits-fictifs/fictif-friteuse.svg','Blender 1,5 L 600 W',0,true FROM "products" pr WHERE pr."slug"='blender-1-5-l-fictif' AND NOT EXISTS (SELECT 1 FROM "product_images" pi WHERE pi."product_id"=pr."id");
 INSERT INTO "product_attributes" ("product_id","name","value","sort_order")
 SELECT pr."id",'Capacité','1,5 L',0 FROM "products" pr WHERE pr."slug"='blender-1-5-l-fictif' AND NOT EXISTS (SELECT 1 FROM "product_attributes" pa WHERE pa."product_id"=pr."id" AND pa."name"='Capacité');
 INSERT INTO "product_attributes" ("product_id","name","value","sort_order")
@@ -300,12 +274,10 @@ SELECT pr."id",'Bol','Verre',2 FROM "products" pr WHERE pr."slug"='blender-1-5-l
 INSERT INTO "product_attributes" ("product_id","name","value","sort_order")
 SELECT pr."id",'Garantie','1 an',3 FROM "products" pr WHERE pr."slug"='blender-1-5-l-fictif' AND NOT EXISTS (SELECT 1 FROM "product_attributes" pa WHERE pa."product_id"=pr."id" AND pa."name"='Garantie');
 INSERT INTO "products" ("seller_id","brand_id","category_id","title","slug","short_description","description","price_xof","compare_price_xof","quantity","lead_time_days","availability","power_label","energy_class","badge","is_best_seller","is_placeholder","status","published_at","internal_note")
-SELECT (SELECT "id" FROM "users" WHERE "email"='boutique@mybigmarket.ci'),(SELECT "id" FROM "brands" WHERE "slug"='marque-alpha'),(SELECT "id" FROM "categories" WHERE "slug"='petit-electromenager/bouilloires'),'Bouilloire électrique inox 1,7 L — fiche fictive','bouilloire-inox-1-7-l-fictif','Bouilloire inox 1,7 L, arrêt automatique.','Bouilloire électrique en inox de 1,7 L avec arrêt automatique et base pivotante.
-
-Cette fiche est fictive : remplacez-la par votre produit depuis l''administration.',16500,NULL,20,3,'in_stock_abidjan','2 200 W',NULL,'Nouveau',false,true,'approved',now(),'Produit fictif à remplacer'
+SELECT (SELECT "id" FROM "users" WHERE "email"='boutique@mybigmarket.ci'),(SELECT "id" FROM "brands" WHERE "slug"='marque-alpha'),(SELECT "id" FROM "categories" WHERE "slug"='petit-electromenager/bouilloires'),'Bouilloire électrique inox 1,7 L','bouilloire-inox-1-7-l-fictif','Bouilloire inox 1,7 L, arrêt automatique.','Bouilloire électrique en inox de 1,7 L avec arrêt automatique et base pivotante.',16500,NULL,20,3,'in_stock_abidjan','2 200 W',NULL,'Nouveau',false,true,'approved',now(),'Produit fictif à remplacer'
 WHERE NOT EXISTS (SELECT 1 FROM "products" WHERE "slug"='bouilloire-inox-1-7-l-fictif');
 INSERT INTO "product_images" ("product_id","url","alt","sort_order","is_primary")
-SELECT pr."id",'/produits-fictifs/fictif-friteuse.svg','Bouilloire électrique inox 1,7 L — fiche fictive',0,true FROM "products" pr WHERE pr."slug"='bouilloire-inox-1-7-l-fictif' AND NOT EXISTS (SELECT 1 FROM "product_images" pi WHERE pi."product_id"=pr."id");
+SELECT pr."id",'/produits-fictifs/fictif-friteuse.svg','Bouilloire électrique inox 1,7 L',0,true FROM "products" pr WHERE pr."slug"='bouilloire-inox-1-7-l-fictif' AND NOT EXISTS (SELECT 1 FROM "product_images" pi WHERE pi."product_id"=pr."id");
 INSERT INTO "product_attributes" ("product_id","name","value","sort_order")
 SELECT pr."id",'Capacité','1,7 L',0 FROM "products" pr WHERE pr."slug"='bouilloire-inox-1-7-l-fictif' AND NOT EXISTS (SELECT 1 FROM "product_attributes" pa WHERE pa."product_id"=pr."id" AND pa."name"='Capacité');
 INSERT INTO "product_attributes" ("product_id","name","value","sort_order")
@@ -315,12 +287,10 @@ SELECT pr."id",'Matière','Inox',2 FROM "products" pr WHERE pr."slug"='bouilloir
 INSERT INTO "product_attributes" ("product_id","name","value","sort_order")
 SELECT pr."id",'Garantie','1 an',3 FROM "products" pr WHERE pr."slug"='bouilloire-inox-1-7-l-fictif' AND NOT EXISTS (SELECT 1 FROM "product_attributes" pa WHERE pa."product_id"=pr."id" AND pa."name"='Garantie');
 INSERT INTO "products" ("seller_id","brand_id","category_id","title","slug","short_description","description","price_xof","compare_price_xof","quantity","lead_time_days","availability","power_label","energy_class","badge","is_best_seller","is_placeholder","status","published_at","internal_note")
-SELECT (SELECT "id" FROM "users" WHERE "email"='boutique@mybigmarket.ci'),(SELECT "id" FROM "brands" WHERE "slug"='marque-alpha'),(SELECT "id" FROM "categories" WHERE "slug"='gros-electromenager/machines-a-laver'),'Machine à laver 7 kg chargement frontal — fiche fictive','machine-a-laver-7-kg-fictif','Lave-linge 7 kg, 1 200 tours/min, 15 programmes.','Machine à laver de 7 kg à chargement frontal, 1 200 tours par minute et 15 programmes.
-
-Cette fiche est fictive : remplacez-la par votre produit depuis l''administration.',245000,275000,3,10,'in_stock_abidjan',NULL,'A++','Promo',true,true,'approved',now(),'Produit fictif à remplacer'
+SELECT (SELECT "id" FROM "users" WHERE "email"='boutique@mybigmarket.ci'),(SELECT "id" FROM "brands" WHERE "slug"='marque-alpha'),(SELECT "id" FROM "categories" WHERE "slug"='gros-electromenager/machines-a-laver'),'Machine à laver 7 kg chargement frontal','machine-a-laver-7-kg-fictif','Lave-linge 7 kg, 1 200 tours/min, 15 programmes.','Machine à laver de 7 kg à chargement frontal, 1 200 tours par minute et 15 programmes.',245000,275000,3,10,'in_stock_abidjan',NULL,'A++','Promo',true,true,'approved',now(),'Produit fictif à remplacer'
 WHERE NOT EXISTS (SELECT 1 FROM "products" WHERE "slug"='machine-a-laver-7-kg-fictif');
 INSERT INTO "product_images" ("product_id","url","alt","sort_order","is_primary")
-SELECT pr."id",'/produits-fictifs/fictif-refrigerateur.svg','Machine à laver 7 kg chargement frontal — fiche fictive',0,true FROM "products" pr WHERE pr."slug"='machine-a-laver-7-kg-fictif' AND NOT EXISTS (SELECT 1 FROM "product_images" pi WHERE pi."product_id"=pr."id");
+SELECT pr."id",'/produits-fictifs/fictif-refrigerateur.svg','Machine à laver 7 kg chargement frontal',0,true FROM "products" pr WHERE pr."slug"='machine-a-laver-7-kg-fictif' AND NOT EXISTS (SELECT 1 FROM "product_images" pi WHERE pi."product_id"=pr."id");
 INSERT INTO "product_attributes" ("product_id","name","value","sort_order")
 SELECT pr."id",'Capacité','7 kg',0 FROM "products" pr WHERE pr."slug"='machine-a-laver-7-kg-fictif' AND NOT EXISTS (SELECT 1 FROM "product_attributes" pa WHERE pa."product_id"=pr."id" AND pa."name"='Capacité');
 INSERT INTO "product_attributes" ("product_id","name","value","sort_order")
@@ -330,12 +300,10 @@ SELECT pr."id",'Chargement','Frontal',2 FROM "products" pr WHERE pr."slug"='mach
 INSERT INTO "product_attributes" ("product_id","name","value","sort_order")
 SELECT pr."id",'Garantie','2 ans',3 FROM "products" pr WHERE pr."slug"='machine-a-laver-7-kg-fictif' AND NOT EXISTS (SELECT 1 FROM "product_attributes" pa WHERE pa."product_id"=pr."id" AND pa."name"='Garantie');
 INSERT INTO "products" ("seller_id","brand_id","category_id","title","slug","short_description","description","price_xof","compare_price_xof","quantity","lead_time_days","availability","power_label","energy_class","badge","is_best_seller","is_placeholder","status","published_at","internal_note")
-SELECT (SELECT "id" FROM "users" WHERE "email"='boutique@mybigmarket.ci'),(SELECT "id" FROM "brands" WHERE "slug"='marque-beta'),(SELECT "id" FROM "categories" WHERE "slug"='gros-electromenager/congelateurs'),'Congélateur coffre 250 L — fiche fictive','congelateur-coffre-250-l-fictif','Congélateur coffre 250 L, froid statique.','Congélateur coffre de 250 L avec couvercle équilibré et froid statique. Idéal pour la boutique ou la maison.
-
-Cette fiche est fictive : remplacez-la par votre produit depuis l''administration.',189000,NULL,4,10,'in_stock_abidjan',NULL,'A+',NULL,false,true,'approved',now(),'Produit fictif à remplacer'
+SELECT (SELECT "id" FROM "users" WHERE "email"='boutique@mybigmarket.ci'),(SELECT "id" FROM "brands" WHERE "slug"='marque-beta'),(SELECT "id" FROM "categories" WHERE "slug"='gros-electromenager/congelateurs'),'Congélateur coffre 250 L','congelateur-coffre-250-l-fictif','Congélateur coffre 250 L, froid statique.','Congélateur coffre de 250 L avec couvercle équilibré et froid statique. Idéal pour la boutique ou la maison.',189000,NULL,4,10,'in_stock_abidjan',NULL,'A+',NULL,false,true,'approved',now(),'Produit fictif à remplacer'
 WHERE NOT EXISTS (SELECT 1 FROM "products" WHERE "slug"='congelateur-coffre-250-l-fictif');
 INSERT INTO "product_images" ("product_id","url","alt","sort_order","is_primary")
-SELECT pr."id",'/produits-fictifs/fictif-refrigerateur.svg','Congélateur coffre 250 L — fiche fictive',0,true FROM "products" pr WHERE pr."slug"='congelateur-coffre-250-l-fictif' AND NOT EXISTS (SELECT 1 FROM "product_images" pi WHERE pi."product_id"=pr."id");
+SELECT pr."id",'/produits-fictifs/fictif-refrigerateur.svg','Congélateur coffre 250 L',0,true FROM "products" pr WHERE pr."slug"='congelateur-coffre-250-l-fictif' AND NOT EXISTS (SELECT 1 FROM "product_images" pi WHERE pi."product_id"=pr."id");
 INSERT INTO "product_attributes" ("product_id","name","value","sort_order")
 SELECT pr."id",'Capacité','250 L',0 FROM "products" pr WHERE pr."slug"='congelateur-coffre-250-l-fictif' AND NOT EXISTS (SELECT 1 FROM "product_attributes" pa WHERE pa."product_id"=pr."id" AND pa."name"='Capacité');
 INSERT INTO "product_attributes" ("product_id","name","value","sort_order")
@@ -345,12 +313,10 @@ SELECT pr."id",'Froid','Statique',2 FROM "products" pr WHERE pr."slug"='congelat
 INSERT INTO "product_attributes" ("product_id","name","value","sort_order")
 SELECT pr."id",'Garantie','2 ans',3 FROM "products" pr WHERE pr."slug"='congelateur-coffre-250-l-fictif' AND NOT EXISTS (SELECT 1 FROM "product_attributes" pa WHERE pa."product_id"=pr."id" AND pa."name"='Garantie');
 INSERT INTO "products" ("seller_id","brand_id","category_id","title","slug","short_description","description","price_xof","compare_price_xof","quantity","lead_time_days","availability","power_label","energy_class","badge","is_best_seller","is_placeholder","status","published_at","internal_note")
-SELECT (SELECT "id" FROM "users" WHERE "email"='boutique@mybigmarket.ci'),(SELECT "id" FROM "brands" WHERE "slug"='marque-alpha'),(SELECT "id" FROM "categories" WHERE "slug"='televiseurs'),'Téléviseur LED 32 pouces HD — fiche fictive','televiseur-led-32-pouces-fictif','Téléviseur LED 32 pouces HD, 2 ports HDMI.','Téléviseur LED de 32 pouces en HD, avec 2 ports HDMI et un port USB.
-
-Cette fiche est fictive : remplacez-la par votre produit depuis l''administration.',92000,NULL,9,5,'in_stock_abidjan',NULL,NULL,'Nouveau',false,true,'approved',now(),'Produit fictif à remplacer'
+SELECT (SELECT "id" FROM "users" WHERE "email"='boutique@mybigmarket.ci'),(SELECT "id" FROM "brands" WHERE "slug"='marque-alpha'),(SELECT "id" FROM "categories" WHERE "slug"='televiseurs'),'Téléviseur LED 32 pouces HD','televiseur-led-32-pouces-fictif','Téléviseur LED 32 pouces HD, 2 ports HDMI.','Téléviseur LED de 32 pouces en HD, avec 2 ports HDMI et un port USB.',92000,NULL,9,5,'in_stock_abidjan',NULL,NULL,'Nouveau',false,true,'approved',now(),'Produit fictif à remplacer'
 WHERE NOT EXISTS (SELECT 1 FROM "products" WHERE "slug"='televiseur-led-32-pouces-fictif');
 INSERT INTO "product_images" ("product_id","url","alt","sort_order","is_primary")
-SELECT pr."id",'/produits-fictifs/fictif-televiseur.svg','Téléviseur LED 32 pouces HD — fiche fictive',0,true FROM "products" pr WHERE pr."slug"='televiseur-led-32-pouces-fictif' AND NOT EXISTS (SELECT 1 FROM "product_images" pi WHERE pi."product_id"=pr."id");
+SELECT pr."id",'/produits-fictifs/fictif-televiseur.svg','Téléviseur LED 32 pouces HD',0,true FROM "products" pr WHERE pr."slug"='televiseur-led-32-pouces-fictif' AND NOT EXISTS (SELECT 1 FROM "product_images" pi WHERE pi."product_id"=pr."id");
 INSERT INTO "product_attributes" ("product_id","name","value","sort_order")
 SELECT pr."id",'Taille','32 pouces (81 cm)',0 FROM "products" pr WHERE pr."slug"='televiseur-led-32-pouces-fictif' AND NOT EXISTS (SELECT 1 FROM "product_attributes" pa WHERE pa."product_id"=pr."id" AND pa."name"='Taille');
 INSERT INTO "product_attributes" ("product_id","name","value","sort_order")
@@ -360,12 +326,10 @@ SELECT pr."id",'Ports','2 × HDMI, 1 × USB',2 FROM "products" pr WHERE pr."slug
 INSERT INTO "product_attributes" ("product_id","name","value","sort_order")
 SELECT pr."id",'Garantie','1 an',3 FROM "products" pr WHERE pr."slug"='televiseur-led-32-pouces-fictif' AND NOT EXISTS (SELECT 1 FROM "product_attributes" pa WHERE pa."product_id"=pr."id" AND pa."name"='Garantie');
 INSERT INTO "products" ("seller_id","brand_id","category_id","title","slug","short_description","description","price_xof","compare_price_xof","quantity","lead_time_days","availability","power_label","energy_class","badge","is_best_seller","is_placeholder","status","published_at","internal_note")
-SELECT (SELECT "id" FROM "users" WHERE "email"='boutique@mybigmarket.ci'),(SELECT "id" FROM "brands" WHERE "slug"='marque-beta'),(SELECT "id" FROM "categories" WHERE "slug"='televiseurs'),'Téléviseur LED 55 pouces 4K Smart TV — fiche fictive','televiseur-led-55-pouces-fictif','Smart TV 4K 55 pouces, Wi-Fi, 3 ports HDMI.','Téléviseur LED de 55 pouces en 4K avec Smart TV, Wi-Fi et 3 ports HDMI.
-
-Cette fiche est fictive : remplacez-la par votre produit depuis l''administration.',385000,429000,3,7,'in_stock_abidjan',NULL,NULL,'Promo',true,true,'approved',now(),'Produit fictif à remplacer'
+SELECT (SELECT "id" FROM "users" WHERE "email"='boutique@mybigmarket.ci'),(SELECT "id" FROM "brands" WHERE "slug"='marque-beta'),(SELECT "id" FROM "categories" WHERE "slug"='televiseurs'),'Téléviseur LED 55 pouces 4K Smart TV','televiseur-led-55-pouces-fictif','Smart TV 4K 55 pouces, Wi-Fi, 3 ports HDMI.','Téléviseur LED de 55 pouces en 4K avec Smart TV, Wi-Fi et 3 ports HDMI.',385000,429000,3,7,'in_stock_abidjan',NULL,NULL,'Promo',true,true,'approved',now(),'Produit fictif à remplacer'
 WHERE NOT EXISTS (SELECT 1 FROM "products" WHERE "slug"='televiseur-led-55-pouces-fictif');
 INSERT INTO "product_images" ("product_id","url","alt","sort_order","is_primary")
-SELECT pr."id",'/produits-fictifs/fictif-televiseur.svg','Téléviseur LED 55 pouces 4K Smart TV — fiche fictive',0,true FROM "products" pr WHERE pr."slug"='televiseur-led-55-pouces-fictif' AND NOT EXISTS (SELECT 1 FROM "product_images" pi WHERE pi."product_id"=pr."id");
+SELECT pr."id",'/produits-fictifs/fictif-televiseur.svg','Téléviseur LED 55 pouces 4K Smart TV',0,true FROM "products" pr WHERE pr."slug"='televiseur-led-55-pouces-fictif' AND NOT EXISTS (SELECT 1 FROM "product_images" pi WHERE pi."product_id"=pr."id");
 INSERT INTO "product_attributes" ("product_id","name","value","sort_order")
 SELECT pr."id",'Taille','55 pouces (139 cm)',0 FROM "products" pr WHERE pr."slug"='televiseur-led-55-pouces-fictif' AND NOT EXISTS (SELECT 1 FROM "product_attributes" pa WHERE pa."product_id"=pr."id" AND pa."name"='Taille');
 INSERT INTO "product_attributes" ("product_id","name","value","sort_order")

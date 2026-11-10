@@ -85,11 +85,11 @@ export function BuyBox({ product, variants, compact, onOrder, onAddToCart, feedb
       <button type="button" className="pd-btn pd-btn-primary pd-btn-block" onClick={onOrder}>Commander</button>
       <div className="pd-actions-row">
         <button type="button" className="pd-btn pd-btn-outline" onClick={onAddToCart}><ShoppingCart size={16} strokeWidth={1.5} aria-hidden="true"/> Ajouter au panier</button>
-        <form action={startConversationAction}><input type="hidden" name="productSlug" value={product.slug}/><button type="submit" className="pd-btn pd-btn-outline"><MessageCircle size={16} strokeWidth={1.5} aria-hidden="true"/> Discuter ici</button></form>
+        <form action={startConversationAction}><input type="hidden" name="productSlug" value={product.slug}/><button type="submit" className="pd-btn pd-btn-outline"><MessageCircle size={16} strokeWidth={1.5} aria-hidden="true"/> WhatsApp</button></form>
       </div>
       <p className="pd-feedback" aria-live="polite">{feedback}</p>
       <p className="pd-muted pd-small">{pdpConfig.guaranteeNote}</p>
-      <a href={`/demande-de-devis?produit=${encodeURIComponent(product.title)}`} className="pd-quote-link">Besoin d’une grande quantité ? Demander un devis</a>
+      <a href={`/demande-de-devis?produit=${encodeURIComponent(product.title)}`} className="pd-quote-link">Plusieurs unités ? Demandez un prix</a>
     </div>}
 
 

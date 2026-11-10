@@ -480,3 +480,8 @@ html body button,html body input,html body select,html body textarea{font-family
   .mb-card .mb-price{font-size:16px}
   .mb-card-moq,.mb-card .mb-avail{font-size:11px}
 }
+
+/* Pages d'information : listes lisibles */
+.mb-info ul{list-style:disc;display:block}
+.mb-info ol{list-style:decimal;display:block}
+.mb-info li{margin:4px 0;padding-left:2px}

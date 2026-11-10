@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type KeyboardEvent, type MouseEvent, type TouchEvent } from "react";
-import { ChevronDown, ChevronLeft, ChevronRight, Heart, Play, ScanSearch, X } from "lucide-react";
+import { ChevronDown, ChevronLeft, ChevronRight, Heart, Play, X } from "lucide-react";
 import type { DemoProduct } from "@/lib/demo-data";
 import type { ProductImage } from "@/lib/pdp/types";
 import { useFavorites } from "@/components/favorites-provider";
@@ -17,12 +17,11 @@ type Props = {
   activeIndex: number;
   onSelect: (index: number) => void;
   favoriteItem: DemoProduct;
-  onImageSearch: () => void;
 };
 
 const THUMBS = 6;
 
-export function ProductGallery({ images, videoUrl, label, activeIndex, onSelect, favoriteItem, onImageSearch }: Props) {
+export function ProductGallery({ images, videoUrl, label, activeIndex, onSelect, favoriteItem }: Props) {
   const media: Media[] = [...images.map((image) => ({ ...image, kind: "image" as const })), ...(videoUrl ? [{ src: videoUrl, alt: "Vidéo du produit", kind: "video" as const }] : [])];
   const count = media.length;
   const index = Math.min(activeIndex, count - 1);
@@ -115,7 +114,6 @@ export function ProductGallery({ images, videoUrl, label, activeIndex, onSelect,
       {label && <span className="pd-stage-label">{label}</span>}
       <div className="pd-stage-actions">
         <button type="button" onClick={() => toggle(favoriteItem)} aria-pressed={favorite} aria-label={favorite ? "Retirer des favoris" : "Ajouter aux favoris"} className={favorite ? "is-on" : ""}><Heart size={18} strokeWidth={1.5} fill={favorite ? "currentColor" : "none"}/></button>
-        <button type="button" onClick={onImageSearch} aria-label="Rechercher des produits similaires par image"><ScanSearch size={18} strokeWidth={1.5}/></button>
       </div>
       {count > 1 && <>
         <button type="button" className="pd-stage-prev" onClick={() => go(-1)} aria-label="Image précédente"><ChevronLeft size={20} strokeWidth={1.5}/></button>
