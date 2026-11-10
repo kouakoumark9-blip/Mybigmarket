@@ -505,10 +505,13 @@ html body button,html body input,html body select,html body textarea{font-family
 .mb-cat-banner img{object-fit:cover}
 #produits{scroll-margin-top:140px}
 
-/* ===== Menu des catégories façon marketplace : une entrée à gauche, sa liste à droite au survol ===== */
-.mb-catmenu .mb-sub{min-width:250px;padding:16px 20px 12px;border-radius:8px}
-.mb-sub-title{display:block;margin:0 0 8px;padding:0 0 8px;border-bottom:1px solid var(--color-border);font-size:13px;font-weight:800;color:var(--color-text)}
-.mb-sub a{padding:6px 0;font-size:13.5px;color:#4b5563;border-radius:0}
+/* ===== Menu des catégories façon marketplace : colonnes, intertitres en gras, liens en dessous ===== */
+.mb-catmenu .mb-sub{min-width:600px;max-width:min(680px,calc(100vw - 340px));padding:20px 24px 8px;column-count:3;column-gap:28px;border-radius:8px}
+.mb-sub .mb-sub-all{column-span:all;display:block;margin:0 0 14px;padding:0 0 10px;border-bottom:1px solid var(--color-border);border-radius:0;font-size:14px;font-weight:700}
+.mb-sub-group{break-inside:avoid;margin:0 0 18px;padding:0;border:0}
+.mb-sub-group+.mb-sub-group{margin-top:0;padding-top:0;border-top:0}
+.mb-sub-title{display:block;margin:0 0 6px;padding:0;font-size:13px;font-weight:800;letter-spacing:0;text-transform:none;color:var(--color-text)}
+.mb-sub a{padding:5px 0;font-size:13.5px;color:#4b5563;border-radius:0}
 .mb-sub a:hover{background:none;color:var(--color-primary-strong);text-decoration:underline}
 
 /* Colonne « Catégorie » de la page de liste (ordinateur) */
@@ -532,3 +535,5 @@ html body button,html body input,html body select,html body textarea{font-family
   .mb-catside a{padding:7px 16px}
 }
 
+/* Tiroir mobile : intertitres des groupes */
+.mb-drawer-group-title{display:block;padding:10px 12px 2px;font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#5f666d}
