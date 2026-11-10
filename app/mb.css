@@ -6,11 +6,11 @@
  * de globals.css (héritées de l'ancien site) s'y appliquent à `main:not(.pd)`.
  */
 
-html body{background:#f1f1f2;color:var(--color-text);font-family:"Inter",Arial,sans-serif;font-size:15px;line-height:1.5;letter-spacing:0;font-feature-settings:"cv11","ss01";font-optical-sizing:auto}
+html body{background:#f1f1f2;color:var(--color-text);font-family:"Alibaba Sans","Inter",Arial,sans-serif;font-size:15px;line-height:1.5;letter-spacing:0;font-feature-settings:"cv11","ss01";font-optical-sizing:auto}
 html body button,html body input,html body select,html body textarea{font-family:inherit}
 .mb-wrap{width:min(100% - 24px,1240px);margin-inline:auto}
 .mb-page{padding:16px 0 40px;min-height:50vh}
-.mb-page h1,.mb-page h2,.mb-page h3{font-family:"Inter",Arial,sans-serif;letter-spacing:0;color:var(--color-text)}
+.mb-page h1,.mb-page h2,.mb-page h3{font-family:"Alibaba Sans","Inter",Arial,sans-serif;letter-spacing:0;color:var(--color-text)}
 .mb-skip{position:absolute;left:-999px;top:8px;background:#fff;color:var(--color-text);padding:8px 12px;border-radius:4px;z-index:100}
 .mb-skip:focus{left:8px}
 .mb-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
@@ -697,3 +697,50 @@ html body{line-height:1.6;font-size:15.5px}
 .mb-drawer details[open]>summary::after{transform:translateY(-30%) rotate(-135deg)}
 .mb-drawer details[open]>summary{font-weight:700;background:var(--color-primary-soft)}
 .mb-drawer details a{display:block}
+
+/* ===== Textes plus grands (ordinateur et mobile) ===== */
+html body{font-size:16px;line-height:1.55}
+.mb-strip,.mb-strip-msg{font-size:13.5px}
+.mb-action,.mb-header-wa,.mb-nav-all>button,.mb-nav a.mb-nav-link{font-size:15.5px}
+.mb-search input,.mb-search button,.mb-input,.mb-qty input{font-size:15.5px}
+.mb-catmenu-title{font-size:13.5px}
+.mb-catmenu>ul>li>a{font-size:16px}
+.mb-sub a{font-size:15px}
+.mb-sub-title,.mb-sub .mb-sub-all{font-size:14.5px}
+.mb-drawer li>a,.mb-drawer summary{font-size:16.5px}
+.mb-drawer details a{font-size:15.5px}
+.mb-drawer-group-title{font-size:12.5px}
+.mb-homecats a{font-size:16.5px}
+.mb-home-stack .mb-reassurance b{font-size:14px}
+.mb-home-stack .mb-reassurance span{font-size:13px}
+.mb-crumbs{font-size:13.5px}
+.mb-intro{font-size:16px}
+.mb-card-title{font-size:15px;line-height:1.4;min-height:42px}
+.mb-price{font-size:19px}
+.mb-price-old{font-size:13px}
+.mb-avail,.mb-card .mb-avail{font-size:13px}
+.mb-badge{font-size:12px}
+.mb-section-head .mb-link{font-size:15.5px}
+.mb-catside a,.mb-info-nav a{font-size:15px}
+.mb-catside h2{font-size:13px}
+.mb-catside-group h3,.mb-filter legend,.mb-field label{font-size:14px}
+.mb-filters h2{font-size:15px}
+.mb-filter .mb-check,.mb-subcats a,.mb-notice{font-size:14.5px}
+.mb-btn{font-size:15.5px}
+.mb-card .mb-btn{font-size:14px}
+.mb-footer h2{font-size:15.5px}
+.mb-footer p,.mb-footer ul{font-size:14.5px}
+.mb-footer-bottom{font-size:13.5px}
+.mb-pay b,.mb-pay-intro,.mb-summary-row,.mb-line h3,.mb-pager span{font-size:15.5px}
+.mb-pay span,.mb-remove,.mb-field small{font-size:13.5px}
+.mb-info p,.mb-info li,.mb-textblock p,.mb-textblock li{font-size:16px;line-height:1.65}
+@media (max-width:600px){
+  html body{font-size:16px}
+  .mb-card-title{font-size:14.5px;min-height:40px}
+  .mb-price{font-size:18px}
+  .mb-avail,.mb-card .mb-avail{font-size:12.5px}
+  .mb-home-stack .mb-reassurance b{font-size:11.5px}
+  .mb-home-stack .mb-reassurance span{font-size:10.5px}
+  .mb-strip-msg{font-size:12.5px}
+  .mb-catside a{font-size:15px}
+}
