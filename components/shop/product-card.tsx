@@ -30,5 +30,5 @@ export function ProductCard({ product, priority = false }: { product: ShopProduc
 }
 
 export function ProductGrid({ products }: { products: ShopProduct[] }) {
-  return <div className="mb-grid">{products.map((product, index) => <ProductCard key={product.id} product={product} priority={index < 5}/>)}</div>;
+  return <div className="mb-grid">{products.map((product) => <ProductCard key={product.id} product={product}/>)}</div>;
 }

@@ -32,8 +32,11 @@ test.describe("vitrine", () => {
     await page.goto("/petit-electromenager/friteuses-a-air");
     await page.locator('a[href^="/produits/"]').first().click();
     await page.waitForURL(/\/produits\//);
+    await page.waitForLoadState("networkidle"); // la fiche est servie du cache : on attend que la page soit active avant de cliquer
     await page.getByRole("button", { name: "Ajouter au panier" }).first().click();
-    await page.goto("/panier");
+    await expect(page.locator(".pd-feedback").first()).toContainText("Ajouté au panier");
+    await page.getByRole("link", { name: /^Panier/ }).first().click();
+    await page.waitForURL(/\/panier/);
     await expect(page.getByText("En stock à Abidjan").first()).toBeVisible();
     await page.getByRole("link", { name: "Commander", exact: true }).click();
     await page.getByLabel("Nom et prénom").fill("Awa Koné");

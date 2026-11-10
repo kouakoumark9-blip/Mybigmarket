@@ -9,6 +9,7 @@ const nextConfig: NextConfig = {
   experimental: { serverActions: { bodySizeLimit: "30mb" } },
   images: {
     formats: ["image/avif", "image/webp"],
+    minimumCacheTTL: 2678400,
     remotePatterns: [{ protocol: "https", hostname: "**.public.blob.vercel-storage.com", pathname: "/**" }],
   },
   async redirects() {
@@ -37,6 +38,10 @@ const nextConfig: NextConfig = {
       { source: "/:path*", headers },
       // Administration : jamais indexée par les moteurs de recherche.
       { source: "/gestion/:path*", headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" }] },
+      // Fichiers statiques : gardés une semaine par le navigateur et le réseau de diffusion (remplaçables sans attendre longtemps).
+      { source: "/fonts/:path*", headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }] },
+      { source: "/bannieres/:path*", headers: [{ key: "Cache-Control", value: "public, max-age=604800, stale-while-revalidate=86400" }] },
+      { source: "/produits-fictifs/:path*", headers: [{ key: "Cache-Control", value: "public, max-age=604800, stale-while-revalidate=86400" }] },
     ];
   },
 };
