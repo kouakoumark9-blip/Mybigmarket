@@ -5,7 +5,7 @@ import type { RawParams } from "@/lib/shop/search-params";
 export const revalidate = 60;
 export const metadata: Metadata = {
   title: { absolute: "Tous les produits à Abidjan | MyBigMarket" },
-  description: "Tout le catalogue MyBigMarket : climatiseurs, groupes électrogènes, informatique, électroménager et téléviseurs. Livraison en Côte d'Ivoire.",
+  description: "Tout le catalogue MyBigMarket : lits de toutes tailles, lits enfants, superposés, en bois ou en métal. Livraison en Côte d'Ivoire.",
   alternates: { canonical: "/produits" },
 };
 

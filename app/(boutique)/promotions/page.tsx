@@ -4,7 +4,7 @@ import type { RawParams } from "@/lib/shop/search-params";
 
 export const revalidate = 60;
 export const metadata: Metadata = {
-  title: { absolute: "Promotions à Abidjan : climatiseurs, électroménager, TV | MyBigMarket" },
+  title: { absolute: "Promotions à Abidjan : lits | MyBigMarket" },
   description: "Les produits en promotion chez MyBigMarket, avec ancien prix barré. Livraison à Abidjan et en Côte d'Ivoire, paiement par mobile money.",
   alternates: { canonical: "/promotions" },
 };

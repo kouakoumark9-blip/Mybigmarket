@@ -15,12 +15,12 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
     db.select({ n: count() }).from(products).where(and(eq(products.isPlaceholder, true), isNull(products.deletedAt))),
     db.select({ n: count() }).from(products).where(and(eq(products.availability, "in_stock_abidjan"), lte(products.quantity, 2), eq(products.status, "approved"), isNull(products.deletedAt), eq(products.isPlaceholder, false))),
     db.select().from(shopOrders).orderBy(desc(shopOrders.createdAt)).limit(8),
-    db.select({ n: count() }).from(categories).where(eq(categories.slug, "climatiseurs")),
+    db.select({ n: count() }).from(categories).where(eq(categories.slug, "lits")),
   ]);
   return <>
     <h1>Tableau de bord</h1>
     {query.installe && <div className="gs-msg gs-msg--ok">Catégories et fiches fictives installées.</div>}
-    {categoryCount === 0 && <form action={installSeedAction} className="gs-card"><h2>Première installation</h2><p>Crée les catégories (Informatique, Électrogène, Climatiseurs, Petit et gros électroménager, Téléviseurs) et 6 fiches fictives à remplacer. Sans danger si déjà fait.</p><button className="gs-btn" type="submit">Installer les données de départ</button></form>}
+    {categoryCount === 0 && <form action={installSeedAction} className="gs-card"><h2>Première installation</h2><p>Crée la catégorie Lits et ses sous-catégories (par taille, par type, par matière, packs lit + matelas). Sans danger si déjà fait.</p><button className="gs-btn" type="submit">Installer les données de départ</button></form>}
     {placeholders.n > 0 && <div className="gs-msg gs-msg--warn">{placeholders.n} fiche(s) fictive(s) sont encore en ligne : remplacez-les par vos vrais produits dans <Link href="/gestion/produits?filtre=fictifs">Produits</Link>.</div>}
     <div className="gs-stats">
       <div className="gs-stat"><b>{fresh.n}</b>Commande(s) nouvelle(s)</div>

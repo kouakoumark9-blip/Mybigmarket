@@ -17,12 +17,12 @@ export const LEGAL = {
 export const INFO_PAGES: InfoPage[] = [
   {
     slug: "a-propos", title: "À propos de MyBigMarket", metaTitle: "À propos | MyBigMarket, boutique en ligne à Abidjan",
-    description: "MyBigMarket est une boutique en ligne d'Abidjan : climatiseurs, groupes électrogènes, informatique et électroménager, livrés partout en Côte d'Ivoire.",
+    description: "MyBigMarket est une boutique en ligne d'Abidjan : lits de toutes tailles, lits enfants, superposés, en bois ou en métal, livrés partout en Côte d'Ivoire.",
     intro: "MyBigMarket est une boutique en ligne basée à Abidjan. Je vends moi-même les produits que vous voyez sur le site.",
     sections: [
       { h: "Qui vend ?", p: ["C'est une seule et même boutique : les produits sont choisis, achetés et préparés par moi, et vous parlez toujours à la même personne, avant et après l'achat.", "Une partie des produits est en stock à Abidjan, livrable en 24 à 72 h. Les autres sont commandés auprès de fournisseurs à l'étranger : dans ce cas, la fiche indique « Sur commande » avec le délai de livraison."] },
-      { h: "Ce que vous trouvez ici", ul: ["Climatiseurs (split, inverter, mobiles, fenêtre)", "Groupes électrogènes et onduleurs", "Informatique : ordinateurs portables, imprimantes, matériel Wi-Fi", "Petit et gros électroménager, téléviseurs"] },
-      { h: "Une question avant d'acheter ?", p: ["Écrivez-moi sur WhatsApp : je réponds du lundi au samedi, de 8 h à 19 h. Je peux vous aider à choisir la puissance d'un climatiseur ou d'un groupe électrogène selon votre usage."] },
+      { h: "Ce que vous trouvez ici", ul: ["Lits par taille : 1 place, 2 places, 2,5 places, 3 places", "Lits par type : enfants, superposés, pliables, mezzanine, avec chevets, avec rangement", "Lits en bois et lits en métal", "Packs lit + matelas"] },
+      { h: "Une question avant d'acheter ?", p: ["Écrivez-moi sur WhatsApp : je réponds du lundi au samedi, de 8 h à 19 h. Je peux vous aider à choisir la taille de lit qui convient à votre chambre."] },
     ],
   },
   {

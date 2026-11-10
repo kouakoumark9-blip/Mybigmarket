@@ -10,8 +10,8 @@ import { getCategoryTree, listProducts } from "@/lib/shop/queries";
 export const revalidate = 60;
 
 export const metadata: Metadata = {
-  title: { absolute: "MyBigMarket : climatiseurs, informatique, électroménager à Abidjan" },
-  description: "Climatiseurs, groupes électrogènes, informatique, électroménager et téléviseurs à Abidjan et partout en Côte d'Ivoire. Prix en FCFA, paiement par mobile money.",
+  title: { absolute: "MyBigMarket : lits à Abidjan et en Côte d'Ivoire" },
+  description: "Lits 1 place, 2 places, 2,5 places et 3 places, lits enfants, superposés, pliables, en bois ou en métal, à Abidjan et partout en Côte d'Ivoire. Prix en FCFA, paiement par mobile money.",
   alternates: { canonical: "/" },
 };
 

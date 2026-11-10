@@ -11,7 +11,7 @@ import { hasActiveFilters, type RawParams } from "@/lib/shop/search-params";
 export const revalidate = 60;
 type Props = { params: Promise<{ categorie: string }>; searchParams: Promise<RawParams> };
 
-/** Adresse propre à un seul segment : page d'information (/livraison) ou catégorie (/climatiseurs). */
+/** Adresse propre à un seul segment : page d'information (/livraison) ou catégorie (/lits). */
 export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
   const { categorie } = await params;
   const info = findInfoPage(categorie);
