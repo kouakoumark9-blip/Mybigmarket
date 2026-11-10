@@ -21,7 +21,7 @@ export const INFO_PAGES: InfoPage[] = [
     intro: "MyBigMarket est une boutique en ligne basée à Abidjan. Je vends moi-même les produits que vous voyez sur le site.",
     sections: [
       { h: "Qui vend ?", p: ["C'est une seule et même boutique : les produits sont choisis, achetés et préparés par moi, et vous parlez toujours à la même personne, avant et après l'achat.", "Une partie des produits est en stock à Abidjan, livrable en 24 à 72 h. Les autres sont commandés auprès de fournisseurs à l'étranger : dans ce cas, la fiche indique « Sur commande » avec le délai de livraison."] },
-      { h: "Ce que vous trouvez ici", ul: ["Lits par taille : 1 place, 2 places, 2,5 places, 3 places", "Lits par type : enfants, superposés, pliables, mezzanine, avec chevets, avec rangement", "Lits en bois et lits en métal", "Packs lit + matelas"] },
+      { h: "Ce que vous trouvez ici", ul: ["Lits par taille : 1 place, 2 places, 2,5 places, 3 places", "Lits par type : enfants, superposés, pliables, mezzanine, avec chevets, avec rangement", "Lits en bois et lits en métal", "Packs lit + matelas", "Matelas par taille (1 place à 3 places, bébé) et par type (orthopédique, mousse, mémoire de forme, ressorts, médical)", "Surmatelas et protège-matelas"] },
       { h: "Une question avant d'acheter ?", p: ["Écrivez-moi sur WhatsApp : je réponds du lundi au samedi, de 8 h à 19 h. Je peux vous aider à choisir la taille de lit qui convient à votre chambre."] },
     ],
   },
@@ -102,6 +102,19 @@ INFO_PAGES.push({
     { h: "E-mail", p: [`${SHOP.email}. Je réponds sous un jour ouvré.`] },
     { h: "Où ?", p: [`${SHOP.city}. Boutique en ligne : les produits sont livrés, il n'y a pas de magasin ouvert au public.`] },
     { h: "Pour une commande déjà passée", p: ["Gardez votre numéro de commande à portée de main : il me permet de retrouver votre commande tout de suite."] },
+  ],
+});
+
+INFO_PAGES.push({
+  slug: "guide-choix-matelas", title: "Aide au choix d'un matelas", metaTitle: "Comment choisir son matelas : taille, type, fermeté | MyBigMarket",
+  description: "Quelle taille de matelas, quel type (mousse, ressorts, mémoire de forme, orthopédique) et quelle fermeté ? Le guide simple de MyBigMarket, à Abidjan.",
+  intro: "Un bon matelas se choisit selon la taille du lit, votre dos et votre budget. Voici l'essentiel, en quelques lignes.",
+  sections: [
+    { h: "1. Choisir la taille", p: ["Le matelas doit avoir exactement la taille du cadre de lit : mesurez l'intérieur du cadre avant de commander."], ul: ["1 place : 90 x 190 cm, une personne", "2 places : 140 x 190 cm, deux personnes", "2,5 places : 160 x 190 cm, plus de confort pour deux", "3 places : 180 x 190 cm, grands lits", "Bébé et enfant : 60 x 120 cm, lit de bébé"] },
+    { h: "2. Choisir le type", ul: ["Mousse : léger, confortable et d'un bon rapport qualité-prix.", "Mémoire de forme : un accueil moelleux qui épouse le corps, idéal contre les points de pression.", "Ressorts : bien aéré, un soutien ferme et une bonne durée de vie.", "Orthopédique : un maintien ferme, recommandé en cas de douleurs de dos.", "Médical : pour les lits médicalisés et les personnes alitées."] },
+    { h: "3. Penser à la fermeté", p: ["Dormez-vous sur le dos ou sur le ventre ? Un matelas ferme convient mieux. Sur le côté ? Un matelas plus souple soulage les épaules et les hanches. En cas de doute, demandez-moi conseil."] },
+    { h: "4. Protéger votre matelas", p: ["Un protège-matelas garde le matelas propre et prolonge sa durée de vie ; un surmatelas ajoute du confort à un matelas trop ferme ou fatigué."] },
+    { h: "Besoin d'un conseil ?", p: ["Écrivez-moi sur WhatsApp avec la taille de votre lit et vos habitudes de sommeil : je vous indique le matelas qui convient."] },
   ],
 });
 
