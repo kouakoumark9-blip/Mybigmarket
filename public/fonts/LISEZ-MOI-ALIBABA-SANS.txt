@@ -1,0 +1,16 @@
+POLICE ALIBABA SANS
+===================
+
+Le site utilise "Alibaba Sans" en premier choix, puis Inter, puis Arial (voir app/globals.css, app/mb.css, app/theme.css).
+Tant que les fichiers d'Alibaba Sans ne sont pas ici, le site s'affiche avec Inter.
+
+Pour l'activer :
+1. Télécharger Alibaba Sans (gratuite pour un usage commercial) sur la page officielle : https://ics.alibaba.com/font/alibaba-sans
+   et vérifier que la licence autorise l'hébergement sur votre propre site.
+2. Déposer les fichiers .woff2 (Regular 400, Medium 500, Bold 700) dans ce dossier, par exemple :
+   alibaba-sans-regular.woff2, alibaba-sans-medium.woff2, alibaba-sans-bold.woff2
+3. Ajouter au début de app/globals.css :
+
+@font-face{font-family:"Alibaba Sans";font-weight:400;font-style:normal;font-display:swap;src:url("/fonts/alibaba-sans-regular.woff2") format("woff2")}
+@font-face{font-family:"Alibaba Sans";font-weight:500;font-style:normal;font-display:swap;src:url("/fonts/alibaba-sans-medium.woff2") format("woff2")}
+@font-face{font-family:"Alibaba Sans";font-weight:700;font-style:normal;font-display:swap;src:url("/fonts/alibaba-sans-bold.woff2") format("woff2")}

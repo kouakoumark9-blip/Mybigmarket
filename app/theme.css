@@ -49,7 +49,7 @@
   --radius-pill:999px;
   --shadow-md:0 2px 6px color-mix(in srgb,var(--color-shadow) 6%,transparent),0 12px 32px color-mix(in srgb,var(--color-shadow) 10%,transparent);
   --shadow-card:0 1px 2px color-mix(in srgb,var(--color-shadow) 4%,transparent),0 4px 16px color-mix(in srgb,var(--color-shadow) 5%,transparent);
-  --font-pdp:"Inter",Arial,sans-serif;
+  --font-pdp:"Alibaba Sans","Inter",Arial,sans-serif;
 
   /* Contact WhatsApp (vert foncé : texte blanc lisible) */
   --color-whatsapp:#128c4a;
