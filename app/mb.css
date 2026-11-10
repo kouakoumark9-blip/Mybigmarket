@@ -506,9 +506,5 @@ html body button,html body input,html body select,html body textarea{font-family
 
 /* Bannière en haut d'une page de catégorie */
 .mb-cat-banner{position:relative;display:block;aspect-ratio:3/1;margin:0 0 16px;overflow:hidden;border-radius:8px;background:#f1efec;box-shadow:0 1px 3px rgba(0,0,0,.08)}
-.mb-cat-banner img{object-fit:cover;object-position:left center}
+.mb-cat-banner img{object-fit:cover}
 #produits{scroll-margin-top:140px}
-@media (max-width:640px){
-  /* Sur mobile : on garde la moitié gauche de l'image pour que le titre et le bouton restent lisibles */
-  .mb-cat-banner{aspect-ratio:14/9}
-}
