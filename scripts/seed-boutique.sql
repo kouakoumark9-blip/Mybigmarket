@@ -120,7 +120,7 @@ SELECT pr."id",'Garantie','1 an',4 FROM "products" pr WHERE pr."slug"='climatise
 INSERT INTO "products" ("seller_id","brand_id","category_id","title","slug","short_description","description","price_xof","compare_price_xof","quantity","lead_time_days","availability","power_label","energy_class","badge","is_best_seller","is_placeholder","status","published_at","internal_note")
 SELECT (SELECT "id" FROM "users" WHERE "email"='boutique@mybigmarket.ci'),(SELECT "id" FROM "brands" WHERE "slug"='marque-beta'),(SELECT "id" FROM "categories" WHERE "slug"='electrogene/groupes-electrogenes'),'Groupe électrogène 5 kVA démarrage électrique — fiche fictive','groupe-electrogene-5-kva-fictif','Groupe essence 5 kVA, démarrage électrique, prises 220 V.','Groupe électrogène essence de 5 kVA avec démarrage électrique. Convient pour une maison ou une boutique.
 
-Cette fiche est fictive : remplacez-la par votre produit depuis l''administration.',689000,NULL,0,20,'on_order','5 kVA',NULL,NULL,false,true,'approved',now(),'Produit fictif à remplacer'
+Cette fiche est fictive : remplacez-la par votre produit depuis l''administration.',689000,NULL,6,20,'in_stock_abidjan','5 kVA',NULL,NULL,false,true,'approved',now(),'Produit fictif à remplacer'
 WHERE NOT EXISTS (SELECT 1 FROM "products" WHERE "slug"='groupe-electrogene-5-kva-fictif');
 INSERT INTO "product_images" ("product_id","url","alt","sort_order","is_primary")
 SELECT pr."id",'/produits-fictifs/fictif-groupe.svg','Groupe électrogène 5 kVA démarrage électrique — fiche fictive',0,true FROM "products" pr WHERE pr."slug"='groupe-electrogene-5-kva-fictif' AND NOT EXISTS (SELECT 1 FROM "product_images" pi WHERE pi."product_id"=pr."id");
@@ -167,7 +167,7 @@ SELECT pr."id",'Garantie','1 an',3 FROM "products" pr WHERE pr."slug"='friteuse-
 INSERT INTO "products" ("seller_id","brand_id","category_id","title","slug","short_description","description","price_xof","compare_price_xof","quantity","lead_time_days","availability","power_label","energy_class","badge","is_best_seller","is_placeholder","status","published_at","internal_note")
 SELECT (SELECT "id" FROM "users" WHERE "email"='boutique@mybigmarket.ci'),(SELECT "id" FROM "brands" WHERE "slug"='marque-alpha'),(SELECT "id" FROM "categories" WHERE "slug"='gros-electromenager/refrigerateurs'),'Réfrigérateur combiné 300 L classe A+ — fiche fictive','refrigerateur-combine-300-l-fictif','Combiné 300 litres, froid ventilé, classe A+.','Réfrigérateur combiné de 300 litres, froid ventilé, classe énergétique A+.
 
-Cette fiche est fictive : remplacez-la par votre produit depuis l''administration.',365000,NULL,0,15,'on_order',NULL,'A+',NULL,false,true,'approved',now(),'Produit fictif à remplacer'
+Cette fiche est fictive : remplacez-la par votre produit depuis l''administration.',365000,NULL,6,15,'in_stock_abidjan',NULL,'A+',NULL,false,true,'approved',now(),'Produit fictif à remplacer'
 WHERE NOT EXISTS (SELECT 1 FROM "products" WHERE "slug"='refrigerateur-combine-300-l-fictif');
 INSERT INTO "product_images" ("product_id","url","alt","sort_order","is_primary")
 SELECT pr."id",'/produits-fictifs/fictif-refrigerateur.svg','Réfrigérateur combiné 300 L classe A+ — fiche fictive',0,true FROM "products" pr WHERE pr."slug"='refrigerateur-combine-300-l-fictif' AND NOT EXISTS (SELECT 1 FROM "product_images" pi WHERE pi."product_id"=pr."id");

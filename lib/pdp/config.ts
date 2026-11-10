@@ -32,6 +32,7 @@ export const pdpConfig = {
     ],
   },
   tabs: [
+    { id: "pdp-recap", label: "Récapitulatif" },
     { id: "pdp-attributes", label: "Attribut" },
     { id: "pdp-reviews", label: "Avis" },
     { id: "pdp-description", label: "Description" },
