@@ -38,7 +38,7 @@ function mergeReviews(summary: ReviewSummary, published: PublicReview[]): Review
 /** Mesure l'en-tête du site (sticky) pour placer onglets et boîte d'achat juste dessous. */
 function useHeaderOffset() {
   useEffect(() => {
-    const header = document.querySelector<HTMLElement>(".site-header");
+    const header = document.querySelector<HTMLElement>(".mb-header");
     if (!header) return;
     const apply = () => document.documentElement.style.setProperty("--pd-header-h", `${Math.round(header.getBoundingClientRect().height)}px`);
     apply();
@@ -87,8 +87,9 @@ export function ProductDetailPage({ product, cartItem, publishedReviews = [], pa
   const selectedVariant = product.colorVariants.find((item) => item.id === color);
   const unitPrice = selectedVariant?.priceXof ?? product.priceMin;
 
-  const order = () => { addItem(cartItem, product.minOrderQty); router.push("/checkout"); };
-  const addToCart = () => { addItem(cartItem, product.minOrderQty); setFeedback("Ajouté au panier."); };
+  const [quantity, setQuantity] = useState(Math.max(1, product.minOrderQty || 1));
+  const order = () => { addItem(cartItem, quantity); router.push("/checkout"); };
+  const addToCart = () => { addItem(cartItem, quantity); setFeedback(quantity > 1 ? `${quantity} articles ajoutés au panier.` : "Ajouté au panier."); };
 
   // Boîte d'achat compacte quand le prix sort de l'écran ; onglets flottants après le bloc principal.
   useEffect(() => {
@@ -123,7 +124,7 @@ export function ProductDetailPage({ product, cartItem, publishedReviews = [], pa
               <ProductGallery images={images} videoUrl={product.videoUrl} label={product.imageLabel} activeIndex={activeImage} onSelect={setActiveImage} favoriteItem={cartItem}/>
             </div>
             <div className="pd-area-info">
-              <ProductInfo ref={priceRef} product={product} variants={variants} unitPrice={unitPrice}/>
+              <ProductInfo ref={priceRef} product={product} variants={variants} unitPrice={unitPrice} quantity={quantity} onQuantity={setQuantity} orderable={!cartItem.isDemo}/>
               {(product.colorVariants.length > 0 || product.designOptions.length > 0) && <button type="button" className="pd-variant-summary" onClick={() => setSheetOpen(true)}>
                 <span><b>Options</b> {[selectedVariant?.label, product.designOptions.find((item) => item.id === design)?.label].filter(Boolean).join(" · ")}</span><ChevronRight size={18} strokeWidth={1.5}/>
               </button>}
