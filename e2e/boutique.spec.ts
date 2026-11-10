@@ -10,6 +10,7 @@ test.describe("vitrine", () => {
     await page.goto("/");
     await expect(page.getByRole("navigation", { name: "Catégories" }).first()).toBeVisible();
     await expect(page.getByRole("region", { name: "Offres du moment" })).toBeVisible();
+    await expect(page.getByRole("region", { name: "Catégories de la boutique" }).getByRole("link", { name: "Lits 3 places" })).toBeVisible();
     await expect(page.getByText("Paiement mobile money sécurisé")).toBeVisible();
     await expect(page.getByRole("heading", { name: "Meilleures ventes" })).toBeVisible();
     const text = (await page.locator("body").innerText()).toLowerCase();
