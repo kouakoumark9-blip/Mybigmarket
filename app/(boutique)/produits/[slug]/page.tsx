@@ -23,10 +23,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { product } = payload;
   const url = `${siteUrl()}/produits/${product.slug}`;
   return {
-    title: product.title.length > 70 ? `${product.title.slice(0, 67).trimEnd()}…` : product.title,
+    title: product.seoTitle ? { absolute: product.seoTitle } : product.title.length > 70 ? `${product.title.slice(0, 67).trimEnd()}…` : product.title,
     description: product.metaDescription,
     alternates: { canonical: url },
-    openGraph: { title: product.title, description: product.metaDescription, url, type: "website", images: product.images[0] && !product.images[0].src.endsWith(".svg") ? [{ url: product.images[0].src, alt: product.images[0].alt }] : undefined },
+    openGraph: { title: product.seoTitle ?? product.title, description: product.metaDescription, url, type: "website", images: product.images[0] && !product.images[0].src.endsWith(".svg") ? [{ url: product.images[0].src, alt: product.images[0].alt }] : undefined },
   };
 }
 

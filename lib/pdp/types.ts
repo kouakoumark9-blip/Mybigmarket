@@ -134,6 +134,8 @@ export type Product = {
   supplierProducts: ProductCardData[];
   /** Texte SEO (meta description). */
   metaDescription: string;
+  /** Titre pour Google (champ « Titre pour Google » de la gestion) ; à défaut, le nom du produit. */
+  seoTitle?: string;
   /** Prix dégressifs réellement appliqués au panier ; absent s'il n'y a qu'un prix. */
   quantityPrices?: QuantityPrice[];
 };
