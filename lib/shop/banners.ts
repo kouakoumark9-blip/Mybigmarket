@@ -19,5 +19,7 @@ export const BANNERS: Banner[] = [
     fallback: { title: "Lits de toutes tailles", text: "En stock à Abidjan, livraison 24 à 72 h" } },
   { desktop: "/bannieres/accueil-2.webp", mobile: "/bannieres/accueil-2.webp", alt: "Qualité et confort sans égal : découvrez notre collection de lits haut de gamme. Voir les offres", href: "/lits",
     fallback: { title: "Qualité et confort sans égal", text: "Découvrez notre collection de lits haut de gamme" } },
+  { desktop: "/bannieres/accueil-3.webp", mobile: "/bannieres/accueil-3.webp", alt: "L'excellence au cœur de votre foyer : des équipements modernes pour toute la famille", href: "/lits",
+    fallback: { title: "L'excellence au cœur de votre foyer", text: "Des équipements modernes pour toute la famille" } },
   // Pour ajouter d'autres bannières : déposez l'image dans public/bannieres/ puis copiez le modèle ci-dessus.
 ];
