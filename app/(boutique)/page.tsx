@@ -21,11 +21,10 @@ export const metadata: Metadata = {
 const ICONS = [Truck, Banknote, RotateCcw, Headset];
 
 export default async function HomePage() {
-  const [tree, best, fresh, promo] = await Promise.all([
+  const [tree, best, fresh] = await Promise.all([
     getCategoryTree(),
     listProducts({ flag: "best", limit: 10 }),
     listProducts({ sort: "nouveautes", limit: 10 }),
-    listProducts({ flag: "promo", limit: 10, sort: "prix-croissant" }),
   ]);
   const menu = tree.map((category) => ({ name: category.name, slug: category.slug, children: category.children.map((child) => ({ name: child.name, slug: child.slug })) }));
   const organization = { "@context": "https://schema.org", "@type": "Store", name: SHOP.name, url: SHOP.baseUrl, telephone: `+${SHOP.whatsappNumber}`, email: SHOP.email, address: { "@type": "PostalAddress", addressLocality: "Abidjan", addressCountry: "CI" }, areaServed: "CI", currenciesAccepted: "XOF", paymentAccepted: "Paiement à la livraison" };
@@ -54,7 +53,6 @@ export default async function HomePage() {
 
     <ProductSection title="Meilleures ventes" href="/produits?tri=pertinence" products={best.items}/>
     <ProductSection title="Nouveautés" href="/produits?tri=nouveautes" products={fresh.items}/>
-    <ProductSection title="Promotions" href="/promotions" products={promo.items} promo/>
-    {best.total + fresh.total + promo.total === 0 && <p className="mb-empty">Le catalogue est en cours de mise à jour. Écrivez-nous sur WhatsApp pour connaître les produits disponibles.</p>}
+    {best.total + fresh.total === 0 && <p className="mb-empty">Le catalogue est en cours de mise à jour. Écrivez-nous sur WhatsApp pour connaître les produits disponibles.</p>}
   </div>;
 }
