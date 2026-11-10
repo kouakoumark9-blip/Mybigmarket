@@ -1,6 +1,5 @@
 import Image from "next/image";
 import Link from "next/link";
-import { groupChildren } from "@/lib/shop/category-groups";
 import { CategorySidebar } from "./category-sidebar";
 import { categoryBanner } from "@/lib/shop/category-banners";
 import { Breadcrumbs, type Crumb } from "./breadcrumbs";
@@ -45,12 +44,6 @@ export async function CatalogView({ basePath, title, intro, crumbs, params, cate
     </a>; })()}
     <h1 className="mb-title">{filters.q ? `Résultats pour « ${filters.q} »` : title}</h1>
     {intro && !filters.q && <p className="mb-intro">{intro}</p>}
-    {tree && tree.children.length > 0 && <div className="mb-subcats-wrap" aria-label="Sous-catégories">
-      {groupChildren(tree.slug, tree.children).map((group, index) => <div key={group.title ?? index} className="mb-subcats-group">
-        {group.title && <span className="mb-subcats-title">{group.title}</span>}
-        <div className="mb-subcats">{group.items.map((child) => <Link key={child.slug} href={`/${child.slug}`} aria-current={basePath === `/${child.slug}` ? "page" : undefined}>{child.name}</Link>)}</div>
-      </div>)}
-    </div>}
     <div className="mb-cat-layout" id="produits">
       <aside className="mb-side">
       {tree && tree.children.length > 0 && <CategorySidebar root={tree} currentSlug={basePath.replace(/^\//, "")}/>}

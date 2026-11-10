@@ -525,9 +525,15 @@ html body button,html body input,html body select,html body textarea{font-family
 .mb-catside-group{margin-top:8px;padding-top:10px;border-top:1px solid var(--color-border)}
 .mb-catside-group h3{margin:0 16px 4px;font-size:13px;font-weight:800;color:var(--color-text)}
 .mb-catside-group ul{list-style:none;margin:0;padding:0}
-@media (min-width:901px){.mb-subcats-wrap{display:none}}
-@media (max-width:900px){.mb-catside{display:none}.mb-side{order:2}.mb-filters{order:0}}
-.mb-subcats a[aria-current="page"]{border-color:var(--color-primary);background:var(--color-primary-soft);font-weight:700}
+/* Mobile : la colonne « Catégorie » passe au-dessus des produits, les filtres en dessous */
+@media (max-width:900px){
+  .mb-side{display:contents}
+  .mb-catside{order:-1}
+  .mb-filters{order:2}
+  .mb-catside-group ul{columns:2;column-gap:8px}
+  .mb-catside-group li{break-inside:avoid}
+  .mb-catside a{padding:7px 16px}
+}
 
 /* Tiroir mobile : intertitres des groupes */
 .mb-drawer-group-title{display:block;padding:10px 12px 2px;font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#5f666d}
