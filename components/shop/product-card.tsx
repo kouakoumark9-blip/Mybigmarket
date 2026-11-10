@@ -18,11 +18,14 @@ export function ProductCard({ product, priority = false }: { product: ShopProduc
         {product.badge && product.discountPercent === 0 && <span className="mb-badge">{product.badge}</span>}
       </span>
     </Link>
+    <div className="mb-card-body">
     <h3 className="mb-card-title"><Link href={href}>{product.title}</Link></h3>
     {product.powerLabel && <p className="mb-card-power">{product.powerLabel}</p>}
     <div className="mb-price">{formatFcfa(product.priceXof)}</div>
     <div className="mb-price-old">{product.comparePriceXof && product.comparePriceXof > product.priceXof ? <><s>{formatFcfa(product.comparePriceXof)}</s><em>-{product.discountPercent} %</em></> : null}</div>
+    <p className="mb-card-moq">Commande min. : 1 pièce</p>
     <p className={`mb-avail${product.inStock ? " mb-avail--stock" : ""}`}>{available ? product.availabilityLabel : "Indisponible pour le moment"}</p>
+    </div>
   </article>;
 }
 
