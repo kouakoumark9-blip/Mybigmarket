@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -11,21 +12,10 @@ import type { Banner } from "@/lib/shop/banners";
  */
 export function HeroCarousel({ banners }: { banners: Banner[] }) {
   const [index, setIndex] = useState(0);
-  const [loaded, setLoaded] = useState<Record<number, string>>({});
+  const [failed, setFailed] = useState<Record<number, boolean>>({});
   const paused = useRef(false);
   const count = banners.length;
   const go = useCallback((next: number) => setIndex((next + count) % count), [count]);
-
-  // N'affiche une image que si son fichier existe : sinon le bandeau de texte reste en place.
-  useEffect(() => {
-    const mobile = window.matchMedia("(max-width: 760px)").matches;
-    banners.forEach((banner, position) => {
-      const src = mobile ? banner.mobile : banner.desktop;
-      const probe = new window.Image();
-      probe.onload = () => setLoaded((state) => ({ ...state, [position]: src }));
-      probe.src = src;
-    });
-  }, [banners]);
 
   useEffect(() => {
     if (count < 2 || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
@@ -37,9 +27,9 @@ export function HeroCarousel({ banners }: { banners: Banner[] }) {
     onMouseEnter={() => { paused.current = true; }} onMouseLeave={() => { paused.current = false; }} onFocus={() => { paused.current = true; }} onBlur={() => { paused.current = false; }}>
     <div className="mb-hero-track" style={{ transform: `translateX(-${index * 100}%)` }} aria-live="off">
       {banners.map((banner, position) => <Link key={banner.href} href={banner.href} className="mb-hero-slide" aria-hidden={position !== index} tabIndex={position === index ? 0 : -1} aria-label={banner.alt}>
-        <span className="mb-banner-fallback"><b>{banner.fallback.title}</b><span>{banner.fallback.text}</span></span>
-        {/* eslint-disable-next-line @next/next/no-img-element -- bannière plein cadre, taille fixée par le conteneur */}
-        {loaded[position] && <img src={loaded[position]} alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}/>}
+        {failed[position] && <span className="mb-banner-fallback"><b>{banner.fallback.title}</b><span>{banner.fallback.text}</span></span>}
+        {/* Première bannière chargée en priorité, les autres à la demande ; formats modernes et tailles adaptées à l'écran. */}
+        {!failed[position] && <Image src={banner.desktop} alt="" fill sizes="(max-width: 900px) 100vw, 965px" loading={position === 0 ? "eager" : "lazy"} fetchPriority={position === 0 ? "high" : "low"} style={{ objectFit: "cover" }} onError={() => setFailed((state) => ({ ...state, [position]: true }))}/>}
       </Link>)}
     </div>
     {count > 1 && <>

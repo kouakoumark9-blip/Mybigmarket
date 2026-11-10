@@ -9,7 +9,10 @@ import { db } from "@/server/core/db";
 import { resolveProductRedirect } from "@/server/modules/storefront/service";
 
 type Props = { params: Promise<{ slug: string }> };
-export const dynamic = "force-dynamic";
+// Page mise en cache puis rafraîchie toutes les minutes : la fiche s'affiche instantanément, prix et stock restent à jour à la minute près.
+export const revalidate = 60;
+// Aucune fiche n'est préparée à la construction : chaque fiche est créée à la première visite puis gardée en cache.
+export function generateStaticParams() { return []; }
 
 const siteUrl = () => process.env.NEXT_PUBLIC_SITE_URL || "https://mybigmarket.example";
 

@@ -5,57 +5,12 @@
  */
 
 /* En-tête : le lien « Créer un compte » du menu ne sert que sur mobile. */
-@media (min-width: 721px) {
-  .main-nav .nav-seller-mobile { display: none; }
-}
 
 /* Bandeau de réassurance sous les bannières d'accueil. */
-.home-trust-bar {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  margin: 18px 0 8px;
-  border: 1px solid var(--color-border);
-  border-radius: 12px;
-  background: var(--color-surface);
-}
-.home-trust-bar > * {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 16px 18px;
-}
-.home-trust-bar > * + div { border-left: 1px solid var(--color-border); }
-.home-trust-bar svg { flex: none; color: var(--orange); }
-.home-trust-bar span { display: grid; gap: 2px; min-width: 0; }
-.home-trust-bar b { font-size: 14.4px; color: var(--color-text); }
-.home-trust-bar small { font-size: 12.6px; color: var(--color-text-muted); line-height: 1.35; }
 
 /* Titre de la sélection d'accueil. */
-.home-section-heading {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 16px;
-  margin: 28px 0 14px;
-}
-.home-section-heading h2 {
-  margin: 4px 0 0;
-  font-size: clamp(22px, 2.4vw, 28px);
-  letter-spacing: -0.6px;
-  color: var(--color-text);
-}
 
 /* Cartes produits : hiérarchie plus nette, survol discret. */
-.product-card {
-  transition: box-shadow .18s ease, border-color .18s ease, transform .18s ease;
-}
-.product-card:hover {
-  border-color: color-mix(in srgb, var(--orange) 35%, var(--color-border));
-  box-shadow: 0 10px 24px color-mix(in srgb, var(--color-shadow, #000) 8%, transparent);
-  transform: translateY(-2px);
-}
-.product-card .product-card-title { font-weight: 600; line-height: 1.35; }
-.product-card .product-card-price { color: var(--color-text); }
 
 /* Fiche produit : mention « nouveauté » quand il n'y a pas encore d'avis. */
 .pd-new-badge {
@@ -70,88 +25,12 @@
 }
 
 /* Note de bas de catalogue plus discrète. */
-.catalog-bottom-note { opacity: .8; font-size: 12.6px; }
 
 /* Pied de page (fond clair, comme le reste du site). */
-.site-footer { margin-top: 48px; }
-.site-footer .footer-grid {
-  display: grid;
-  grid-template-columns: 1.6fr repeat(3, 1fr);
-  gap: 32px;
-  padding: 44px 0 32px;
-}
-.site-footer .footer-about p { margin: 14px 0 16px; max-width: 360px; font-size: 14px; line-height: 1.6; color: var(--color-text-muted); }
-.site-footer nav { display: grid; align-content: start; gap: 10px; }
-.site-footer nav b { color: var(--color-text); font-size: 14.4px; margin-bottom: 4px; }
-.site-footer nav a { color: var(--color-text-muted); font-size: 14px; }
-.site-footer nav a:hover { color: var(--orange); }
-.footer-payments { display: flex; flex-wrap: wrap; gap: 6px; }
-.footer-payments span {
-  padding: 4px 9px;
-  border: 1px solid var(--color-border);
-  border-radius: 6px;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--color-text);
-  background: var(--color-surface);
-}
-.site-footer .footer-bottom {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 16px 0 22px;
-  border-top: 1px solid var(--color-border);
-  font-size: 12.6px;
-  color: var(--color-text-muted);
-}
-
-@media (max-width: 960px) {
-  .home-trust-bar { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .home-trust-bar > *:nth-child(3) { border-left: 0; }
-  .home-trust-bar > *:nth-child(n+3) { border-top: 1px solid var(--color-border); }
-  .site-footer .footer-grid { grid-template-columns: 1fr 1fr; }
-  .site-footer .footer-about { grid-column: 1 / -1; }
-}
-
-@media (max-width: 720px) {
-  .home-trust-bar > * { padding: 12px; gap: 9px; }
-  .home-trust-bar b { font-size: 13px; }
-  .home-trust-bar small { font-size: 11.4px; }
-  .home-section-heading { margin-top: 20px; }
-  .site-footer { padding-bottom: 64px; }
-  .site-footer .footer-grid { gap: 24px; padding-top: 32px; }
-  .site-footer .footer-bottom { flex-direction: column; }
-}
 
 /* Barre de recherche toujours visible dans l'en-tête (et non plus seulement au défilement). */
-.header-main .search-form.header-scroll-search { display: flex; min-width: 0; }
-@media (min-width: 721px) {
-  .header-main .search-form.header-scroll-search,
-  .header-main.is-scrolled .search-form.header-scroll-search {
-    grid-column: auto; grid-row: auto; width: 100%; max-width: 680px; justify-self: center;
-    border: 2px solid var(--color-primary);
-  }
-}
-@media (max-width: 720px) {
-  .header-main .search-form.header-scroll-search { grid-column: 1 / -1; grid-row: 2; width: 100%; }
-}
-@media (min-width: 721px) {
-  .site-header .header-main, .site-header .header-main.is-scrolled { grid-template-columns: auto minmax(260px, 1fr) auto; gap: 24px; }
-  .site-header .header-main > .header-actions { grid-column: 3; grid-row: 1; }
-}
-@media (min-width: 721px) and (max-width: 1180px) {
-  .site-header .header-main, .site-header .header-main.is-scrolled { gap: 16px; }
-  .header-currency, .header-locale > span > b { display: none; }
-}
 
 /* Produits d'exemple : badge sur la vignette, encart sur la fiche. */
-.product-visual .visual-demo-badge, .product-card .visual-demo-badge { color: var(--color-static-white) !important; }
-.visual-demo-badge {
-  position: absolute; left: 8px; top: 8px;
-  padding: 3px 8px; border-radius: 999px;
-  background: var(--color-text);
-  font-size: 11px; font-weight: 700; letter-spacing: .3px;
-}
 .pd-demo-note {
   margin: 0 0 10px; padding: 10px 12px; border-radius: 8px;
   background: var(--color-primary-soft); border: 1px solid var(--color-primary-muted);
@@ -160,23 +39,10 @@
 .pd-quote-link { display: inline-block; margin-top: 8px; font-size: 13px; font-weight: 600; color: var(--color-primary-strong); text-decoration: underline; }
 
 /* Page « Demande de devis ». */
-.quote-layout { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 28px; align-items: start; }
-.quote-form { margin-top: 18px; }
-.quote-form .field-hint { margin-top: 10px; font-size: 13px; color: var(--color-text-muted); }
-.quote-steps { padding: 22px; border: 1px solid var(--color-border); border-radius: 12px; background: var(--color-surface); }
-.quote-steps h2 { margin: 0 0 14px; font-size: 17px; }
-.quote-steps ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 16px; }
-.quote-steps li { display: flex; gap: 12px; align-items: flex-start; }
-.quote-steps li svg { flex: none; color: var(--color-primary); margin-top: 2px; }
-.quote-steps li span { display: grid; gap: 2px; font-size: 13.5px; color: var(--color-text-muted); }
-.quote-steps li b { color: var(--color-text); font-size: 14.4px; }
-@media (max-width: 960px) { .quote-layout { grid-template-columns: 1fr; } }
 
 /* Tunnel : aucun moyen de paiement ouvert pour le pays choisi. */
-.checkout-payment-closed { display: grid; gap: 8px; justify-items: start; padding: 14px 16px; border-radius: 10px; background: var(--color-primary-soft); border: 1px solid var(--color-primary-muted); font-size: 14px; line-height: 1.5; }
 
 /* En-tête : la langue et la devise se règlent avec le pays de livraison, inutile de les répéter. */
-@media (min-width: 721px) { .header-actions .header-currency { display: none; } }
 
 /* Prix par quantité sur la fiche produit. */
 .pd-qty-prices { list-style: none; margin: 0 0 6px; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
@@ -186,42 +52,25 @@
 .pd-qty-prices b { font-size: 20px; letter-spacing: -.3px; color: var(--color-text); }
 
 /* Bouton WhatsApp flottant. */
-.whatsapp-float {
-  position: fixed; right: 20px; bottom: 24px; z-index: 40;
-  display: inline-flex; align-items: center; gap: 8px;
-  padding: 12px 18px 12px 14px; border: 0; border-radius: 999px;
-  background: var(--color-whatsapp); color: var(--color-static-white);
-  font-weight: 700; font-size: 15px;
-  box-shadow: 0 8px 24px color-mix(in srgb, var(--color-shadow) 22%, transparent);
-}
-.whatsapp-float:hover { filter: brightness(1.08); }
-@media (max-width: 760px) {
-  .whatsapp-float { right: 14px; bottom: calc(92px + env(safe-area-inset-bottom, 0px)); padding: 12px; }
-  .whatsapp-float span { display: none; }
-}
 
 /* ==========================================================================
    Boutons : une seule forme, des états cohérents, des zones de clic confortables.
    Les sélecteurs commencent par « body » pour l'emporter sur les feuilles de page.
    ========================================================================== */
-body .button, body .header-signup, body .pd-btn { border-radius: 999px; }
-body .button, body .header-signup, body .pd-btn, body .quick-add, body .compare-toggle, body .favorite-toggle {
+body .button, body .pd-btn { border-radius: 999px; }
+body .button, body .pd-btn, body .favorite-toggle {
   transition: background-color .15s, border-color .15s, color .15s, box-shadow .15s, transform .1s;
 }
-body .button:active, body .header-signup:active, body .pd-btn:active,
-body .quick-add:active, body .compare-toggle:active, body .favorite-toggle:active { transform: scale(.96); }
+body .button:active, body .pd-btn:active, body .favorite-toggle:active { transform: scale(.96); }
 body .button:disabled, body .pd-btn:disabled, body button:disabled { opacity: .55; cursor: not-allowed; transform: none; box-shadow: none; }
 body .button-primary, body .pd-btn-primary { box-shadow: 0 1px 2px color-mix(in srgb, var(--color-shadow) 14%, transparent); }
 body .button-primary:hover:not(:disabled), body .pd-btn-primary:hover:not(:disabled) { box-shadow: 0 4px 12px color-mix(in srgb, var(--color-primary) 35%, transparent); }
-body .button:focus-visible, body .pd-btn:focus-visible, body .header-signup:focus-visible,
-body .quick-add:focus-visible, body .compare-toggle:focus-visible, body .favorite-toggle:focus-visible {
+body .button:focus-visible, body .pd-btn:focus-visible, body .favorite-toggle:focus-visible {
   outline: 3px solid color-mix(in srgb, var(--color-primary) 55%, transparent); outline-offset: 2px;
 }
 body .pd-btn-icon { padding: 0; width: 52px; min-width: 52px; }
 
 /* Boutons-icônes des cartes : au moins 32 px sur ordinateur. */
-body .quick-add { width: 32px; height: 32px; }
-body .compare-toggle { min-width: 32px; min-height: 32px; }
 body .favorite-toggle { width: 32px; height: 32px; }
 
 /* Questions fréquentes : toute la ligne se déplie, pas seulement le texte. */
@@ -231,11 +80,7 @@ body .favorite-toggle { width: 32px; height: 32px; }
 
 /* Mobile : zones de clic d'au moins 40 px. */
 @media (max-width: 760px) {
-  body .quick-add, body .compare-toggle, body .favorite-toggle { width: 40px; height: 40px; min-width: 40px; min-height: 40px; padding: 0; }
-  body .header-action, body .mobile-menu-button, body .cart-action { min-width: 40px; min-height: 40px; display: inline-grid; place-items: center; }
-  body .search-form button { min-height: 40px; }
-  body .mobile-destination-button { min-height: 34px; }
-  body .mobile-filter-toggle { min-height: 40px; padding-inline: 14px; }
+   body .favorite-toggle { width: 40px; height: 40px; min-width: 40px; min-height: 40px; padding: 0; }
   body .pd-mobile-bar { grid-template-columns: 52px 1fr 1.25fr; }
   body .pd-mobile-bar.is-single { grid-template-columns: 1fr; }
   body .pd-mobile-bar .pd-btn { padding: 0 10px; font-size: 14.5px; }
@@ -244,8 +89,6 @@ body .favorite-toggle { width: 32px; height: 32px; }
 
 /* Boutons secondaires : zone de clic confortable sans changer leur aspect. */
 body .pd-link-button { min-height: 32px; display: inline-flex; align-items: center; }
-body .catalog-more-link { min-height: 32px; display: inline-flex; align-items: center; }
-body .catalog-index-heading a { display: inline-grid; place-items: center; min-width: 32px; min-height: 32px; }
 body .pd-stage-actions button, body .pd-stage-prev, body .pd-stage-next { width: 40px; height: 40px; }
 
 /* ==========================================================================
@@ -253,10 +96,7 @@ body .pd-stage-actions button, body .pd-stage-prev, body .pd-stage-next { width:
    Deux règles générales (« main:not(.pd) * » et « .pd button ») le remettaient en noir.
    ========================================================================== */
 body main:not(.pd) .button-primary,
-body main:not(.pd) .button-primary *,
-body main:not(.pd) .catalog-image-banner-copy i,
-body main:not(.pd) .catalog-image-banner-copy i * { color: var(--color-on-primary) !important; }
-body main:not(.pd) .catalog-image-banner-copy i { font-weight: 700; font-size: 12.5px; }
+body main:not(.pd) .button-primary * { color: var(--color-on-primary) !important; }
 body .pd .pd-btn { font-weight: 700; }
 body .pd .pd-btn-primary, body .pd-mobile-bar .pd-btn-primary { color: var(--color-on-primary); }
 
@@ -265,86 +105,18 @@ body .pd .pd-btn-primary, body .pd-mobile-bar .pd-btn-primary { color: var(--col
    ========================================================================== */
 .country-flag { display: inline-block; vertical-align: middle; flex: none; border-radius: 3px; object-fit: cover; box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-shadow) 14%, transparent); }
 .country-flag-code { display: inline-grid; place-items: center; min-width: 26px; height: 18px; padding: 0 3px; background: var(--color-bg); font-size: 10px; font-weight: 800; }
-body .country-picker-code { width: auto; height: auto; border: 0; background: transparent; }
-.header-flag { margin-right: 6px; }
-body .mobile-destination-button .country-flag { margin-right: 4px; }
 
 .payment-logos { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .payment-logos li { display: flex; line-height: 0; }
 .payment-logos { flex: none; }
 .payment-logos img { display: block; max-width: none; border-radius: 6px; }
-.payment-choice .payment-logos { gap: 4px; }
-body .payment-choice { align-items: center; gap: 10px; }
-body .payment-choice > span { font-weight: 600; }
-
-.footer-countries { margin-top: 16px; }
-.footer-countries b { display: block; margin-bottom: 8px; font-size: 13px; color: var(--color-text); }
-.footer-countries ul { list-style: none; display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; }
-.site-footer .footer-payments { margin-top: 2px; }
-
-.locate-box { margin: 0 0 14px; }
-.locate-button {
-  display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 16px;
-  border: 1px solid var(--color-primary); border-radius: 999px; background: var(--color-primary-soft);
-  color: var(--color-primary-strong); font-size: 14px; font-weight: 700; cursor: pointer;
-  transition: background-color .15s, color .15s, transform .1s;
-}
-body .locate-button, body .locate-button * { color: var(--color-primary-strong) !important; }
-@media (hover: hover) {
-  body .locate-button:hover:not(:disabled) { background: var(--color-primary); }
-  body .locate-button:hover:not(:disabled), body .locate-button:hover:not(:disabled) * { color: var(--color-on-primary) !important; }
-}
-.locate-button:active { transform: scale(.97); }
-.locate-spin { animation: locate-spin 1s linear infinite; }
-@keyframes locate-spin { to { transform: rotate(360deg); } }
-body .locate-message { margin: 8px 0 0; font-size: 13.5px; font-weight: 600; color: var(--color-success) !important; }
-body .locate-message.is-error { color: var(--color-danger) !important; }
-body .locate-privacy { margin: 6px 0 0; font-size: 12px; line-height: 1.4; color: var(--color-text-muted) !important; }
-
-.checkout-sticky-bar { display: none; }
 @media (max-width: 720px) {
   /* Le récapitulatif passe après le formulaire (adresse, puis paiement), et le bouton reste à portée de pouce. */
-  body .checkout-layout .summary-card { order: 0; }
-  body .checkout-layout .summary-card > button[type="submit"] { display: none; }
-  body .checkout-sticky-bar {
-    position: fixed; z-index: 90; left: 0; right: 0; bottom: 0;
-    display: flex; align-items: center; justify-content: space-between; gap: 14px;
-    padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px));
-    background: var(--color-surface); border-top: 1px solid var(--color-border); box-shadow: var(--shadow-md);
-  }
-  .checkout-sticky-bar > div { display: grid; gap: 1px; min-width: 0; }
-  .checkout-sticky-bar small { font-size: 12px; color: var(--color-text-muted); }
-  .checkout-sticky-bar b { font-size: 18px; letter-spacing: -.3px; color: var(--color-text); white-space: nowrap; }
-  .checkout-sticky-bar .button { flex: 1; max-width: 230px; min-height: 48px; }
-  body:has(.checkout-sticky-bar) .mobile-tabbar { display: none; }
-  body:has(.checkout-sticky-bar) .site-footer { padding-bottom: 84px; }
-  body:has(.checkout-sticky-bar) .whatsapp-float { bottom: 88px; }
-  .payment-options { grid-template-columns: 1fr; }
-  body .payment-choice { min-height: 56px; }
 }
 
 /* Résultat du paiement et règlement d'une commande en attente. */
-.pay-banner { display: flex; gap: 14px; align-items: flex-start; margin: 0 0 16px; padding: 16px 18px; border-radius: 12px; border: 1px solid var(--color-border); background: var(--color-surface); }
-.pay-banner > svg { flex: none; margin-top: 2px; }
-.pay-banner h2 { margin: 0 0 4px; font-size: 18px; }
-.pay-banner p { margin: 0 0 10px; font-size: 14.5px; line-height: 1.5; color: var(--color-text-muted); }
-.pay-banner.is-success { background: var(--color-success-soft); border-color: color-mix(in srgb, var(--color-success) 35%, transparent); }
-.pay-banner.is-success > svg { color: var(--color-success); }
-.pay-banner.is-pending { background: var(--color-primary-soft); border-color: var(--color-primary-muted); }
-.pay-banner.is-pending > svg { color: var(--color-primary); }
-.pay-banner.is-failed { background: var(--color-danger-soft); border-color: color-mix(in srgb, var(--color-danger) 35%, transparent); }
-.pay-banner.is-failed > svg { color: var(--color-danger); }
-.pay-banner > div { min-width: 0; flex: 1; }
-
-.pay-form { display: grid; gap: 10px; margin-top: 4px; }
-.pay-form-options { display: grid; gap: 8px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
-.pay-form-submit { width: 100%; min-height: 48px; }
-.pay-form-note, .pay-form-empty { margin: 0; font-size: 12.5px; color: var(--color-text-muted); }
-@media (max-width: 720px) { .pay-form-options { grid-template-columns: 1fr; } .pay-banner { padding: 14px; } }
 
 /* Sélecteur de pays : la mention « livraison à confirmer » figure déjà en haut, pas sur chaque ligne. */
-.country-picker-modal .locate-box { margin: 0 22px 12px; }
-.country-picker-item:not(.is-selected) .country-picker-confirm { display: none; }
 
 /* Les logos portent déjà leur propre cadre : pas de pastille supplémentaire autour. */
 body .payment-logos li, body .pd-payments li { padding: 0; border: 0; background: transparent; min-height: 0; border-radius: 0; }

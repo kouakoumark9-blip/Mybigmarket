@@ -482,3 +482,5 @@ html body button,html body input,html body select,html body textarea{font-family
 .mb-info ul{list-style:disc;display:block}
 .mb-info ol{list-style:decimal;display:block}
 .mb-info li{margin:4px 0;padding-left:2px}
+
+.mb-hero-slide{background:#ececee}
