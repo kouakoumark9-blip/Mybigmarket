@@ -7,7 +7,6 @@ import type { DemoProduct } from "@/lib/demo-data";
 import type { Product, Review, ReviewSummary } from "@/lib/pdp/types";
 import { pdpConfig } from "@/lib/pdp/config";
 import { useCart } from "@/components/cart-provider";
-import { ImageSearchDialog } from "@/components/image-search-dialog";
 import { Breadcrumb } from "@/components/product-detail/breadcrumb";
 import { ProductGallery } from "@/components/product-detail/product-gallery";
 import { ProductInfo } from "@/components/product-detail/product-info";
@@ -57,7 +56,6 @@ export function ProductDetailPage({ product, cartItem, publishedReviews = [], pa
   const [activeImage, setActiveImage] = useState(0);
   const [variantImage, setVariantImage] = useState<string | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
-  const [imageSearchOpen, setImageSearchOpen] = useState(false);
   const [feedback, setFeedback] = useState("");
   const [compact, setCompact] = useState(false);
   const [floatingTabs, setFloatingTabs] = useState(false);
@@ -113,7 +111,6 @@ export function ProductDetailPage({ product, cartItem, publishedReviews = [], pa
   }, []);
 
   const closeSheet = useCallback(() => setSheetOpen(false), []);
-  const closeImageSearch = useCallback(() => setImageSearchOpen(false), []);
 
   return <main className="pd" id="contenu">
     <TabsBar tabs={pdpConfig.tabs} active={activeTab} floating visible={floatingTabs}/>
@@ -123,7 +120,7 @@ export function ProductDetailPage({ product, cartItem, publishedReviews = [], pa
         <div className="pd-left">
           <div className="pd-main" ref={mainRef}>
             <div className="pd-area-gallery">
-              <ProductGallery images={images} videoUrl={product.videoUrl} label={product.imageLabel} activeIndex={activeImage} onSelect={setActiveImage} favoriteItem={cartItem} onImageSearch={() => setImageSearchOpen(true)}/>
+              <ProductGallery images={images} videoUrl={product.videoUrl} label={product.imageLabel} activeIndex={activeImage} onSelect={setActiveImage} favoriteItem={cartItem}/>
             </div>
             <div className="pd-area-info">
               <ProductInfo ref={priceRef} product={product} variants={variants} unitPrice={unitPrice}/>
@@ -134,7 +131,7 @@ export function ProductDetailPage({ product, cartItem, publishedReviews = [], pa
           </div>
 
           <div className="pd-lower">
-            <ProductCarousel title="Autres recommandations pour votre entreprise" items={product.related} id="pd-related"/>
+            <ProductCarousel title="Produits similaires" items={product.related} id="pd-related"/>
             <TabsBar ref={inlineTabsRef} tabs={pdpConfig.tabs} active={activeTab}/>
             <RecapSection summary={product.summary ?? ""} specs={product.keySpecs} highlights={product.highlights} id="pdp-recap"/>
             <AttributesTable items={product.attributes} id="pdp-attributes"/>
@@ -152,9 +149,8 @@ export function ProductDetailPage({ product, cartItem, publishedReviews = [], pa
       </div>
     </div>
 
-    <FloatingActions onImageSearch={() => setImageSearchOpen(true)}/>
+    <FloatingActions/>
     <MobileActionBar slug={product.slug} onOrder={order} onAddToCart={addToCart} orderable={!cartItem.isDemo} title={product.title}/>
     <VariantSheet product={product} state={variants} open={sheetOpen} onClose={closeSheet}/>
-    <ImageSearchDialog open={imageSearchOpen} onClose={closeImageSearch}/>
   </main>;
 }

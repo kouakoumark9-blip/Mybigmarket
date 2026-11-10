@@ -5,7 +5,7 @@ import { Info, Trophy } from "lucide-react";
 import type { Product } from "@/lib/pdp/types";
 import { VariantPicker, type VariantState } from "@/components/product-detail/variant-picker";
 import { SpecsGrid } from "@/components/product-detail/specs-grid";
-import { Stars, plural, usePriceRange } from "@/components/product-detail/shared";
+import { Stars, usePriceRange } from "@/components/product-detail/shared";
 
 type Props = { product: Product; variants: VariantState; unitPrice: number };
 
@@ -20,7 +20,6 @@ export function PriceBlock({ product, compact = false }: { product: Product; com
         <b>{priceRange(row.unitPriceXof)}</b>
       </li>)}
     </ul> : <p className="pd-price"><span className="sr-only">Prix : </span>{priceRange(product.priceMin, product.priceMax)}</p>}
-    <p className="pd-moq">Quantité minimale : {plural(product.minOrderQty, product.unit)}</p>
   </div>;
 }
 
