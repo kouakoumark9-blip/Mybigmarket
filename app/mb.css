@@ -678,3 +678,8 @@ html body{line-height:1.6;font-size:15.5px}
   .mb-home-stack .mb-reassurance b{font-size:10.5px;letter-spacing:0;text-transform:none;line-height:1.2;overflow-wrap:anywhere}
   .mb-home-stack .mb-reassurance span{font-size:9.5px;letter-spacing:0;text-transform:none;line-height:1.25;margin-top:2px;overflow-wrap:anywhere}
 }
+
+/* Accueil : le hero déborde du cadre et occupe presque toute la largeur de l'écran (comme les vitrines e-commerce) */
+@media (min-width:901px){
+  .mb-home-stack .mb-hero{position:relative;left:50%;width:max(100%,min(94vw,2000px));max-width:none;transform:translateX(-50%)}
+}
