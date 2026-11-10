@@ -8,6 +8,7 @@ import { useCart } from "@/components/cart-provider";
 import { SHOP, TOP_STRIP, whatsappLink } from "@/lib/shop/config";
 import { Logo } from "./logo";
 import { CategoryMenu } from "./category-menu";
+import { CategoryIcon } from "./category-icon";
 import { groupChildren } from "@/lib/shop/category-groups";
 import type { MenuCategory } from "./menu-types";
 
@@ -63,13 +64,13 @@ export function SiteHeader({ categories }: { categories: MenuCategory[] }) {
         <div className="mb-drawer-head"><span>Catégories</span><button type="button" onClick={() => setOpen(false)} aria-label="Fermer le menu"><X size={22} strokeWidth={1.75}/></button></div>
         <ul>
           {categories.map((item) => <li key={item.slug}>
-            {item.children.length ? <details><summary>{item.name}</summary>
+            {item.children.length ? <details><summary><CategoryIcon slug={item.slug}/>{item.name}</summary>
               <Link href={`/${item.slug}`} onClick={() => setOpen(false)}>Tout dans {item.name}</Link>
               {groupChildren(item.slug, item.children).map((group, index) => <div key={group.title ?? index} className="mb-drawer-group">
                 {group.title && <span className="mb-drawer-group-title">{group.title}</span>}
                 {group.items.map((child) => <Link key={child.slug} href={`/${child.slug}`} onClick={() => setOpen(false)}>{child.name}</Link>)}
               </div>)}
-            </details> : <Link href={`/${item.slug}`} onClick={() => setOpen(false)}>{item.name}</Link>}
+            </details> : <Link href={`/${item.slug}`} onClick={() => setOpen(false)}><CategoryIcon slug={item.slug}/>{item.name}</Link>}
           </li>)}
           <li><Link href="/suivi-commande" onClick={() => setOpen(false)}>Suivi de commande</Link></li>
           <li><Link href="/favoris" onClick={() => setOpen(false)}>Favoris</Link></li>

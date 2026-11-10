@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import { groupChildren } from "@/lib/shop/category-groups";
+import { CategoryIcon } from "./category-icon";
 import type { MenuCategory } from "./menu-types";
 
 /** Colonne des catégories (page d'accueil) : les sous-catégories s'ouvrent au survol ou au clavier. */
@@ -9,7 +10,7 @@ export function CategoryMenu({ categories, title = "Catégories" }: { categories
     <h2 className="mb-catmenu-title">{title}</h2>
     <ul>
       {categories.map((category) => <li key={category.slug}>
-        <Link href={`/${category.slug}`}>{category.name}{category.children.length > 0 && <ChevronRight size={16} strokeWidth={1.75} aria-hidden="true" className="mb-icon"/>}</Link>
+        <Link href={`/${category.slug}`}><span className="mb-catmenu-name"><CategoryIcon slug={category.slug}/>{category.name}</span>{category.children.length > 0 && <ChevronRight size={16} strokeWidth={1.75} aria-hidden="true" className="mb-icon"/>}</Link>
         {category.children.length > 0 && <div className="mb-sub">
           <Link href={`/${category.slug}`} className="mb-sub-all">Tout dans {category.name}</Link>
           {groupChildren(category.slug, category.children).map((group, index) => <div key={group.title ?? index} className="mb-sub-group">

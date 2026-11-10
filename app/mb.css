@@ -683,3 +683,17 @@ html body{line-height:1.6;font-size:15.5px}
 @media (min-width:901px){
   .mb-home-stack .mb-hero{position:relative;left:50%;width:max(100%,min(94vw,2000px));max-width:none;transform:translateX(-50%)}
 }
+
+/* Menu des catégories façon Jumia : icônes, volet des sous-catégories collé en haut du menu et sur toute sa hauteur */
+.mb-cat-ico{flex:none;color:var(--color-primary)}
+.mb-catmenu-name{display:inline-flex;align-items:center;gap:12px;min-width:0}
+.mb-catmenu>ul>li{position:static}
+.mb-catmenu .mb-sub{top:0;left:calc(100% - 1px);min-height:100%;border-radius:0 8px 8px 0;border:1px solid var(--color-border);box-shadow:0 8px 24px rgba(17,17,17,.12)}
+.mb-catmenu>ul>li:hover>a,.mb-catmenu>ul>li:focus-within>a{background:var(--color-primary-soft)}
+.mb-drawer summary,.mb-drawer li>a{display:flex;align-items:center;gap:12px}
+.mb-drawer summary{list-style:none;position:relative;padding-right:40px}
+.mb-drawer summary::-webkit-details-marker{display:none}
+.mb-drawer summary::after{content:"";position:absolute;right:18px;top:50%;width:8px;height:8px;border-right:2px solid #6b7280;border-bottom:2px solid #6b7280;transform:translateY(-70%) rotate(45deg);transition:transform .15s}
+.mb-drawer details[open]>summary::after{transform:translateY(-30%) rotate(-135deg)}
+.mb-drawer details[open]>summary{font-weight:700;background:var(--color-primary-soft)}
+.mb-drawer details a{display:block}
