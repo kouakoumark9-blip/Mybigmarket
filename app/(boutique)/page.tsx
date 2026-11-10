@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { ShieldCheck, Smartphone, Truck } from "lucide-react";
+import { Headset, ShieldCheck, Smartphone, Truck } from "lucide-react";
 import { HomeCategories } from "@/components/shop/home-categories";
 import { HeroCarousel } from "@/components/shop/hero-carousel";
 import { ProductSection } from "@/components/shop/product-section";
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/" },
 };
 
-const ICONS = [Smartphone, Truck, ShieldCheck];
+const ICONS = [Smartphone, Truck, ShieldCheck, Headset];
 
 export default async function HomePage() {
   const [tree, bestRaw, fresh, pool] = await Promise.all([
@@ -35,7 +35,7 @@ export default async function HomePage() {
       <HomeCategories categories={menu}/>
       <HeroCarousel banners={BANNERS}/>
       <div className="mb-reassurance" style={{ margin: 0 }}>
-        {REASSURANCE.map((item, index) => { const Icon = ICONS[index]; return <div key={item.title}><Icon size={22} strokeWidth={1.75} aria-hidden="true"/><div><b>{item.title}</b><span>{item.text}</span></div></div>; })}
+        {REASSURANCE.map((item, index) => { const Icon = ICONS[index]; return <div key={item.title}><Icon size={32} strokeWidth={1.25} aria-hidden="true"/><div><b>{item.title}</b><span>{item.text}</span></div></div>; })}
       </div>
     </div>
 
