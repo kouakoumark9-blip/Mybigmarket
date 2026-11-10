@@ -20,9 +20,10 @@ test.describe("vitrine", () => {
   test("adresses propres des catégories, fil d'Ariane, filtres et FAQ", async ({ page }) => {
     await page.goto("/lits");
     await expect(page.getByRole("heading", { level: 1, name: "Lits" })).toBeVisible();
-    const sub = page.getByLabel("Sous-catégories");
-    for (const title of ["Par taille", "Par type", "Par matière"]) await expect(sub.getByText(title)).toBeVisible();
-    await expect(sub.getByRole("link", { name: "Lits 3 places" })).toBeVisible();
+    // Colonne « Catégorie » (ordinateur) : intertitres en gras et liens en dessous
+    const side = page.getByRole("navigation", { name: "Catégories Lits" });
+    for (const title of ["Par taille", "Par type", "Par matière", "Packs"]) await expect(side.getByRole("heading", { name: title })).toBeVisible();
+    await expect(side.getByRole("link", { name: "Lits 3 places" })).toBeVisible();
     await expect(page.getByRole("form", { name: "Filtres" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Questions fréquentes" })).toBeVisible();
     await expect(page).toHaveTitle(/Lits à Abidjan/);

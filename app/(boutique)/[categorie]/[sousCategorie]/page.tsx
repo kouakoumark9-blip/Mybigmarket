@@ -27,6 +27,6 @@ export default async function SubCategoryPage({ params, searchParams }: Props) {
   const crumbs = [{ label: "Accueil", href: "/" }, { label: parent.name, href: `/${parent.slug}` }, { label: category.name, href: `/${category.slug}` }];
   return <div className="mb-wrap mb-page" id="contenu" role="main">
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd(crumbs, SHOP.baseUrl)) }}/>
-    <CatalogView basePath={`/${category.slug}`} title={category.name} intro={category.introText} crumbs={crumbs} params={await searchParams} categoryIds={categoryIdsOf(category)} body={category.bodyText} faq={category.faq}/>
+    <CatalogView basePath={`/${category.slug}`} title={category.name} intro={category.introText} crumbs={crumbs} params={await searchParams} categoryIds={categoryIdsOf(category)} tree={parent} body={category.bodyText} faq={category.faq}/>
   </div>;
 }
