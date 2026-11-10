@@ -1,12 +1,5 @@
-BANNIÈRES DE LA PAGE D'ACCUEIL
-==============================
+BANNIÈRE DE LA PAGE D'ACCUEIL
+=============================
 
-Déposez vos images dans ce dossier (ou changez les noms dans lib/shop/banners.ts) :
-
-  slide-1-bureau.webp  2000 x 667 px   (famille en cuisine)
-  slide-2-bureau.webp  2000 x 667 px   (lave-linge)
-  slide-3-bureau.webp  2000 x 667 px   (appareils de cuisine)
-  slide-N-mobile.jpg   1080 x 540 px   (facultatif : sans lui, le fichier ordinateur sert aussi sur mobile)
-
-Pour ajouter d'autres bannières (3 à 5 conseillées) : copiez le modèle en commentaire dans lib/shop/banners.ts.
-Format conseillé : JPG ou WebP, moins de 300 Ko par image. Le site les redimensionne tout seul selon l'écran.
+Images actuelles : accueil.webp, accueil-2.webp et accueil-3.webp (2000 × 667 px, format 3 : 1), affichée sans recompression.
+Pour la changer : remplacez ce fichier (ou changez le nom dans lib/shop/banners.ts).

@@ -10,6 +10,7 @@ test.describe("vitrine", () => {
     await page.goto("/");
     await expect(page.getByRole("navigation", { name: "Catégories" }).first()).toBeVisible();
     await expect(page.getByRole("region", { name: "Offres du moment" })).toBeVisible();
+    await expect(page.getByRole("navigation", { name: "Catégories de la boutique" }).getByRole("link", { name: "Lits" })).toBeVisible();
     await expect(page.getByText("Paiement mobile money sécurisé")).toBeVisible();
     await expect(page.getByRole("heading", { name: "Meilleures ventes" })).toBeVisible();
     const text = (await page.locator("body").innerText()).toLowerCase();
@@ -44,6 +45,21 @@ test.describe("vitrine", () => {
     }
     const missing = await page.goto("/rubrique-qui-n-existe-pas");
     expect(missing?.status()).toBe(404);
+  });
+
+  test("matelas : arborescence, surmatelas et aide au choix", async ({ page }) => {
+    await page.goto("/matelas");
+    await expect(page.getByRole("heading", { level: 1, name: "Matelas" })).toBeVisible();
+    const side = page.getByRole("navigation", { name: "Catégories Matelas" });
+    for (const title of ["Par taille", "Par type", "Par budget"]) await expect(side.getByRole("heading", { name: title })).toBeVisible();
+    for (const name of ["Matelas 1 place", "Matelas bébé et enfant", "Matelas orthopédique", "Matelas médical", "Matelas pas cher"]) await expect(side.getByRole("link", { name })).toBeVisible();
+    for (const path of ["matelas/matelas-1-place", "matelas/matelas-2-places", "matelas/matelas-2-5-places", "matelas/matelas-3-places", "matelas/matelas-bebe", "matelas/matelas-orthopedique", "matelas/matelas-mousse", "matelas/matelas-memoire-de-forme", "matelas/matelas-a-ressorts", "matelas/matelas-medical", "matelas/matelas-pas-cher", "surmatelas-protege-matelas", "guide-choix-matelas"]) {
+      expect((await page.goto(`/${path}`))?.status(), path).toBe(200);
+    }
+    await page.goto("/matelas");
+    await page.getByRole("link", { name: /Aide au choix/ }).first().click();
+    await expect(page).toHaveURL(/guide-choix-matelas/);
+    await expect(page.getByRole("heading", { level: 1, name: "Aide au choix d'un matelas" })).toBeVisible();
   });
 
   test("commande sans compte : panier, une page, confirmation WhatsApp, suivi", async ({ page }) => {

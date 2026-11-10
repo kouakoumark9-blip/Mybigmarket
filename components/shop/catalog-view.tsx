@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { CategorySidebar } from "./category-sidebar";
+import { CATEGORY_GUIDES } from "@/lib/shop/category-groups";
 import { categoryBanner } from "@/lib/shop/category-banners";
 import { Breadcrumbs, type Crumb } from "./breadcrumbs";
 import { ProductGrid } from "./product-card";
@@ -44,6 +45,7 @@ export async function CatalogView({ basePath, title, intro, crumbs, params, cate
     </a>; })()}
     <h1 className="mb-title">{filters.q ? `Résultats pour « ${filters.q} »` : title}</h1>
     {intro && !filters.q && <p className="mb-intro">{intro}</p>}
+    {!filters.q && CATEGORY_GUIDES[basePath.replace(/^\//, "")] && <p className="mb-intro"><Link className="mb-link" href={CATEGORY_GUIDES[basePath.replace(/^\//, "")].href}>{CATEGORY_GUIDES[basePath.replace(/^\//, "")].label} →</Link></p>}
     <div className="mb-cat-layout" id="produits">
       <aside className="mb-side">
       {tree && tree.children.length > 0 && <CategorySidebar root={tree} currentSlug={basePath.replace(/^\//, "")}/>}
@@ -64,8 +66,7 @@ export async function CatalogView({ basePath, title, intro, crumbs, params, cate
       </form>
       </aside>
       <div>
-        <div className="mb-toolbar"><span>{total} produit{total > 1 ? "s" : ""}{options.maxPrice ? ` · jusqu'à ${formatFcfa(options.maxPrice)}` : ""}</span>
-          <span>Trier : {SORT_LABELS.map(([value, label], index) => <span key={value}>{index > 0 && " · "}{filters.sort === value ? <b>{label}</b> : <Link className="mb-link" href={withParams(basePath, keep, { tri: value === "pertinence" ? undefined : value })}>{label}</Link>}</span>)}</span></div>
+        <div className="mb-toolbar"><span>{total} produit{total > 1 ? "s" : ""}{options.maxPrice ? ` · jusqu'à ${formatFcfa(options.maxPrice)}` : ""}</span></div>
         {items.length ? <div className="mb-section" style={{ margin: 0 }}><ProductGrid products={items}/></div> : <div className="mb-section"><p className="mb-empty">Aucun produit ne correspond. <Link className="mb-link" href={basePath}>Voir toute la sélection</Link> ou écrivez-nous sur WhatsApp pour le trouver.</p></div>}
         {pages > 1 && <nav className="mb-pager" aria-label="Pagination">{Array.from({ length: pages }, (_, index) => index + 1).map((number) => number === page ? <span key={number} aria-current="page">{number}</span> : <Link key={number} href={withParams(basePath, keep, { page: number === 1 ? undefined : String(number) })}>{number}</Link>)}</nav>}
       </div>

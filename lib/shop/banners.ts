@@ -15,11 +15,11 @@ export type Banner = {
 };
 
 export const BANNERS: Banner[] = [
-  { desktop: "/bannieres/slide-1-bureau.webp", mobile: "/bannieres/slide-1-bureau.webp", alt: "Une famille ivoirienne dans sa cuisine équipée : ", href: "/lits",
+  { desktop: "/bannieres/accueil.webp", mobile: "/bannieres/accueil.webp", alt: "MyBigMarket : tout pour votre maison, livré partout en Côte d'Ivoire. Voir les offres", href: "/lits",
     fallback: { title: "Lits de toutes tailles", text: "En stock à Abidjan, livraison 24 à 72 h" } },
-  { desktop: "/bannieres/slide-2-bureau.webp", mobile: "/bannieres/slide-2-bureau.webp", alt: "Un père et son fils devant un lave-linge : machines à laver et gros électroménager", href: "/lits",
-    fallback: { title: "Lits enfants, lits superposés", text: "Livraison à Abidjan et en Côte d'Ivoire, paiement par mobile money" } },
-  { desktop: "/bannieres/slide-3-bureau.webp", mobile: "/bannieres/slide-3-bureau.webp", alt: "Mixeur, bouilloire, grille-pain, friteuse à air, cafetière et fer à repasser sur un plan de travail", href: "/lits",
-    fallback: { title: "Packs lit + matelas", text: "Le lit et son matelas ensemble" } },
-  // Pour ajouter une 4e ou 5e bannière : déposez l'image dans public/bannieres/ puis copiez un des modèles ci-dessus.
+  { desktop: "/bannieres/accueil-2.webp", mobile: "/bannieres/accueil-2.webp", alt: "Qualité et confort sans égal : découvrez notre collection de lits haut de gamme. Voir les offres", href: "/lits",
+    fallback: { title: "Qualité et confort sans égal", text: "Découvrez notre collection de lits haut de gamme" } },
+  { desktop: "/bannieres/accueil-3.webp", mobile: "/bannieres/accueil-3.webp", alt: "L'excellence au cœur de votre foyer : des équipements modernes pour toute la famille", href: "/lits",
+    fallback: { title: "L'excellence au cœur de votre foyer", text: "Des équipements modernes pour toute la famille" } },
+  // Pour ajouter d'autres bannières : déposez l'image dans public/bannieres/ puis copiez le modèle ci-dessus.
 ];

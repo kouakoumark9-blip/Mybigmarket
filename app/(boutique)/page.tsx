@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import { ShieldCheck, Smartphone, Truck } from "lucide-react";
-import { CategoryMenu } from "@/components/shop/category-menu";
+import { Headset, ShieldCheck, Smartphone, Truck } from "lucide-react";
+import { HomeCategories } from "@/components/shop/home-categories";
 import { HeroCarousel } from "@/components/shop/hero-carousel";
 import { ProductSection } from "@/components/shop/product-section";
 import { BANNERS } from "@/lib/shop/banners";
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/" },
 };
 
-const ICONS = [Smartphone, Truck, ShieldCheck];
+const ICONS = [Smartphone, Truck, ShieldCheck, Headset];
 
 export default async function HomePage() {
   const [tree, bestRaw, fresh, pool] = await Promise.all([
@@ -26,18 +26,16 @@ export default async function HomePage() {
   ]);
   // Chaque rangée montre au moins 10 produits quand le catalogue le permet : on complète avec le reste du catalogue.
   const best = { ...bestRaw, items: [...bestRaw.items, ...pool.items.filter((item) => !bestRaw.items.some((own) => own.id === item.id))].slice(0, 10) };
-  const menu = tree.map((category) => ({ name: category.name, slug: category.slug, children: category.children.map((child) => ({ name: child.name, slug: child.slug })) }));
+  const menu = tree.map((category) => ({ name: category.name, slug: category.slug }));
   const organization = { "@context": "https://schema.org", "@type": "Store", name: SHOP.name, url: SHOP.baseUrl, telephone: `+${SHOP.whatsappNumber}`, email: SHOP.email, address: { "@type": "PostalAddress", addressLocality: "Abidjan", addressCountry: "CI" }, areaServed: "CI", currenciesAccepted: "XOF", paymentAccepted: "Mobile money (Orange Money, MTN MoMo, Moov Money, Wave)" };
   return <div className="mb-wrap mb-page" id="contenu" role="main">
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organization) }}/>
     <h1 className="mb-sr">MyBigMarket, boutique en ligne à Abidjan</h1>
-    <div className="mb-home-top" style={{ alignItems: "stretch" }}>
-      <CategoryMenu categories={menu}/>
-      <div style={{ display: "flex", flexDirection: "column", gap: 12, minWidth: 0 }}>
-        <HeroCarousel banners={BANNERS}/>
-        <div className="mb-reassurance" style={{ margin: 0 }}>
-          {REASSURANCE.map((item, index) => { const Icon = ICONS[index]; return <div key={item.title}><Icon size={22} strokeWidth={1.75} aria-hidden="true"/><div><b>{item.title}</b><span>{item.text}</span></div></div>; })}
-        </div>
+    <div className="mb-home-stack">
+      <HomeCategories categories={menu}/>
+      <HeroCarousel banners={BANNERS}/>
+      <div className="mb-reassurance" style={{ margin: 0 }}>
+        {REASSURANCE.map((item, index) => { const Icon = ICONS[index]; return <div key={item.title}><Icon size={32} strokeWidth={1.25} aria-hidden="true"/><div><b>{item.title}</b><span>{item.text}</span></div></div>; })}
       </div>
     </div>
 

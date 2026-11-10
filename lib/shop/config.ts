@@ -24,6 +24,7 @@ export const REASSURANCE = [
   { title: "Paiement mobile money sécurisé", text: "Orange, MTN, Moov, Wave" },
   { title: "Livraison à Abidjan", text: "En stock : 24 à 72 h" },
   { title: "Produits vérifiés", text: "Contrôlés avant l'envoi" },
+  { title: "Service client WhatsApp", text: "Du lundi au samedi, 8 h à 19 h" },
 ];
 
 /** Moyens de paiement : mobile money uniquement. */
