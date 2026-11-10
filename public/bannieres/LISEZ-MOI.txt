@@ -1,5 +1,5 @@
 BANNIÈRE DE LA PAGE D'ACCUEIL
 =============================
 
-Image actuelle : accueil.webp (2000 × 667 px, format 3 : 1), affichée sans recompression.
+Images actuelles : accueil.webp et accueil-2.webp (2000 × 667 px, format 3 : 1), affichée sans recompression.
 Pour la changer : remplacez ce fichier (ou changez le nom dans lib/shop/banners.ts).

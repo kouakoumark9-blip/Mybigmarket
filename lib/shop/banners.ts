@@ -17,5 +17,7 @@ export type Banner = {
 export const BANNERS: Banner[] = [
   { desktop: "/bannieres/accueil.webp", mobile: "/bannieres/accueil.webp", alt: "MyBigMarket : tout pour votre maison, livré partout en Côte d'Ivoire. Voir les offres", href: "/lits",
     fallback: { title: "Lits de toutes tailles", text: "En stock à Abidjan, livraison 24 à 72 h" } },
+  { desktop: "/bannieres/accueil-2.webp", mobile: "/bannieres/accueil-2.webp", alt: "Qualité et confort sans égal : découvrez notre collection de lits haut de gamme. Voir les offres", href: "/lits",
+    fallback: { title: "Qualité et confort sans égal", text: "Découvrez notre collection de lits haut de gamme" } },
   // Pour ajouter d'autres bannières : déposez l'image dans public/bannieres/ puis copiez le modèle ci-dessus.
 ];
