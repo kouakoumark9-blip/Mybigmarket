@@ -17,21 +17,21 @@ export const LEGAL = {
 export const INFO_PAGES: InfoPage[] = [
   {
     slug: "a-propos", title: "À propos de MyBigMarket", metaTitle: "À propos | MyBigMarket, boutique en ligne à Abidjan",
-    description: "MyBigMarket est une boutique en ligne d'Abidjan : climatiseurs, groupes électrogènes, informatique et électroménager, livrés partout en Côte d'Ivoire.",
+    description: "MyBigMarket est une boutique en ligne d'Abidjan : lits de toutes tailles, lits enfants, superposés, en bois ou en métal, livrés partout en Côte d'Ivoire.",
     intro: "MyBigMarket est une boutique en ligne basée à Abidjan. Je vends moi-même les produits que vous voyez sur le site.",
     sections: [
       { h: "Qui vend ?", p: ["C'est une seule et même boutique : les produits sont choisis, achetés et préparés par moi, et vous parlez toujours à la même personne, avant et après l'achat.", "Une partie des produits est en stock à Abidjan, livrable en 24 à 72 h. Les autres sont commandés auprès de fournisseurs à l'étranger : dans ce cas, la fiche indique « Sur commande » avec le délai de livraison."] },
-      { h: "Ce que vous trouvez ici", ul: ["Climatiseurs (split, inverter, mobiles, fenêtre)", "Groupes électrogènes et onduleurs", "Informatique : ordinateurs portables, imprimantes, matériel Wi-Fi", "Petit et gros électroménager, téléviseurs"] },
-      { h: "Une question avant d'acheter ?", p: ["Écrivez-moi sur WhatsApp : je réponds du lundi au samedi, de 8 h à 19 h. Je peux vous aider à choisir la puissance d'un climatiseur ou d'un groupe électrogène selon votre usage."] },
+      { h: "Ce que vous trouvez ici", ul: ["Lits par taille : 1 place, 2 places, 2,5 places, 3 places", "Lits par type : enfants, superposés, pliables, mezzanine, avec chevets, avec rangement", "Lits en bois et lits en métal", "Packs lit + matelas"] },
+      { h: "Une question avant d'acheter ?", p: ["Écrivez-moi sur WhatsApp : je réponds du lundi au samedi, de 8 h à 19 h. Je peux vous aider à choisir la taille de lit qui convient à votre chambre."] },
     ],
   },
   {
     slug: "comment-commander", title: "Comment commander", metaTitle: "Comment commander | MyBigMarket Abidjan",
-    description: "Commander en 4 étapes sur MyBigMarket : choisissez, remplissez votre adresse, payez à la livraison. Sans compte à créer.",
+    description: "Commander en 4 étapes sur MyBigMarket : choisissez, remplissez votre adresse, payez par mobile money. Sans compte à créer.",
     intro: "Aucun compte à créer. La commande tient sur une seule page.",
     sections: [
-      { ol: ["Ajoutez les produits à votre panier.", "Ouvrez le panier, puis cliquez sur « Commander ».", "Indiquez votre nom, votre téléphone, votre commune et une adresse précise (quartier, rue, repère).", "Validez : vous recevez un numéro de commande. Je vous contacte sur WhatsApp ou par téléphone pour confirmer la livraison."] },
-      { h: "Paiement", p: ["Le paiement se fait à la livraison, en espèces, au livreur, après que vous avez vérifié le produit. Orange Money, MTN Mobile Money, Moov Money et Wave seront ajoutés prochainement."] },
+      { ol: ["Ajoutez les produits à votre panier.", "Ouvrez le panier, puis cliquez sur « Commander ».", "Indiquez votre nom, votre téléphone, votre commune et une adresse précise (quartier, rue, repère).", "Choisissez votre mobile money (Orange Money, MTN MoMo, Moov Money ou Wave) puis validez : vous recevez un numéro de commande.", "Je vous envoie sur WhatsApp les instructions de paiement, puis je confirme la livraison."] },
+      { h: "Paiement", p: ["Le paiement se fait uniquement par mobile money : Orange Money, MTN MoMo, Moov Money ou Wave. Après votre commande, je vous envoie les instructions de paiement sur WhatsApp."] },
       { h: "Suivre ma commande", p: ["Gardez votre numéro de commande (par exemple MBM-250101-AB12). Vous pouvez suivre l'état de la commande sur la page « Suivi de commande », ou m'écrire sur WhatsApp."] },
     ],
   },
@@ -42,7 +42,7 @@ export const INFO_PAGES: InfoPage[] = [
     sections: [
       { h: "Délais", ul: ["En stock à Abidjan : livraison en 24 à 72 h.", "Sur commande : le délai est indiqué sur la fiche produit (par exemple « sous 20 jours »). Je ne promets que ce que je peux tenir.", "Hors d'Abidjan : comptez 2 à 7 jours de plus selon la ville."] },
       { h: "Frais de livraison", p: ["Les frais dépendent de votre commune et sont affichés à l'étape de commande, avant que vous validiez. À titre d'exemple : 2 000 FCFA à Cocody, Plateau, Marcory et Treichville ; 3 000 FCFA à Yopougon et Abobo ; à partir de 5 000 FCFA dans les autres villes."] },
-      { h: "À la réception", p: ["Vérifiez le produit devant le livreur avant de payer. En cas de problème (produit abîmé, erreur de modèle), refusez la livraison ou prévenez-moi immédiatement sur WhatsApp."] },
+      { h: "À la réception", p: ["Vérifiez le produit devant le livreur. En cas de problème (produit abîmé, erreur de modèle), refusez la livraison ou prévenez-moi immédiatement sur WhatsApp."] },
     ],
   },
   {
@@ -52,17 +52,17 @@ export const INFO_PAGES: InfoPage[] = [
     sections: [
       { h: "Conditions du retour", ul: ["Prévenez-moi sur WhatsApp dans les 7 jours suivant la livraison, avec votre numéro de commande.", "Le produit doit être dans son emballage d'origine, complet et sans trace d'usage.", "Les produits installés ou utilisés ne sont pas repris, sauf défaut."] },
       { h: "Produit abîmé ou défectueux", p: ["Envoyez-moi une photo ou une courte vidéo. Je remplace le produit ou je vous rembourse, selon votre choix et selon la disponibilité."] },
-      { h: "Remboursement", p: ["Le remboursement est fait après réception et vérification du produit retourné, par le même moyen que celui utilisé pour payer, ou en espèces à Abidjan. Les frais de livraison d'un retour dû à une erreur de ma part sont à ma charge."] },
+      { h: "Remboursement", p: ["Le remboursement est fait après réception et vérification du produit retourné, par le même moyen mobile money que celui utilisé pour payer. Les frais de livraison d'un retour dû à une erreur de ma part sont à ma charge."] },
     ],
   },
   {
     slug: "conditions-de-vente", title: "Conditions de vente", metaTitle: "Conditions de vente | MyBigMarket",
-    description: "Conditions de vente de MyBigMarket : prix en FCFA, commande, paiement à la livraison, garantie, retours.",
+    description: "Conditions de vente de MyBigMarket : prix en FCFA, commande, paiement par mobile money, garantie, retours.",
     intro: "Ces conditions s'appliquent à toute commande passée sur MyBigMarket.",
     sections: [
       { h: "Prix", p: ["Les prix sont indiqués en francs CFA (FCFA), toutes taxes comprises, hors frais de livraison. Les frais de livraison sont affichés avant la validation de la commande."] },
       { h: "Commande", p: ["La commande est enregistrée quand vous la validez sur le site. Je la confirme ensuite par téléphone ou WhatsApp. Si un produit n'est plus disponible, je vous préviens et vous pouvez choisir un autre produit ou annuler sans frais."] },
-      { h: "Paiement", p: ["Le paiement se fait à la livraison. D'autres moyens de paiement pourront être proposés ; ils seront alors indiqués sur le site."] },
+      { h: "Paiement", p: ["Le paiement se fait uniquement par mobile money (Orange Money, MTN MoMo, Moov Money, Wave). Je vous envoie les instructions de paiement après votre commande."] },
       { h: "Disponibilité et délais", p: ["Chaque produit indique s'il est en stock à Abidjan ou sur commande, avec le délai de livraison prévu. Ces délais sont des estimations de bonne foi ; en cas de retard important, je vous contacte."] },
       { h: "Garantie", p: ["La durée de garantie est indiquée sur chaque fiche produit. Pour l'utiliser, contactez-moi avec votre numéro de commande."] },
       { h: "Retours", p: ["Voir la page Retours et remboursements."] },

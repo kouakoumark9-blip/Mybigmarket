@@ -71,7 +71,6 @@ export default async function ProductPage({ params }: Props) {
       offerCount: Math.max(1, product.colorVariants.length),
       availability: `https://schema.org/${product.availability}`,
       url,
-      eligibleQuantity: { "@type": "QuantitativeValue", minValue: product.minOrderQty, unitText: product.unit },
     },
     ...(reviewCount > 0 ? { aggregateRating: { "@type": "AggregateRating", ratingValue: product.rating, reviewCount, bestRating: 5, worstRating: 1 } } : {}),
   };

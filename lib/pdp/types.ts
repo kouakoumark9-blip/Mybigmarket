@@ -55,7 +55,6 @@ export type ProductCardData = {
   image: string;
   priceMin: number;
   priceMax?: number;
-  minOrderQty: number;
   /** Pastilles de couleur (3 affichées) et nombre total de coloris. */
   swatches?: string[];
   colorCount?: number;
@@ -114,7 +113,6 @@ export type Product = {
   priceMin: number;
   priceMax: number;
   currency: Currency;
-  minOrderQty: number;
   unit: string;
   lowestPriceBadge?: string;
   availability: "InStock" | "PreOrder" | "OutOfStock";

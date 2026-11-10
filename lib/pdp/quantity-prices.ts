@@ -15,7 +15,7 @@ export async function getQuantityPrices(slug: string): Promise<QuantityPrice[] |
   if (!process.env.DATABASE_URL) return undefined;
   try {
     const database = db();
-    const [product] = await database.select({ id: products.id, minimumQuantity: products.minimumQuantity }).from(products).where(eq(products.slug, slug)).limit(1);
+    const [product] = await database.select({ id: products.id }).from(products).where(eq(products.slug, slug)).limit(1);
     if (!product) return undefined;
     const now = new Date();
     const [tiers, specifics] = await Promise.all([
@@ -26,7 +26,7 @@ export async function getQuantityPrices(slug: string): Promise<QuantityPrice[] |
         or(isNull(specificPrices.dateFrom), lte(specificPrices.dateFrom, now)), or(isNull(specificPrices.dateTo), gte(specificPrices.dateTo, now)),
       )),
     ]);
-    const start = Math.max(1, product.minimumQuantity);
+    const start = 1;
     const thresholds = [...new Set([start, ...tiers.map((row) => row.from), ...specifics.map((row) => row.from)])].filter((quantity) => quantity >= start).sort((a, b) => a - b).slice(0, 6);
     if (thresholds.length < 2) return undefined;
     const prices = await priceProducts(database, thresholds.map((quantity) => ({ productId: product.id, quantity })), { countryCode: "CI", currency: "XOF" });

@@ -5,7 +5,7 @@
  * donc entièrement testable en unitaire.
  *
  * Ordre d'application (strict, non cumulatif sur la base) :
- *   1. palier MOQ (`price_tiers`)  → fixe le prix unitaire de base s'il s'applique
+ *   1. palier de quantité (`price_tiers`)  → fixe le prix unitaire de base s'il s'applique
  *   2. sinon prix catalogue         → `priceXof` + impact de combinaison
  *   3. remise groupe client         → sur le prix de base retenu
  *   4. prix spécifiques             → le PLUS favorable au client des applicables

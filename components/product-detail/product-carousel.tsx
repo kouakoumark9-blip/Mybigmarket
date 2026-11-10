@@ -20,7 +20,6 @@ function Card({ item }: { item: ProductCardData }) {
     <h3 className="pd-card-title">{item.title}</h3>
     <p className="pd-card-price">{priceRange(item.priceMin, item.priceMax)}</p>
     {item.compareAtPrice && item.discountPercent ? <p className="pd-card-discount"><s>{formatPrice(item.compareAtPrice)}</s> <span>-{item.discountPercent} %</span></p> : null}
-    <p className="pd-card-moq">MOQ : {item.minOrderQty} pièce{item.minOrderQty > 1 ? "s" : ""}</p>
   </>;
   return item.slug ? <Link href={`/produits/${item.slug}`} onClick={markProductCardClick} className="pd-card">{body}</Link> : <article className="pd-card">{body}</article>;
 }

@@ -33,7 +33,7 @@ export async function getCategoryTree(): Promise<ShopCategory[]> {
   });
 }
 
-/** Catégorie par chemin propre (« climatiseurs » ou « climatiseurs/split »). */
+/** Catégorie par chemin propre (« lits » ou « lits/lits-2-places »). */
 export async function getCategoryByPath(path: string): Promise<{ category: ShopCategory; parent: ShopCategory | null } | null> {
   const tree = await getCategoryTree();
   for (const root of tree) {

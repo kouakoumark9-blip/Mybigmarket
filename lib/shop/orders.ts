@@ -29,6 +29,7 @@ export const orderSchema = z.object({
   commune: z.string().trim().min(1, "Choisissez votre commune.").max(80),
   address: z.string().trim().min(5, "Indiquez une adresse précise (quartier, rue, repère).").max(300),
   note: z.string().trim().max(500).optional().default(""),
+  payment: z.enum(["orange_money", "mtn_momo", "moov_money", "wave"], { message: "Choisissez votre moyen de paiement mobile money." }),
   cart: z.array(z.object({ slug: z.string().regex(/^[a-z0-9-]{1,210}$/), qty: z.number().int().min(1).max(99) })).min(1, "Votre panier est vide.").max(30),
 });
 export type OrderInput = z.infer<typeof orderSchema>;
@@ -63,7 +64,7 @@ export async function createShopOrder(input: OrderInput): Promise<PlacedOrder> {
     for (let attempt = 0; ; attempt += 1) {
       const reference = newReference();
       try {
-        const [order] = await tx.insert(shopOrders).values({ reference, customerName: input.name, phone, commune, address: input.address, deliveryFeeXof: fee, subtotalXof: subtotal, totalXof: subtotal + fee, customerNote: input.note }).returning({ id: shopOrders.id });
+        const [order] = await tx.insert(shopOrders).values({ reference, customerName: input.name, phone, commune, address: input.address, deliveryFeeXof: fee, subtotalXof: subtotal, totalXof: subtotal + fee, customerNote: input.note, paymentMethod: input.payment }).returning({ id: shopOrders.id });
         await tx.insert(shopOrderItems).values(lines.map((line) => ({ orderId: order.id, productId: line.productId, title: line.title, unitPriceXof: line.unit, quantity: line.qty, availabilityLabel: line.label })));
         return { reference, totalXof: subtotal + fee };
       } catch (error) {

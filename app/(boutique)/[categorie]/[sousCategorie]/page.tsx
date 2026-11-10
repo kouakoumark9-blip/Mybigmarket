@@ -15,7 +15,7 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
   if (!found) return { title: "Page introuvable", robots: { index: false } };
   const { category } = found;
   const title = category.metaTitle || `${category.name} à Abidjan | MyBigMarket`;
-  const description = category.metaDescription || `${category.name} à Abidjan et en Côte d'Ivoire. Prix en FCFA, paiement à la livraison.`;
+  const description = category.metaDescription || `${category.name} à Abidjan et en Côte d'Ivoire. Prix en FCFA, paiement par mobile money.`;
   return { title: { absolute: title }, description, alternates: { canonical: `/${category.slug}` }, robots: hasActiveFilters(await searchParams) ? { index: false, follow: true } : undefined, openGraph: { title, description, locale: "fr_CI", type: "website" } };
 }
 

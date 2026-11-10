@@ -15,11 +15,11 @@ export type Banner = {
 };
 
 export const BANNERS: Banner[] = [
-  { desktop: "/bannieres/slide-1-bureau.webp", mobile: "/bannieres/slide-1-bureau.webp", alt: "Une famille ivoirienne dans sa cuisine équipée : petit et gros électroménager", href: "/petit-electromenager",
-    fallback: { title: "Petit et gros électroménager", text: "En stock à Abidjan, livraison 24 à 72 h" } },
-  { desktop: "/bannieres/slide-2-bureau.webp", mobile: "/bannieres/slide-2-bureau.webp", alt: "Un père et son fils devant un lave-linge : machines à laver et gros électroménager", href: "/gros-electromenager/machines-a-laver",
-    fallback: { title: "Machines à laver", text: "Livraison à Abidjan et en Côte d'Ivoire, paiement à la livraison" } },
-  { desktop: "/bannieres/slide-3-bureau.webp", mobile: "/bannieres/slide-3-bureau.webp", alt: "Mixeur, bouilloire, grille-pain, friteuse à air, cafetière et fer à repasser sur un plan de travail", href: "/petit-electromenager",
-    fallback: { title: "Petit électroménager", text: "Mixeurs, bouilloires, friteuses à air et plus encore" } },
+  { desktop: "/bannieres/slide-1-bureau.webp", mobile: "/bannieres/slide-1-bureau.webp", alt: "Une famille ivoirienne dans sa cuisine équipée : ", href: "/lits",
+    fallback: { title: "Lits de toutes tailles", text: "En stock à Abidjan, livraison 24 à 72 h" } },
+  { desktop: "/bannieres/slide-2-bureau.webp", mobile: "/bannieres/slide-2-bureau.webp", alt: "Un père et son fils devant un lave-linge : machines à laver et gros électroménager", href: "/lits",
+    fallback: { title: "Lits enfants, lits superposés", text: "Livraison à Abidjan et en Côte d'Ivoire, paiement par mobile money" } },
+  { desktop: "/bannieres/slide-3-bureau.webp", mobile: "/bannieres/slide-3-bureau.webp", alt: "Mixeur, bouilloire, grille-pain, friteuse à air, cafetière et fer à repasser sur un plan de travail", href: "/lits",
+    fallback: { title: "Packs lit + matelas", text: "Le lit et son matelas ensemble" } },
   // Pour ajouter une 4e ou 5e bannière : déposez l'image dans public/bannieres/ puis copiez un des modèles ci-dessus.
 ];

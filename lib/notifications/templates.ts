@@ -142,7 +142,7 @@ export function ordersTableHtml(orders: Array<{ reference: string | null; lines:
     + `<tr><td style="${cell};font-weight:700" colspan="2">Total</td><td style="${cell};text-align:right;font-weight:700">${formatXof(order.totalXof)}</td></tr></table>`).join("");
 }
 
-/** Consignes de paiement (virement, paiement à la livraison) issues de l'intention de paiement. */
+/** Consignes de paiement (virement) issues de l'intention de paiement. */
 export function paymentInstructionsHtml(instructions: Record<string, unknown> | null | undefined): string {
   if (!instructions || typeof instructions !== "object") return "";
   const value = (key: string) => (instructions[key] === undefined || instructions[key] === null ? "" : escapeHtml(String(instructions[key])));
@@ -151,7 +151,6 @@ export function paymentInstructionsHtml(instructions: Record<string, unknown> | 
       + `<p style="margin:0">Bénéficiaire : ${value("accountHolder")}<br>Banque : ${value("bankName")}<br>IBAN / RIB : ${value("iban")}${instructions.bic ? `<br>BIC : ${value("bic")}` : ""}<br>Montant : ${typeof instructions.amountXof === "number" ? formatXof(instructions.amountXof) : ""}<br><strong>Référence à indiquer : ${value("reference")}</strong></p>`
       + (instructions.note ? `<p style="margin:8px 0 0">${value("note")}</p>` : "") + `</div>`;
   }
-  if (instructions.kind === "cash_on_delivery") return `<p>${value("note")}</p>`;
   return "";
 }
 

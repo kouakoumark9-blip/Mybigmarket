@@ -8,8 +8,8 @@ export const CSV_COLUMNS = ["nom", "categorie", "prix", "ancien_prix", "stock", 
 
 export const CSV_EXAMPLE = [
   CSV_COLUMNS.join(";"),
-  ["Climatiseur split 1 CV", "climatiseurs/split", "165000", "185000", "6", "stock", "", "Marque Alpha", "9 000 BTU (1 CV)", "A+", "Promo", "Split mural silencieux pour une pièce de 15 m².", "Climatiseur split de 9 000 BTU. Télécommande fournie. Installation non comprise.", "Puissance : 9 000 BTU|Garantie : 1 an", "", "", "", "oui"].join(";"),
-  ["Groupe électrogène 3 kVA", "electrogene/groupes-electrogenes", "420000", "", "0", "commande", "20", "", "3 kVA", "", "", "Groupe essence 3 kVA.", "Groupe électrogène essence 3 kVA, démarrage manuel.", "Carburant : Essence|Garantie : 1 an", "", "", "", "oui"].join(";"),
+  ["Lit 2 places en bois", "lits/lits-2-places", "95000", "110000", "6", "stock", "", "", "", "", "Promo", "Lit double 140 x 190 cm en bois massif.", "Lit 2 places en bois, sommier à lattes inclus. Matelas vendu séparément.", "Dimensions : 140 x 190 cm|Matière : bois|Garantie : 1 an", "", "", "", "oui"].join(";"),
+  ["Lit superposé en métal", "lits/lits-superposes", "120000", "", "0", "commande", "10", "", "", "", "", "Lits superposés 90 x 190 cm en métal.", "Lits superposés en métal, deux couchages 90 x 190 cm, échelle fournie.", "Dimensions : 90 x 190 cm|Matière : métal|Garantie : 1 an", "", "", "", "oui"].join(";"),
 ].join("\n");
 
 export type ImportReport = { created: number; errors: Array<{ line: number; message: string }> };
@@ -30,7 +30,7 @@ export async function importProductsCsv(text: string): Promise<ImportReport> {
   for (const record of records.slice(1)) {
     const row = Object.fromEntries(header.map((name, index) => [name, (record.cells[index] ?? "").trim()]));
     const categoryId = byKey.get(row.categorie.toLowerCase()) ?? byKey.get(slugify(row.categorie));
-    if (!categoryId) { report.errors.push({ line: record.line, message: `Catégorie inconnue : « ${row.categorie} ». Utilisez l'adresse de la catégorie, par exemple climatiseurs/split.` }); continue; }
+    if (!categoryId) { report.errors.push({ line: record.line, message: `Catégorie inconnue : « ${row.categorie} ». Utilisez l'adresse de la catégorie, par exemple lits/lits-2-places.` }); continue; }
     const yes = (value: string) => /^(oui|1|vrai|true|x)$/i.test(value);
     const parsed = productSchema.safeParse({
       title: row.nom, categoryId, brand: row.marque, priceXof: row.prix, comparePriceXof: row.ancien_prix, quantity: row.stock,

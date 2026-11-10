@@ -189,11 +189,11 @@ describe("décision de vente", () => {
     expect(canSell({ available: 100, requested: 1, availableForOrder: false })).toEqual({ sellable: false, reason: "not_available" });
   });
 
-  it("applique le MOQ", () => {
+  it("applique la limite basse du produit", () => {
     expect(canSell({ available: 100, requested: 4, minimumQuantity: 5 })).toEqual({ sellable: false, reason: "below_minimum" });
   });
 
-  it("refuse une quantité sous le MOQ même en précommande", () => {
+  it("refuse une quantité sous la limite basse même en précommande", () => {
     expect(canSell({ available: 0, requested: 2, minimumQuantity: 10, behavior: "backorder" }).sellable).toBe(false);
   });
 });

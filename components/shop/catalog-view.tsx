@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { groupChildren } from "@/lib/shop/category-groups";
 import { Breadcrumbs, type Crumb } from "./breadcrumbs";
 import { ProductGrid } from "./product-card";
 import { formatFcfa } from "@/lib/shop/format";
@@ -37,7 +38,12 @@ export async function CatalogView({ basePath, title, intro, crumbs, params, cate
     <Breadcrumbs items={crumbs}/>
     <h1 className="mb-title">{filters.q ? `Résultats pour « ${filters.q} »` : title}</h1>
     {intro && !filters.q && <p className="mb-intro">{intro}</p>}
-    {subcategories.length > 0 && <div className="mb-subcats" aria-label="Sous-catégories">{subcategories.map((child) => <Link key={child.slug} href={`/${child.slug}`}>{child.name}</Link>)}</div>}
+    {subcategories.length > 0 && <div className="mb-subcats-wrap" aria-label="Sous-catégories">
+      {groupChildren(basePath.replace(/^\//, ""), subcategories).map((group, index) => <div key={group.title ?? index} className="mb-subcats-group">
+        {group.title && <span className="mb-subcats-title">{group.title}</span>}
+        <div className="mb-subcats">{group.items.map((child) => <Link key={child.slug} href={`/${child.slug}`}>{child.name}</Link>)}</div>
+      </div>)}
+    </div>}
     <div className="mb-cat-layout">
       <form className="mb-filters" method="get" action={basePath} aria-label="Filtres">
         <h2>Filtrer</h2>

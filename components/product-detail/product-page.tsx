@@ -87,7 +87,7 @@ export function ProductDetailPage({ product, cartItem, publishedReviews = [], pa
   const selectedVariant = product.colorVariants.find((item) => item.id === color);
   const unitPrice = selectedVariant?.priceXof ?? product.priceMin;
 
-  const [quantity, setQuantity] = useState(Math.max(1, product.minOrderQty || 1));
+  const [quantity, setQuantity] = useState(1);
   const order = () => { addItem(cartItem, quantity); router.push("/checkout"); };
   const addToCart = () => { addItem(cartItem, quantity); setFeedback(quantity > 1 ? `${quantity} articles ajoutés au panier.` : "Ajouté au panier."); };
 

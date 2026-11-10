@@ -8,7 +8,7 @@ export default function CheckoutPage() {
   return <div className="mb-wrap mb-page" id="contenu" role="main">
     <Breadcrumbs items={[{ label: "Accueil", href: "/" }, { label: "Panier", href: "/panier" }, { label: "Commande" }]}/>
     <h1 className="mb-title">Finaliser ma commande</h1>
-    <p className="mb-intro">Une seule page, sans compte à créer. Vous payez à la livraison.</p>
+    <p className="mb-intro">Une seule page, sans compte à créer. Vous payez par mobile money.</p>
     <CheckoutForm/>
   </div>;
 }

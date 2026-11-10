@@ -1,7 +1,7 @@
 # MyBigMarket
 
-Boutique en ligne d'Abidjan (Côte d'Ivoire) : climatiseurs, groupes électrogènes, informatique, électroménager, téléviseurs.
-Une seule vendeuse, ses propres produits, prix en FCFA, **paiement à la livraison**.
+Boutique en ligne d'Abidjan (Côte d'Ivoire) : lits de toutes tailles (par taille, par type, par matière, packs lit + matelas).
+Une seule vendeuse, ses propres produits, prix en FCFA, **paiement par mobile money**.
 
 Technique : Next.js 16 (App Router), React 19, TypeScript, PostgreSQL (Neon) avec Drizzle, hébergement Vercel.
 
@@ -55,7 +55,7 @@ Les moyens Orange Money, MTN Mobile Money, Moov Money et Wave ont leur emplaceme
 
 ## Adresses du site
 
-`/` accueil · `/climatiseurs`, `/climatiseurs/inverter`, `/informatique/reseau-wifi`… catégories · `/produits/nom-du-produit` fiche produit (page produit inchangée) · `/promotions` · `/panier` · `/commande` · `/suivi-commande` · `/a-propos`, `/comment-commander`, `/livraison`, `/retours-et-remboursements`, `/conditions-de-vente`, `/confidentialite`, `/mentions-legales`, `/contact`.
+`/` accueil · `/lits`, `/lits/lits-2-places`, `/lits/lits-en-bois`… catégories · `/produits/nom-du-produit` fiche produit (page produit inchangée) · `/promotions` · `/panier` · `/commande` · `/suivi-commande` · `/a-propos`, `/comment-commander`, `/livraison`, `/retours-et-remboursements`, `/conditions-de-vente`, `/confidentialite`, `/mentions-legales`, `/contact`.
 
 ## Développer en local
 

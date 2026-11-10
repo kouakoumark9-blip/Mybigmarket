@@ -4,7 +4,7 @@ import { eq } from "drizzle-orm";
 import { updateOrderAction } from "@/app/gestion/actions";
 import { getDb } from "@/lib/db";
 import { shopOrderItems, shopOrders } from "@/lib/db/schema";
-import { whatsappLink } from "@/lib/shop/config";
+import { paymentLabel, whatsappLink } from "@/lib/shop/config";
 import { formatFcfa } from "@/lib/shop/format";
 import { SHOP_ORDER_STATUSES } from "@/lib/shop/orders";
 
@@ -36,7 +36,7 @@ export default async function OrderPage({ params, searchParams }: { params: Prom
     <div className="gs-card"><h2>Produits</h2><div className="gs-scroll"><table className="gs-table"><thead><tr><th>Produit</th><th>Délai annoncé</th><th>Prix</th><th>Qté</th><th>Total</th></tr></thead><tbody>
       {items.map((item) => <tr key={item.id}><td>{item.title}</td><td>{item.availabilityLabel}</td><td>{formatFcfa(item.unitPriceXof)}</td><td>{item.quantity}</td><td>{formatFcfa(item.unitPriceXof * item.quantity)}</td></tr>)}
       <tr><td colSpan={4}>Livraison ({order.commune})</td><td>{formatFcfa(order.deliveryFeeXof)}</td></tr>
-      <tr><td colSpan={4}><b>Total à encaisser à la livraison</b></td><td><b>{formatFcfa(order.totalXof)}</b></td></tr>
-    </tbody></table></div><p style={{ color: "#5b6577", fontSize: 13 }}>Paiement : à la livraison. Boutique : <a href={whatsappLink()} rel="noopener">WhatsApp</a>.</p></div>
+      <tr><td colSpan={4}><b>Total de la commande</b></td><td><b>{formatFcfa(order.totalXof)}</b></td></tr>
+    </tbody></table></div><p style={{ color: "#5b6577", fontSize: 13 }}>Paiement : {paymentLabel(order.paymentMethod)}. Boutique : <a href={whatsappLink()} rel="noopener">WhatsApp</a>.</p></div>
   </>;
 }

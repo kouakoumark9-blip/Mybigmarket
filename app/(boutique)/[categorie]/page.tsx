@@ -11,7 +11,7 @@ import { hasActiveFilters, type RawParams } from "@/lib/shop/search-params";
 export const revalidate = 60;
 type Props = { params: Promise<{ categorie: string }>; searchParams: Promise<RawParams> };
 
-/** Adresse propre à un seul segment : page d'information (/livraison) ou catégorie (/climatiseurs). */
+/** Adresse propre à un seul segment : page d'information (/livraison) ou catégorie (/lits). */
 export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
   const { categorie } = await params;
   const info = findInfoPage(categorie);
@@ -20,7 +20,7 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
   if (!found) return { title: "Page introuvable", robots: { index: false } };
   const { category } = found;
   const title = category.metaTitle || `${category.name} à Abidjan | MyBigMarket`;
-  const description = category.metaDescription || `${category.name} à Abidjan et en Côte d'Ivoire. Prix en FCFA, paiement à la livraison.`;
+  const description = category.metaDescription || `${category.name} à Abidjan et en Côte d'Ivoire. Prix en FCFA, paiement par mobile money.`;
   return { title: { absolute: title }, description, alternates: { canonical: `/${category.slug}` }, robots: hasActiveFilters(await searchParams) ? { index: false, follow: true } : undefined, openGraph: { title, description, locale: "fr_CI", type: "website" } };
 }
 
