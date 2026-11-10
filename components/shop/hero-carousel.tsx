@@ -29,7 +29,7 @@ export function HeroCarousel({ banners }: { banners: Banner[] }) {
       {banners.map((banner, position) => <Link key={banner.href} href={banner.href} className="mb-hero-slide" aria-hidden={position !== index} tabIndex={position === index ? 0 : -1} aria-label={banner.alt}>
         {failed[position] && <span className="mb-banner-fallback"><b>{banner.fallback.title}</b><span>{banner.fallback.text}</span></span>}
         {/* Première bannière chargée en priorité, les autres à la demande ; formats modernes et tailles adaptées à l'écran. */}
-        {!failed[position] && <Image src={banner.desktop} alt="" fill sizes="(max-width: 900px) 100vw, 965px" loading={position === 0 ? "eager" : "lazy"} fetchPriority={position === 0 ? "high" : "low"} style={{ objectFit: "cover" }} onError={() => setFailed((state) => ({ ...state, [position]: true }))}/>}
+        {!failed[position] && <Image src={banner.desktop} alt="" fill sizes="(max-width: 1240px) 100vw, 1240px" unoptimized loading={position === 0 ? "eager" : "lazy"} fetchPriority={position === 0 ? "high" : "low"} style={{ objectFit: "cover" }} onError={() => setFailed((state) => ({ ...state, [position]: true }))}/>}
       </Link>)}
     </div>
     {count > 1 && <>
