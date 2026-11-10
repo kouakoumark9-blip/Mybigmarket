@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { ChevronDown, ChevronRight, MessageCircle, RotateCcw, ShieldCheck, ShoppingCart } from "lucide-react";
 import type { Product } from "@/lib/pdp/types";
 import { pdpConfig } from "@/lib/pdp/config";
@@ -81,7 +80,7 @@ export function BuyBox({ product, variants, compact, onOrder, onAddToCart, feedb
 
     {!orderable ? <div className="pd-actions">
       <p className="pd-demo-note">Ce produit se commande sur demande : indiquez la quantité souhaitée, notre équipe vous confirme le prix et le délai.</p>
-      <Link href={`/demande-de-devis?produit=${encodeURIComponent(product.title)}`} className="pd-btn pd-btn-primary pd-btn-block">Commander</Link>
+      <a href={`/demande-de-devis?produit=${encodeURIComponent(product.title)}`} className="pd-btn pd-btn-primary pd-btn-block">Commander</a>
     </div> : <div className="pd-actions">
       <button type="button" className="pd-btn pd-btn-primary pd-btn-block" onClick={onOrder}>Commander</button>
       <div className="pd-actions-row">
@@ -90,7 +89,7 @@ export function BuyBox({ product, variants, compact, onOrder, onAddToCart, feedb
       </div>
       <p className="pd-feedback" aria-live="polite">{feedback}</p>
       <p className="pd-muted pd-small">{pdpConfig.guaranteeNote}</p>
-      <Link href={`/demande-de-devis?produit=${encodeURIComponent(product.title)}`} className="pd-quote-link">Besoin d’une grande quantité ? Demander un devis</Link>
+      <a href={`/demande-de-devis?produit=${encodeURIComponent(product.title)}`} className="pd-quote-link">Besoin d’une grande quantité ? Demander un devis</a>
     </div>}
 
 
