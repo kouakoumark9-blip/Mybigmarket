@@ -426,3 +426,9 @@ body.pd-lock{overflow:hidden}
 .pd-qty-total b{font-size:18px;font-weight:800}
 .pd-qty-total small{color:#5f666d;font-size:12px}
 .pd-qty-note{flex-basis:100%;margin:0;font-size:12.5px;color:#8a4b00}
+
+/* Marque sous le titre de la fiche produit */
+.pd-brand{display:flex;align-items:center;gap:12px;margin:2px 0 10px;font-size:14px;color:var(--color-text-muted,#5f666d)}
+.pd-brand b{color:var(--color-text,#111)}
+.pd-brand img.pd-brand-logo{flex:none;display:block;height:52px!important;width:auto!important;max-width:140px!important;object-fit:contain;border:1px solid var(--color-border,#e5e7eb);border-radius:8px;padding:4px;background:#fff}
+@media (max-width:600px){.pd-brand{font-size:13px;gap:10px}.pd-brand img.pd-brand-logo{height:46px!important}}

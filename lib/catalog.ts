@@ -21,7 +21,7 @@ export async function getCatalogProducts(): Promise<DemoProduct[]> {
 
 async function queryCatalog(): Promise<DemoProduct[]> {
   const db = getDb();
-  const rows = await db.select({ product: products, category: categories, brand: brands.name }).from(products)
+  const rows = await db.select({ product: products, category: categories, brand: brands.name, brandLogo: brands.logoUrl, brandTagline: brands.description }).from(products)
     .innerJoin(categories, eq(categories.id, products.categoryId)).leftJoin(brands, eq(brands.id, products.brandId))
     .where(and(eq(products.status, "approved"), isNull(products.deletedAt))).limit(500);
   if (!rows.length) return [];
@@ -40,7 +40,7 @@ async function queryCatalog(): Promise<DemoProduct[]> {
   for (const image of images) imageMap.set(image.productId, [...(imageMap.get(image.productId) ?? []), image.url]);
   const attributeMap = new Map<string, Array<{ label: string; value: string }>>();
   for (const attribute of attributes) attributeMap.set(attribute.productId, [...(attributeMap.get(attribute.productId) ?? []), { label: attribute.name, value: attribute.value }]);
-  return rows.map(({ product, category, brand }) => ({
+  return rows.map(({ product, category, brand, brandLogo, brandTagline }) => ({
     slug: product.slug, title: product.title, description: product.description, priceXof: product.priceXof,
     leadTimeDays: product.leadTimeDays,
     category: category.name, categorySlug: category.slug,
@@ -50,7 +50,7 @@ async function queryCatalog(): Promise<DemoProduct[]> {
     comparePriceXof: product.comparePriceXof, availability: product.availability,
     availabilityLabel: availabilityLabel(product.availability, product.leadTimeDays),
     powerLabel: product.powerLabel, energyClass: product.energyClass, badge: product.badge,
-    isPlaceholder: product.isPlaceholder, shortDescription: product.shortDescription, brandName: brand, categoryTrail: trailOf(product.categoryId),
+    isPlaceholder: product.isPlaceholder, shortDescription: product.shortDescription, brandName: brand, brandLogo, brandTagline, categoryTrail: trailOf(product.categoryId),
     extraAttributes: attributeMap.get(product.id) ?? [],
     seoTitle: product.seoTitle, seoDescription: product.seoDescription,
   }));

@@ -96,6 +96,7 @@ export function catalogToProduct(product: DemoProduct, all: DemoProduct[], descr
     boughtTogether: others.filter((item) => item.categorySlug !== product.categorySlug).slice(0, 10).map(demoToCard),
     supplierProducts: others.slice(0, 10).map(demoToCard),
     seoTitle: product.seoTitle?.trim() || undefined,
+    brand: product.brandName ? { name: product.brandName, logo: product.brandLogo || undefined, tagline: product.brandTagline || undefined } : undefined,
     metaDescription: product.seoDescription?.trim() || (`${product.shortDescription || description}`.replace(/\s+/g, " ").slice(0, 120) + ` Livraison à Abidjan et en Côte d'Ivoire.`),
   };
 }

@@ -62,7 +62,7 @@ export default async function ProductPage({ params }: Props) {
     sku: product.id,
     image: product.images.map((image) => `${siteUrl()}${image.src}`),
     category: product.category.label,
-    brand: { "@type": "Brand", name: product.supplier.name },
+    brand: { "@type": "Brand", name: product.brand?.name ?? product.supplier.name, ...(product.brand?.logo ? { logo: `${siteUrl()}${product.brand.logo}` } : {}) },
     offers: {
       "@type": "AggregateOffer",
       priceCurrency: product.currency,
