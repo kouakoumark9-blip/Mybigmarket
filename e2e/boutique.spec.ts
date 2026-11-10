@@ -51,9 +51,9 @@ test.describe("vitrine", () => {
     await page.goto("/matelas");
     await expect(page.getByRole("heading", { level: 1, name: "Matelas" })).toBeVisible();
     const side = page.getByRole("navigation", { name: "Catégories Matelas" });
-    for (const title of ["Par taille", "Par type", "Par budget"]) await expect(side.getByRole("heading", { name: title })).toBeVisible();
-    for (const name of ["Matelas 1 place", "Matelas bébé et enfant", "Matelas orthopédique", "Matelas médical", "Matelas pas cher"]) await expect(side.getByRole("link", { name })).toBeVisible();
-    for (const path of ["matelas/matelas-1-place", "matelas/matelas-2-places", "matelas/matelas-2-5-places", "matelas/matelas-3-places", "matelas/matelas-bebe", "matelas/matelas-orthopedique", "matelas/matelas-mousse", "matelas/matelas-memoire-de-forme", "matelas/matelas-a-ressorts", "matelas/matelas-medical", "matelas/matelas-pas-cher", "surmatelas-protege-matelas", "guide-choix-matelas"]) {
+    for (const title of ["Par taille", "Par type", "Par budget", "Accessoires"]) await expect(side.getByRole("heading", { name: title })).toBeVisible();
+    for (const name of ["Matelas 1 place", "Matelas bébé et enfant", "Matelas orthopédique", "Matelas médical", "Matelas pas cher", "Surmatelas et protège-matelas"]) await expect(side.getByRole("link", { name })).toBeVisible();
+    for (const path of ["matelas/matelas-1-place", "matelas/matelas-2-places", "matelas/matelas-2-5-places", "matelas/matelas-3-places", "matelas/matelas-bebe", "matelas/matelas-orthopedique", "matelas/matelas-mousse", "matelas/matelas-memoire-de-forme", "matelas/matelas-a-ressorts", "matelas/matelas-medical", "matelas/matelas-pas-cher", "matelas/surmatelas-protege-matelas", "guide-choix-matelas"]) {
       expect((await page.goto(`/${path}`))?.status(), path).toBe(200);
     }
     await page.goto("/matelas");

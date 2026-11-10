@@ -15,6 +15,7 @@ const nextConfig: NextConfig = {
   async redirects() {
     // Anciennes adresses du site (place de marché) : redirigées vers l'équivalent, ou vers l'accueil.
     return [
+      { source: "/surmatelas-protege-matelas", destination: "/matelas/surmatelas-protege-matelas", permanent: true },
       { source: "/comment-ca-marche", destination: "/comment-commander", permanent: true },
       { source: "/conditions", destination: "/conditions-de-vente", permanent: true },
       { source: "/vendeur/:path*", destination: "/", permanent: true },
