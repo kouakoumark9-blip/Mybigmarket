@@ -25,3 +25,22 @@ export function groupChildren<T extends { slug: string }>(parentSlug: string, ch
   if (rest.length) result.push({ title: null, items: rest });
   return result;
 }
+
+export type MenuEntry = { key: string; label: string; href: string; children: Array<{ name: string; slug: string }> };
+
+/**
+ * Entrées du menu des catégories (accueil, « Toutes les catégories », tiroir mobile).
+ * Une catégorie regroupée (ex. Lits) donne une entrée par groupe : « Par taille », « Par type », « Par matière »,
+ * chacune ouvrant la liste de ses sous-catégories ; un groupe d'un seul élément devient un lien direct.
+ */
+export function menuEntries(categories: Array<{ name: string; slug: string; children: Array<{ name: string; slug: string }> }>): MenuEntry[] {
+  return categories.flatMap((category): MenuEntry[] => {
+    if (!CATEGORY_GROUPS[category.slug]) return [{ key: category.slug, label: category.name, href: `/${category.slug}`, children: category.children }];
+    const entries: MenuEntry[] = [{ key: `${category.slug}:tous`, label: `Tous les ${category.name.toLowerCase()}`, href: `/${category.slug}`, children: [] }];
+    for (const group of groupChildren(category.slug, category.children)) {
+      if (group.items.length === 1) entries.push({ key: group.items[0].slug, label: group.items[0].name, href: `/${group.items[0].slug}`, children: [] });
+      else entries.push({ key: `${category.slug}:${group.title ?? "autres"}`, label: group.title ?? "Autres", href: `/${category.slug}`, children: group.items });
+    }
+    return entries;
+  });
+}

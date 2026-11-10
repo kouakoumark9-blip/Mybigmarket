@@ -8,7 +8,7 @@ import { useCart } from "@/components/cart-provider";
 import { SHOP, TOP_STRIP, whatsappLink } from "@/lib/shop/config";
 import { Logo } from "./logo";
 import { CategoryMenu } from "./category-menu";
-import { groupChildren } from "@/lib/shop/category-groups";
+import { menuEntries } from "@/lib/shop/category-groups";
 import type { MenuCategory } from "./menu-types";
 
 /** Bande du haut, en-tête (logo, recherche, compte, panier, WhatsApp), menu des catégories. */
@@ -62,14 +62,10 @@ export function SiteHeader({ categories }: { categories: MenuCategory[] }) {
       <div className="mb-drawer-panel" role="dialog" aria-modal="true" aria-label="Menu">
         <div className="mb-drawer-head"><span>Catégories</span><button type="button" onClick={() => setOpen(false)} aria-label="Fermer le menu"><X size={22} strokeWidth={1.75}/></button></div>
         <ul>
-          {categories.map((item) => <li key={item.slug}>
-            {item.children.length ? <details><summary>{item.name}</summary>
-              <Link href={`/${item.slug}`} onClick={() => setOpen(false)}>Tout dans {item.name}</Link>
-              {groupChildren(item.slug, item.children).map((group, index) => <div key={group.title ?? index} className="mb-drawer-group">
-                {group.title && <span className="mb-drawer-group-title">{group.title}</span>}
-                {group.items.map((child) => <Link key={child.slug} href={`/${child.slug}`} onClick={() => setOpen(false)}>{child.name}</Link>)}
-              </div>)}
-            </details> : <Link href={`/${item.slug}`} onClick={() => setOpen(false)}>{item.name}</Link>}
+          {menuEntries(categories).map((entry) => <li key={entry.key}>
+            {entry.children.length ? <details><summary>{entry.label}</summary>
+              {entry.children.map((child) => <Link key={child.slug} href={`/${child.slug}`} onClick={() => setOpen(false)}>{child.name}</Link>)}
+            </details> : <Link href={entry.href} onClick={() => setOpen(false)}>{entry.label}</Link>}
           </li>)}
           <li><Link href="/suivi-commande" onClick={() => setOpen(false)}>Suivi de commande</Link></li>
           <li><Link href="/favoris" onClick={() => setOpen(false)}>Favoris</Link></li>
