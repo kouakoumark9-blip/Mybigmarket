@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { ShieldCheck, Smartphone, Truck } from "lucide-react";
 import { CategoryMenu } from "@/components/shop/category-menu";
-import { HomeHero } from "@/components/shop/home-hero";
+import { HeroCarousel } from "@/components/shop/hero-carousel";
 import { ProductSection } from "@/components/shop/product-section";
+import { BANNERS } from "@/lib/shop/banners";
 import { REASSURANCE, SHOP } from "@/lib/shop/config";
 import { getCategoryTree, listProducts } from "@/lib/shop/queries";
 
@@ -29,10 +30,11 @@ export default async function HomePage() {
   const organization = { "@context": "https://schema.org", "@type": "Store", name: SHOP.name, url: SHOP.baseUrl, telephone: `+${SHOP.whatsappNumber}`, email: SHOP.email, address: { "@type": "PostalAddress", addressLocality: "Abidjan", addressCountry: "CI" }, areaServed: "CI", currenciesAccepted: "XOF", paymentAccepted: "Mobile money (Orange Money, MTN MoMo, Moov Money, Wave)" };
   return <div className="mb-wrap mb-page" id="contenu" role="main">
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organization) }}/>
+    <h1 className="mb-sr">MyBigMarket, boutique en ligne à Abidjan</h1>
     <div className="mb-home-top" style={{ alignItems: "stretch" }}>
       <CategoryMenu categories={menu}/>
       <div style={{ display: "flex", flexDirection: "column", gap: 12, minWidth: 0 }}>
-        <HomeHero/>
+        <HeroCarousel banners={BANNERS}/>
         <div className="mb-reassurance" style={{ margin: 0 }}>
           {REASSURANCE.map((item, index) => { const Icon = ICONS[index]; return <div key={item.title}><Icon size={22} strokeWidth={1.75} aria-hidden="true"/><div><b>{item.title}</b><span>{item.text}</span></div></div>; })}
         </div>

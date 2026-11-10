@@ -483,24 +483,6 @@ html body button,html body input,html body select,html body textarea{font-family
 
 .mb-hero-slide{background:#ececee}
 
-/* ===== Hero de l'accueil : sobre, lisible, une seule action ===== */
-.mb-hero2{display:grid;grid-template-columns:minmax(0,6fr) minmax(0,5fr);background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.08);min-height:340px}
-.mb-hero2-copy{display:flex;flex-direction:column;justify-content:center;align-items:flex-start;padding:40px 44px}
-.mb-hero2-eyebrow{margin:0 0 14px;font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#5f666d}
-.mb-page .mb-hero2 h1{margin:0;max-width:16ch;font-size:clamp(28px,2.9vw,40px);font-weight:800;line-height:1.1;letter-spacing:-.02em;color:var(--color-text)!important}
-.mb-hero2-sub{margin:14px 0 28px;font-size:16px;line-height:1.5;color:#3f444b}
-.mb-hero2-cta{min-height:48px;padding:0 30px;font-size:15px;border-radius:6px}
-.mb-hero2-media{position:relative;min-height:260px;background:#ececee}
-.mb-hero2-media img{object-fit:cover;object-position:60% 50%}
-@media (max-width:760px){
-  .mb-hero2{grid-template-columns:1fr;min-height:0}
-  .mb-hero2-copy{padding:24px 20px 22px}
-  .mb-hero2-eyebrow{margin-bottom:10px;font-size:11px}
-  .mb-page .mb-hero2 h1{font-size:27px;max-width:18ch}
-  .mb-hero2-sub{margin:10px 0 20px;font-size:15px}
-  .mb-hero2-cta{width:100%;justify-content:center}
-  .mb-hero2-media{min-height:0;aspect-ratio:16/10}
-}
 
 /* Sections suivantes alignées sur le hero : mêmes arrondis, même hiérarchie de titres */
 .mb-catmenu-title{font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#5f666d;padding:20px 18px 10px}
@@ -512,10 +494,3 @@ html body button,html body input,html body select,html body textarea{font-family
 .mb-section .mb-grid{padding-top:12px}
 @media (max-width:640px){.mb-section-head{padding:16px 14px 10px}.mb-section-head h2{font-size:19px}}
 
-/* Images du hero : fondu entre les images */
-.mb-hero2-img{opacity:0;transition:opacity .8s ease;object-fit:cover}
-.mb-hero2-img.is-active{opacity:1}
-@media (prefers-reduced-motion:reduce){.mb-hero2-img{transition:none}}
-.mb-hero2-dots{position:absolute;left:0;right:0;bottom:12px;display:flex;justify-content:center;gap:8px;z-index:2}
-.mb-hero2-dots button{width:9px;height:9px;padding:0;border:1px solid #fff;border-radius:50%;background:rgba(0,0,0,.35);cursor:pointer}
-.mb-hero2-dots button[aria-current="true"]{background:#fff}

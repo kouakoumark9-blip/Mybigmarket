@@ -5,12 +5,11 @@ const ADMIN_EMAIL = process.env.E2E_ADMIN_EMAIL || "";
 const ADMIN_PASSWORD = process.env.E2E_ADMIN_PASSWORD || "";
 
 test.describe("vitrine", () => {
-  test("accueil : menu des catégories, hero, réassurance, produits, sans trace de l'ancien positionnement", async ({ page }) => {
+  test("accueil : menu des catégories, bannières, réassurance, produits, sans trace de l'ancien positionnement", async ({ page }) => {
     const console_ = watchConsole(page);
     await page.goto("/");
     await expect(page.getByRole("navigation", { name: "Catégories" }).first()).toBeVisible();
-    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Tout pour la maison, livré chez vous");
-    await expect(page.getByRole("link", { name: "Découvrir nos produits" })).toBeVisible();
+    await expect(page.getByRole("region", { name: "Offres du moment" })).toBeVisible();
     await expect(page.getByText("Paiement mobile money sécurisé")).toBeVisible();
     await expect(page.getByRole("heading", { name: "Meilleures ventes" })).toBeVisible();
     const text = (await page.locator("body").innerText()).toLowerCase();
