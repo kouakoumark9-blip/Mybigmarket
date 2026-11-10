@@ -537,3 +537,108 @@ html body button,html body input,html body select,html body textarea{font-family
 
 /* Tiroir mobile : intertitres des groupes */
 .mb-drawer-group-title{display:block;padding:10px 12px 2px;font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#5f666d}
+
+/* ===== Aération : plus d'espace entre les blocs, textes et images qui respirent ===== */
+html body{line-height:1.6;font-size:15.5px}
+.mb-wrap{width:min(100% - 40px,1240px)}
+.mb-page{padding:32px 0 72px}
+.mb-strip .mb-wrap{min-height:40px}
+.mb-header-main{padding:20px 0;gap:36px}
+.mb-nav .mb-wrap{padding-block:2px}
+
+/* Accueil : menu, bannière et réassurance */
+.mb-home-top{gap:28px}
+.mb-home-top>div{gap:20px!important}
+.mb-catmenu-title{padding:24px 24px 12px}
+.mb-catmenu ul{padding:0 12px 14px}
+.mb-catmenu>ul>li>a{padding:15px 14px;font-size:15px}
+.mb-reassurance>div,.mb-home-top .mb-reassurance>div{padding:22px 24px}
+.mb-reassurance b{font-size:15px}
+.mb-reassurance span{margin-top:3px;font-size:13px}
+
+/* Sections de produits : titre libre, grille aérée */
+.mb-section{margin:64px 0 0}
+.mb-section-head{padding:0 0 24px;background:transparent}
+.mb-section-head h2{font-size:28px;letter-spacing:-.02em}
+.mb-section-head .mb-link{font-size:14.5px}
+.mb-section .mb-grid{padding:0;gap:28px 24px}
+.mb-card-body{padding:16px 2px 4px}
+.mb-card-title{margin:0 0 8px;font-size:14.5px;line-height:1.45;min-height:42px}
+.mb-card .mb-price{margin-top:2px;font-size:19px}
+.mb-card .mb-price-old{margin-top:4px}
+.mb-card .mb-avail{margin-top:8px}
+.mb-card-img{border-radius:12px}
+.mb-card,.mb-card:hover{border-radius:12px;background:transparent}
+.mb-card:hover{box-shadow:none}
+.mb-card:hover .mb-card-img{box-shadow:0 8px 24px rgba(0,0,0,.12)}
+
+/* Pages de catégorie */
+.mb-cat-banner{margin:0 0 36px}
+.mb-title{margin:0 0 14px;font-size:34px}
+.mb-intro{margin:0 0 32px;font-size:16px;line-height:1.65;max-width:760px}
+.mb-cat-layout{gap:40px}
+.mb-side{gap:24px}
+.mb-catside h2{padding:22px 22px 12px}
+.mb-catside a{padding:8px 22px}
+.mb-catside-group{margin-top:12px;padding-top:16px}
+.mb-catside-group h3{margin:0 22px 6px}
+.mb-filters h2{padding:16px 20px}
+.mb-filter{padding:18px 20px}
+.mb-toolbar{padding:16px 22px;margin-bottom:28px}
+.mb-textblock{margin:64px 0 0;padding:40px 44px}
+.mb-textblock h2{margin-bottom:16px;font-size:24px}
+.mb-textblock p{max-width:760px;line-height:1.75;margin:0 0 16px}
+.mb-faq,.mb-textblock+.mb-textblock{margin-top:40px}
+
+/* Pages d'information, panier, commande */
+.mb-info{padding:40px 44px}
+.mb-info p,.mb-info li{line-height:1.75}
+.mb-info h2{margin:36px 0 12px;font-size:20px}
+.mb-info-layout{gap:32px}
+.mb-box h2{padding:20px 24px}
+.mb-box-body{padding:24px}
+.mb-two{gap:32px}
+.mb-field{margin-bottom:6px}
+.mb-form{gap:22px}
+
+/* Pied de page */
+.mb-footer{margin-top:80px}
+.mb-footer-grid{gap:48px;padding:64px 0 48px}
+.mb-footer h2{margin-bottom:18px}
+.mb-footer ul{gap:12px}
+.mb-footer p{margin-bottom:12px;line-height:1.75}
+.mb-footer-bottom{padding:20px 0}
+
+/* Mobile : toujours aéré, mais moins haut */
+@media (max-width:900px){
+  .mb-wrap{width:min(100% - 28px,1240px)}
+  .mb-page{padding:20px 0 56px}
+  .mb-header-main{padding:14px 0;gap:14px}
+  .mb-home-top{gap:20px}
+  .mb-home-top>div{gap:16px!important}
+  .mb-reassurance>div,.mb-home-top .mb-reassurance>div{padding:16px 6px}
+}
+@media (max-width:640px){
+  .mb-section{margin:44px 0 0}
+  .mb-section-head{padding:0 0 18px}
+  .mb-section-head h2{font-size:22px}
+  .mb-section .mb-grid{gap:22px 14px}
+  .mb-card-body{padding:12px 2px 2px}
+  .mb-card-title{font-size:13.5px;min-height:38px}
+  .mb-title{font-size:27px}
+  .mb-intro{margin-bottom:24px;font-size:15px}
+  .mb-cat-banner{margin-bottom:24px}
+  .mb-cat-layout{gap:24px}
+  .mb-textblock{margin-top:44px;padding:26px 22px}
+  .mb-info{padding:26px 22px}
+  .mb-box-body{padding:18px}
+  .mb-box h2{padding:16px 18px}
+  .mb-footer{margin-top:56px}
+  .mb-footer-grid{gap:32px;padding:44px 0 32px}
+}
+/* Accueil : le menu garde sa hauteur utile, sans grand cadre vide sous « Lits » */
+.mb-home-top .mb-catmenu{align-self:start}
+@media (max-width:600px){
+  .mb-reassurance b{font-size:11.5px;line-height:1.25}
+  .mb-reassurance span{font-size:10.5px;line-height:1.3}
+}
