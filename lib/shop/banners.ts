@@ -17,7 +17,9 @@ export type Banner = {
 export const BANNERS: Banner[] = [
   { desktop: "/bannieres/slide-1-bureau.webp", mobile: "/bannieres/slide-1-bureau.webp", alt: "Une famille ivoirienne dans sa cuisine équipée : petit et gros électroménager", href: "/petit-electromenager",
     fallback: { title: "Petit et gros électroménager", text: "En stock à Abidjan, livraison 24 à 72 h" } },
-  // Pour ajouter une 2e, 3e… bannière (3 à 5 conseillées) : déposez l'image dans public/bannieres/ puis copiez ce modèle.
-  // { desktop: "/bannieres/slide-2-bureau.jpg", mobile: "/bannieres/slide-2-mobile.jpg", alt: "Groupes électrogènes et onduleurs", href: "/electrogene",
-  //   fallback: { title: "Groupes électrogènes et onduleurs", text: "Gardez le courant à la maison et à la boutique" } },
+  { desktop: "/bannieres/slide-2-bureau.webp", mobile: "/bannieres/slide-2-bureau.webp", alt: "Un père et son fils devant un lave-linge : machines à laver et gros électroménager", href: "/gros-electromenager/machines-a-laver",
+    fallback: { title: "Machines à laver", text: "Livraison à Abidjan et en Côte d'Ivoire, paiement à la livraison" } },
+  { desktop: "/bannieres/slide-3-bureau.webp", mobile: "/bannieres/slide-3-bureau.webp", alt: "Mixeur, bouilloire, grille-pain, friteuse à air, cafetière et fer à repasser sur un plan de travail", href: "/petit-electromenager",
+    fallback: { title: "Petit électroménager", text: "Mixeurs, bouilloires, friteuses à air et plus encore" } },
+  // Pour ajouter une 4e ou 5e bannière : déposez l'image dans public/bannieres/ puis copiez un des modèles ci-dessus.
 ];
