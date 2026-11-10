@@ -124,7 +124,7 @@ export function ProductDetailPage({ product, cartItem, publishedReviews = [], pa
               <ProductGallery images={images} videoUrl={product.videoUrl} label={product.imageLabel} activeIndex={activeImage} onSelect={setActiveImage} favoriteItem={cartItem}/>
             </div>
             <div className="pd-area-info">
-              <ProductInfo ref={priceRef} product={product} variants={variants} unitPrice={unitPrice} quantity={quantity} onQuantity={setQuantity} orderable={!cartItem.isDemo}/>
+              <ProductInfo ref={priceRef} product={product} variants={variants} unitPrice={unitPrice} quantity={quantity} onQuantity={setQuantity} maxQuantity={cartItem.availability === "on_order" ? 99 : Math.max(1, cartItem.quantity)} orderable={!cartItem.isDemo}/>
               {(product.colorVariants.length > 0 || product.designOptions.length > 0) && <button type="button" className="pd-variant-summary" onClick={() => setSheetOpen(true)}>
                 <span><b>Options</b> {[selectedVariant?.label, product.designOptions.find((item) => item.id === design)?.label].filter(Boolean).join(" · ")}</span><ChevronRight size={18} strokeWidth={1.5}/>
               </button>}
