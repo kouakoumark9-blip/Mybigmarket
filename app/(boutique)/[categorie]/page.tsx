@@ -35,6 +35,6 @@ export default async function CategoryOrInfoPage({ params, searchParams }: Props
   const jsonLd = [breadcrumbJsonLd(crumbs, SHOP.baseUrl), ...(category.faq.length ? [{ "@context": "https://schema.org", "@type": "FAQPage", mainEntity: category.faq.map((item) => ({ "@type": "Question", name: item.question, acceptedAnswer: { "@type": "Answer", text: item.answer } })) }] : [])];
   return <div className="mb-wrap mb-page" id="contenu" role="main">
     {jsonLd.map((item, index) => <script key={index} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(item) }}/>)}
-    <CatalogView basePath={`/${category.slug}`} title={category.name} intro={category.introText} crumbs={crumbs} params={await searchParams} categoryIds={categoryIdsOf(category)} subcategories={category.children} body={category.bodyText} faq={category.faq}/>
+    <CatalogView basePath={`/${category.slug}`} title={category.name} intro={category.introText} crumbs={crumbs} params={await searchParams} categoryIds={categoryIdsOf(category)} tree={category.children.length > 0 ? category : undefined} body={category.bodyText} faq={category.faq}/>
   </div>;
 }

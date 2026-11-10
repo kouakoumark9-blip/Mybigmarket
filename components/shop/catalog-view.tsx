@@ -1,5 +1,7 @@
+import Image from "next/image";
 import Link from "next/link";
-import { groupChildren } from "@/lib/shop/category-groups";
+import { CategorySidebar } from "./category-sidebar";
+import { categoryBanner } from "@/lib/shop/category-banners";
 import { Breadcrumbs, type Crumb } from "./breadcrumbs";
 import { ProductGrid } from "./product-card";
 import { formatFcfa } from "@/lib/shop/format";
@@ -18,13 +20,14 @@ type Props = {
   params: RawParams;
   categoryIds?: number[];
   flag?: "best" | "promo";
-  subcategories?: ShopCategory[];
+  /** Catégorie principale dont on affiche les sous-catégories (colonne de gauche sur ordinateur, puces sur mobile). */
+  tree?: ShopCategory;
   body?: string | null;
   faq?: Array<{ question: string; answer: string }>;
 };
 
 /** Page de liste : titre, introduction, sous-catégories, filtres, tri, grille, pagination, texte explicatif et FAQ. */
-export async function CatalogView({ basePath, title, intro, crumbs, params, categoryIds, flag, subcategories = [], body, faq = [] }: Props) {
+export async function CatalogView({ basePath, title, intro, crumbs, params, categoryIds, flag, tree, body, faq = [] }: Props) {
   const filters = readFilters(params);
   const [{ items, total }, options] = await Promise.all([
     listProducts({ ...filters, categoryIds, flag, pageSize: PAGE_SIZE }),
@@ -36,15 +39,14 @@ export async function CatalogView({ basePath, title, intro, crumbs, params, cate
   const hasFilters = Boolean(filters.q || filters.brand || filters.power || filters.minPrice || filters.maxPrice || filters.stock);
   return <>
     <Breadcrumbs items={crumbs}/>
+    {(() => { const banner = filters.q ? null : categoryBanner(basePath.replace(/^\//, "")); return banner && <a className="mb-cat-banner" href="#produits" aria-label={banner.alt}>
+      <Image src={banner.src} alt="" fill priority sizes="(max-width: 1280px) 100vw, 1240px"/>
+    </a>; })()}
     <h1 className="mb-title">{filters.q ? `Résultats pour « ${filters.q} »` : title}</h1>
     {intro && !filters.q && <p className="mb-intro">{intro}</p>}
-    {subcategories.length > 0 && <div className="mb-subcats-wrap" aria-label="Sous-catégories">
-      {groupChildren(basePath.replace(/^\//, ""), subcategories).map((group, index) => <div key={group.title ?? index} className="mb-subcats-group">
-        {group.title && <span className="mb-subcats-title">{group.title}</span>}
-        <div className="mb-subcats">{group.items.map((child) => <Link key={child.slug} href={`/${child.slug}`}>{child.name}</Link>)}</div>
-      </div>)}
-    </div>}
-    <div className="mb-cat-layout">
+    <div className="mb-cat-layout" id="produits">
+      <aside className="mb-side">
+      {tree && tree.children.length > 0 && <CategorySidebar root={tree} currentSlug={basePath.replace(/^\//, "")}/>}
       <form className="mb-filters" method="get" action={basePath} aria-label="Filtres">
         <h2>Filtrer</h2>
         {filters.q && <input type="hidden" name="q" value={filters.q}/>}
@@ -60,6 +62,7 @@ export async function CatalogView({ basePath, title, intro, crumbs, params, cate
           <select id="f-tri" name="tri" className="mb-input" defaultValue={filters.sort}>{SORT_LABELS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></div>
         <div className="mb-filter"><button className="mb-btn mb-btn--block" type="submit">Appliquer</button>{hasFilters && <p style={{ margin: "8px 0 0", textAlign: "center" }}><Link className="mb-link" href={basePath}>Effacer les filtres</Link></p>}</div>
       </form>
+      </aside>
       <div>
         <div className="mb-toolbar"><span>{total} produit{total > 1 ? "s" : ""}{options.maxPrice ? ` · jusqu'à ${formatFcfa(options.maxPrice)}` : ""}</span>
           <span>Trier : {SORT_LABELS.map(([value, label], index) => <span key={value}>{index > 0 && " · "}{filters.sort === value ? <b>{label}</b> : <Link className="mb-link" href={withParams(basePath, keep, { tri: value === "pertinence" ? undefined : value })}>{label}</Link>}</span>)}</span></div>
