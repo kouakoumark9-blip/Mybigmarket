@@ -26,8 +26,14 @@ test.describe("vitrine", () => {
     await expect(page.getByRole("form", { name: "Filtres" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Questions fréquentes" })).toBeVisible();
     await expect(page).toHaveTitle(/Lits à Abidjan/);
+    await expect(page.locator(".mb-cat-banner")).toHaveCount(1);
     await page.goto("/lits/lits-2-places");
+    await expect(page.locator(".mb-cat-banner")).toHaveCount(1);
     await expect(page.getByRole("navigation", { name: "Fil d'Ariane" }).getByText("Lits 2 places")).toBeVisible();
+    expect((await page.goto("/lits/lits-1-place"))?.status()).toBe(200);
+    await expect(page.locator(".mb-cat-banner")).toHaveCount(1);
+    await page.goto("/lits/lits-3-places");
+    await expect(page.locator(".mb-cat-banner")).toHaveCount(0); // pas de bannière pour cette catégorie
     for (const path of ["lits-1-place", "lits-2-5-places", "lits-3-places", "lits-enfants", "lits-superposes", "lits-pliables", "lits-mezzanine", "lits-avec-chevets", "lits-avec-rangement", "lits-en-bois", "lits-metal", "pack-lit-matelas"]) {
       expect((await page.goto(`/lits/${path}`))?.status(), path).toBe(200);
     }

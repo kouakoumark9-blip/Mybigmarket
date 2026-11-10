@@ -1,5 +1,7 @@
+import Image from "next/image";
 import Link from "next/link";
 import { groupChildren } from "@/lib/shop/category-groups";
+import { categoryBanner } from "@/lib/shop/category-banners";
 import { Breadcrumbs, type Crumb } from "./breadcrumbs";
 import { ProductGrid } from "./product-card";
 import { formatFcfa } from "@/lib/shop/format";
@@ -36,6 +38,9 @@ export async function CatalogView({ basePath, title, intro, crumbs, params, cate
   const hasFilters = Boolean(filters.q || filters.brand || filters.power || filters.minPrice || filters.maxPrice || filters.stock);
   return <>
     <Breadcrumbs items={crumbs}/>
+    {(() => { const banner = filters.q ? null : categoryBanner(basePath.replace(/^\//, "")); return banner && <a className="mb-cat-banner" href="#produits" aria-label={banner.alt}>
+      <Image src={banner.src} alt="" fill priority sizes="(max-width: 1280px) 100vw, 1240px"/>
+    </a>; })()}
     <h1 className="mb-title">{filters.q ? `Résultats pour « ${filters.q} »` : title}</h1>
     {intro && !filters.q && <p className="mb-intro">{intro}</p>}
     {subcategories.length > 0 && <div className="mb-subcats-wrap" aria-label="Sous-catégories">
@@ -44,7 +49,7 @@ export async function CatalogView({ basePath, title, intro, crumbs, params, cate
         <div className="mb-subcats">{group.items.map((child) => <Link key={child.slug} href={`/${child.slug}`}>{child.name}</Link>)}</div>
       </div>)}
     </div>}
-    <div className="mb-cat-layout">
+    <div className="mb-cat-layout" id="produits">
       <form className="mb-filters" method="get" action={basePath} aria-label="Filtres">
         <h2>Filtrer</h2>
         {filters.q && <input type="hidden" name="q" value={filters.q}/>}
