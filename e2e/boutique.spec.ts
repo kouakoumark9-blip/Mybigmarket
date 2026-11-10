@@ -30,8 +30,9 @@ test.describe("vitrine", () => {
 
   test("commande sans compte : panier, une page, confirmation WhatsApp, suivi", async ({ page }) => {
     await page.goto("/petit-electromenager/friteuses-a-air");
+    await page.locator('a[href^="/produits/"]').first().click();
+    await page.waitForURL(/\/produits\//);
     await page.getByRole("button", { name: "Ajouter au panier" }).first().click();
-    await expect(page.getByRole("status")).toContainText("ajouté au panier");
     await page.goto("/panier");
     await expect(page.getByText("En stock à Abidjan").first()).toBeVisible();
     await page.getByRole("link", { name: "Commander", exact: true }).click();

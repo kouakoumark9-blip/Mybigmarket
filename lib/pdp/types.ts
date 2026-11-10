@@ -123,6 +123,8 @@ export type Product = {
   designLabel?: string;
   keySpecs: LabeledValue[];
   highlights: Highlight[];
+  /** Résumé court affiché dans le récapitulatif. */
+  summary?: string;
   attributes: LabeledValue[];
   supplier: Supplier;
   shipping: ShippingInfo;

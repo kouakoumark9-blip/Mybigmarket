@@ -19,6 +19,7 @@ import { ProductCarousel } from "@/components/product-detail/product-carousel";
 import { FaqBlock } from "@/components/product-detail/faq-block";
 import { ReviewsSection } from "@/components/product-detail/reviews-section";
 import { DescriptionSection } from "@/components/product-detail/description-section";
+import { RecapSection } from "@/components/product-detail/recap-section";
 import { FloatingActions } from "@/components/product-detail/floating-actions";
 import { MobileActionBar } from "@/components/product-detail/mobile-action-bar";
 
@@ -135,6 +136,7 @@ export function ProductDetailPage({ product, cartItem, publishedReviews = [], pa
           <div className="pd-lower">
             <ProductCarousel title="Autres recommandations pour votre entreprise" items={product.related} id="pd-related"/>
             <TabsBar ref={inlineTabsRef} tabs={pdpConfig.tabs} active={activeTab}/>
+            <RecapSection summary={product.summary ?? ""} specs={product.keySpecs} highlights={product.highlights} id="pdp-recap"/>
             <AttributesTable items={product.attributes} id="pdp-attributes"/>
             <FaqBlock items={product.faq}/>
             <ProductCarousel title="Fréquemment achetés ensemble" items={product.boughtTogether} id="pd-together"/>

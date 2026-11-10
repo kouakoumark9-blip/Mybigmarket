@@ -10,26 +10,25 @@ import { Logo } from "./logo";
 import { CategoryMenu } from "./category-menu";
 import type { MenuCategory } from "./menu-types";
 
-/** Bande du haut, en-tête (logo, recherche par catégorie, compte, panier, WhatsApp), menu des catégories. */
+/** Bande du haut, en-tête (logo, recherche, compte, panier, WhatsApp), menu des catégories. */
 export function SiteHeader({ categories }: { categories: MenuCategory[] }) {
   const router = useRouter();
   const { count } = useCart();
   const [query, setQuery] = useState("");
-  const [category, setCategory] = useState("");
   const [open, setOpen] = useState(false);
 
   function submit(event: FormEvent) {
     event.preventDefault();
     const term = query.trim();
     const params = term ? `?q=${encodeURIComponent(term)}` : "";
-    router.push(category ? `/${category}${params}` : `/produits${params}`);
+    router.push(`/produits${params}`);
     setOpen(false);
   }
 
   return <>
     <a className="mb-skip" href="#contenu">Aller au contenu</a>
     <div className="mb-strip"><div className="mb-wrap">
-      <span className="mb-strip-msg">{TOP_STRIP}</span>
+      <span className="mb-strip-msg">{TOP_STRIP.split("•").map((part) => <span key={part}>{part.trim()}</span>)}</span>
       <a href={whatsappLink()} rel="noopener">{SHOP.phoneDisplay}</a>
     </div></div>
     <header className="mb-header">
@@ -37,11 +36,6 @@ export function SiteHeader({ categories }: { categories: MenuCategory[] }) {
         <button type="button" className="mb-menu-toggle" onClick={() => setOpen(true)} aria-label="Ouvrir le menu des catégories"><Menu size={24} strokeWidth={1.75}/></button>
         <Logo/>
         <form className="mb-search" role="search" onSubmit={submit}>
-          <label className="mb-sr" htmlFor="mb-cat">Catégorie</label>
-          <select id="mb-cat" value={category} onChange={(event) => setCategory(event.target.value)}>
-            <option value="">Toutes les catégories</option>
-            {categories.map((item) => <option key={item.slug} value={item.slug}>{item.name}</option>)}
-          </select>
           <label className="mb-sr" htmlFor="mb-q">Rechercher un produit</label>
           <input id="mb-q" type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Rechercher un produit" autoComplete="off"/>
           <button type="submit"><Search size={18} strokeWidth={1.75} aria-hidden="true"/> Rechercher</button>
@@ -73,7 +67,6 @@ export function SiteHeader({ categories }: { categories: MenuCategory[] }) {
               {item.children.map((child) => <Link key={child.slug} href={`/${child.slug}`} onClick={() => setOpen(false)}>{child.name}</Link>)}
             </details> : <Link href={`/${item.slug}`} onClick={() => setOpen(false)}>{item.name}</Link>}
           </li>)}
-          <li><Link href="/promotions" onClick={() => setOpen(false)}>Promotions</Link></li>
           <li><Link href="/suivi-commande" onClick={() => setOpen(false)}>Suivi de commande</Link></li>
           <li><Link href="/favoris" onClick={() => setOpen(false)}>Favoris</Link></li>
           <li><Link href="/contact" onClick={() => setOpen(false)}>Contact</Link></li>

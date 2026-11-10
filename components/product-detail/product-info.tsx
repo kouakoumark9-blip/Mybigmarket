@@ -32,7 +32,7 @@ export const ProductInfo = forwardRef<HTMLDivElement, Props>(function ProductInf
         <Stars value={product.rating}/>
         <b>{product.rating.toLocaleString("fr-FR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}</b>
         <a href="#pdp-reviews">({product.reviewsCount.toLocaleString("fr-FR")} avis)</a>
-      </> : <span className="pd-new-badge">Nouveauté · soyez le premier à donner votre avis</span>}
+      </> : null}
       {product.soldCount > 0 && <><i aria-hidden="true"/><span>{product.soldCount.toLocaleString("fr-FR")} vendus</span></>}
       {product.rankLabel && <><i aria-hidden="true"/><span className="pd-rank" title={product.rankLabel}><Trophy size={14} strokeWidth={1.5} aria-hidden="true"/> <span>{product.rankLabel}</span></span></>}
     </div>

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { MessageCircle } from "lucide-react";
-import { PAYMENT_METHODS, SHOP, whatsappLink } from "@/lib/shop/config";
+import { SHOP, whatsappLink } from "@/lib/shop/config";
 
 export function SiteFooter() {
   return <>
@@ -21,7 +21,6 @@ export function SiteFooter() {
             <li><Link href="/livraison">Livraison</Link></li>
             <li><Link href="/retours-et-remboursements">Retours et remboursements</Link></li>
             <li><Link href="/contact">Contact</Link></li>
-            <li><Link href="/promotions">Promotions</Link></li>
             <li><Link href="/favoris">Mes favoris</Link></li>
           </ul>
         </nav>
@@ -35,11 +34,8 @@ export function SiteFooter() {
           </ul>
         </nav>
         <div>
-          <h2>Moyens de paiement</h2>
-          <div className="mb-footer-pay">
-            {PAYMENT_METHODS.map((method) => <span key={method.code} className={method.active ? "is-on" : ""}>{method.label}{method.active ? "" : " (bientôt)"}</span>)}
-          </div>
-          <p style={{ marginTop: 12 }}>Livraison à Abidjan (Cocody, Marcory, Yopougon, Plateau, Abobo, Koumassi, Treichville, Port-Bouët, Adjamé, Bingerville, Anyama) et dans les autres villes.</p>
+          <h2>Livraison</h2>
+          <p>Livraison à Abidjan (Cocody, Marcory, Yopougon, Plateau, Abobo, Koumassi, Treichville, Port-Bouët, Adjamé, Bingerville, Anyama) et dans les autres villes.</p>
         </div>
       </div>
       <div className="mb-footer-bottom"><div className="mb-wrap" style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", gap: 8 }}>

@@ -62,6 +62,7 @@ export function catalogToProduct(product: DemoProduct, all: DemoProduct[], descr
     colorVariants: [],
     designOptions: [],
     keySpecs: specs,
+    summary: product.shortDescription || description.split(/\n{2,}/)[0] || "",
     highlights: [
       { lead: "Livraison :", text: delivery + "." },
       { lead: "Paiement :", text: "à la livraison, après vérification du produit." },
