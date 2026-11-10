@@ -36,7 +36,7 @@ export default async function HomePage() {
       <CategoryMenu categories={menu}/>
       <div style={{ display: "flex", flexDirection: "column", gap: 12, minWidth: 0 }}>
         <HeroCarousel banners={BANNERS}/>
-        <div className="mb-reassurance" style={{ margin: 0, flex: 1, alignContent: "center" }}>
+        <div className="mb-reassurance" style={{ margin: 0, flex: 1 }}>
           {REASSURANCE.map((item, index) => { const Icon = ICONS[index]; return <div key={item.title}><Icon size={22} strokeWidth={1.75} aria-hidden="true"/><div><b>{item.title}</b><span>{item.text}</span></div></div>; })}
         </div>
       </div>

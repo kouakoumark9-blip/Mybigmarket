@@ -395,3 +395,17 @@ html body button,html body input,html body select,html body textarea{font-family
 .mb-subcats a{border-radius:6px}
 .mb-footer{background:var(--color-surface-inverse)}
 @media (max-width:640px){.mb-cat-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+
+/* Réassurance : grille 2 × 2 alignée (bureau et mobile) */
+.mb-reassurance,.mb-home-top .mb-reassurance{display:grid;grid-template-columns:1fr 1fr;grid-auto-rows:1fr;align-content:stretch}
+.mb-reassurance>div,.mb-home-top .mb-reassurance>div{display:grid;grid-template-columns:24px minmax(0,1fr);column-gap:12px;align-items:center;align-content:center;border:0;padding:14px 18px}
+.mb-reassurance>div:nth-child(even){border-left:1px solid var(--color-border)}
+.mb-reassurance>div:nth-child(n+3){border-top:1px solid var(--color-border)}
+.mb-reassurance>div>svg{grid-row:1;margin:0;justify-self:center}
+.mb-reassurance>div>div,.mb-reassurance>div>span{min-width:0}
+@media (max-width:600px){
+  .mb-reassurance>div,.mb-home-top .mb-reassurance>div{grid-template-columns:20px minmax(0,1fr);column-gap:8px;padding:12px 10px;align-items:start}
+  .mb-reassurance svg{width:18px;height:18px}
+  .mb-reassurance b{font-size:12.5px;line-height:1.25}
+  .mb-reassurance span{display:block;font-size:11px;line-height:1.3;margin-top:2px}
+}
