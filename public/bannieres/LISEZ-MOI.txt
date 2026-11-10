@@ -1,9 +1,8 @@
-IMAGE DU HERO DE LA PAGE D'ACCUEIL
-==================================
+IMAGES DU HERO DE LA PAGE D'ACCUEIL
+===================================
 
-Le hero de l'accueil utilise l'image hero-accueil.webp de ce dossier.
-Textes, bouton et image se changent dans lib/shop/hero.ts.
+Les images du hero sont les fichiers de ce dossier : slide-1-bureau.webp, slide-2-bureau.webp, slide-3-bureau.webp.
+Elles défilent toutes les 5 secondes. Textes, bouton, liste des images et cadrage se changent dans lib/shop/hero.ts.
 
-Pour changer l'image : déposez un fichier net, format paysage (2000 x 1100 px conseillé, JPG ou WebP,
-moins de 300 Ko), puis changez le nom du fichier dans lib/shop/hero.ts. Le site la redimensionne tout seul
-selon l'écran (ordinateur ou mobile).
+Pour changer ou ajouter une image : déposez un fichier net, format paysage (2000 x 667 px ou plus, JPG ou WebP,
+moins de 300 Ko), puis ajoutez-le dans la liste de lib/shop/hero.ts. Le site le redimensionne tout seul selon l'écran.

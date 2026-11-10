@@ -1,6 +1,6 @@
-import Image from "next/image";
 import Link from "next/link";
 import { HERO } from "@/lib/shop/hero";
+import { HeroSlides } from "./hero-slides";
 
 /** Hero de l'accueil : un titre, une ligne d'explication, un bouton d'action et une photo produit. */
 export function HomeHero() {
@@ -12,7 +12,7 @@ export function HomeHero() {
       <Link className="mb-btn mb-hero2-cta" href={HERO.cta.href}>{HERO.cta.label}</Link>
     </div>
     <div className="mb-hero2-media">
-      <Image src={HERO.image.src} alt={HERO.image.alt} fill priority sizes="(max-width: 760px) 100vw, 560px" quality={80}/>
+      <HeroSlides/>
     </div>
   </section>;
 }

@@ -511,3 +511,11 @@ html body button,html body input,html body select,html body textarea{font-family
 .mb-section-head .mb-link{font-size:14px;font-weight:600;color:var(--color-text);text-decoration:underline;text-underline-offset:3px}
 .mb-section .mb-grid{padding-top:12px}
 @media (max-width:640px){.mb-section-head{padding:16px 14px 10px}.mb-section-head h2{font-size:19px}}
+
+/* Images du hero : fondu entre les images */
+.mb-hero2-img{opacity:0;transition:opacity .8s ease;object-fit:cover}
+.mb-hero2-img.is-active{opacity:1}
+@media (prefers-reduced-motion:reduce){.mb-hero2-img{transition:none}}
+.mb-hero2-dots{position:absolute;left:0;right:0;bottom:12px;display:flex;justify-content:center;gap:8px;z-index:2}
+.mb-hero2-dots button{width:9px;height:9px;padding:0;border:1px solid #fff;border-radius:50%;background:rgba(0,0,0,.35);cursor:pointer}
+.mb-hero2-dots button[aria-current="true"]{background:#fff}
