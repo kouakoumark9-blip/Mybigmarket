@@ -13,6 +13,7 @@ export const CATEGORY_GROUPS: Record<string, Array<{ title: string; slugs: strin
     { title: "Par taille", slugs: ["matelas/matelas-1-place", "matelas/matelas-2-places", "matelas/matelas-2-5-places", "matelas/matelas-3-places", "matelas/matelas-bebe"] },
     { title: "Par type", slugs: ["matelas/matelas-orthopedique", "matelas/matelas-mousse", "matelas/matelas-memoire-de-forme", "matelas/matelas-a-ressorts", "matelas/matelas-medical"] },
     { title: "Par budget", slugs: ["matelas/matelas-pas-cher"] },
+    { title: "Accessoires", slugs: ["matelas/surmatelas-protege-matelas"] },
   ],
 };
 

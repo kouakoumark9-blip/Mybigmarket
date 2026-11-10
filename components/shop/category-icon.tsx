@@ -4,7 +4,7 @@ import { BedDouble, Layers, ShieldCheck, Tag, type LucideIcon } from "lucide-rea
 const ICONS: Record<string, LucideIcon> = {
   lits: BedDouble,
   matelas: Layers,
-  "surmatelas-protege-matelas": ShieldCheck,
+  "matelas/surmatelas-protege-matelas": ShieldCheck,
 };
 
 export function CategoryIcon({ slug, size = 20 }: { slug: string; size?: number }) {
