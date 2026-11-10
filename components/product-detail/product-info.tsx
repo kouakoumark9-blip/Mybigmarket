@@ -1,13 +1,30 @@
 "use client";
 
 import { forwardRef } from "react";
-import { Info, Trophy } from "lucide-react";
+import { Info, Minus, Plus, Trophy } from "lucide-react";
 import type { Product } from "@/lib/pdp/types";
 import { VariantPicker, type VariantState } from "@/components/product-detail/variant-picker";
 import { SpecsGrid } from "@/components/product-detail/specs-grid";
 import { Stars, usePriceRange } from "@/components/product-detail/shared";
+import { formatFcfa } from "@/lib/shop/format";
 
-type Props = { product: Product; variants: VariantState; unitPrice: number };
+type Props = { product: Product; variants: VariantState; unitPrice: number; quantity: number; onQuantity: (value: number) => void; maxQuantity?: number; orderable?: boolean };
+
+
+/** Choix de la quantité : boutons moins / plus ou saisie directe. */
+function QuantityPicker({ value, onChange, min, max, unitPrice }: { value: number; onChange: (value: number) => void; min: number; max: number; unitPrice: number }) {
+  const clamp = (next: number) => onChange(Math.min(max, Math.max(min, Math.round(next) || min)));
+  return <div className="pd-qty">
+    <label htmlFor="pd-qty-input">Quantité</label>
+    <div className="pd-qty-box">
+      <button type="button" onClick={() => clamp(value - 1)} disabled={value <= min} aria-label="Diminuer la quantité"><Minus size={16} strokeWidth={1.75} aria-hidden="true"/></button>
+      <input id="pd-qty-input" type="number" inputMode="numeric" min={min} max={max} value={value} onChange={(event) => clamp(Number(event.target.value))}/>
+      <button type="button" onClick={() => clamp(value + 1)} disabled={value >= max} aria-label="Augmenter la quantité"><Plus size={16} strokeWidth={1.75} aria-hidden="true"/></button>
+    </div>
+    <p className="pd-qty-total" aria-live="polite"><span>Total</span> <b>{formatFcfa(unitPrice * value)}</b>{value > 1 && <small>{value} × {formatFcfa(unitPrice)}</small>}</p>
+    {value >= max && max < 99 && <p className="pd-qty-note">Quantité maximale disponible en stock : {max}. Pour davantage, écrivez-nous sur WhatsApp.</p>}
+  </div>;
+}
 
 /** Bloc prix réutilisé par la boîte d'achat compacte. */
 export function PriceBlock({ product, compact = false }: { product: Product; compact?: boolean }) {
@@ -23,7 +40,7 @@ export function PriceBlock({ product, compact = false }: { product: Product; com
   </div>;
 }
 
-export const ProductInfo = forwardRef<HTMLDivElement, Props>(function ProductInfo({ product, variants }, priceRef) {
+export const ProductInfo = forwardRef<HTMLDivElement, Props>(function ProductInfo({ product, variants, unitPrice, quantity, onQuantity, maxQuantity = 99, orderable = true }, priceRef) {
   return <section className="pd-info" aria-label="Informations sur le produit">
     <h1 className="pd-title" title={product.title}>{product.title}</h1>
     <div className="pd-reputation">
@@ -40,6 +57,7 @@ export const ProductInfo = forwardRef<HTMLDivElement, Props>(function ProductInf
     <hr className="pd-rule"/>
 
     <VariantPicker product={product} state={variants} idPrefix="pd-main"/>
+    {orderable && <QuantityPicker value={quantity} onChange={onQuantity} min={Math.max(1, product.minOrderQty || 1)} unitPrice={unitPrice} max={maxQuantity}/>}
     <SpecsGrid items={product.keySpecs}/>
 
     {product.highlights.length > 0 && <section className="pd-block" aria-labelledby="pd-glance-title">

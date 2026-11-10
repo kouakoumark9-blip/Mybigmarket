@@ -311,8 +311,6 @@ html body button,html body input,html body select,html body textarea{font-family
 }
 @media (prefers-reduced-motion:reduce){.mb-hero-track{transition:none}}
 
-/* L'en-tête n'est pas collé en haut : la fiche produit n'a donc pas de décalage à prévoir. */
-:root{--pd-header-h:0px}
 
 /* Priorité sur les règles globales héritées (globals.css) */
 .mb-page .mb-section-head h2{color:var(--color-text)!important}
@@ -443,9 +441,8 @@ html body button,html body input,html body select,html body textarea{font-family
 
 
 /* En-tête fixe sur mobile */
-@media (max-width:900px){
-  .mb-header{position:sticky;top:0;z-index:50}
-}
+/* L'en-tête reste collé en haut sur tous les écrans */
+.mb-header{position:sticky;top:0;z-index:50}
 
 /* Réassurance sur mobile : les 4 blocs visibles en entier, icône au-dessus du texte */
 @media (max-width:600px){
