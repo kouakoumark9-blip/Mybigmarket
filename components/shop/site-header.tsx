@@ -40,7 +40,7 @@ export function SiteHeader({ categories }: { categories: MenuCategory[] }) {
         <form className="mb-search" role="search" onSubmit={submit}>
           <label className="mb-sr" htmlFor="mb-q">Rechercher un produit</label>
           <input id="mb-q" type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Rechercher un produit" autoComplete="off"/>
-          <button type="submit"><Search size={18} strokeWidth={1.75} aria-hidden="true"/> Rechercher</button>
+          <button type="submit" aria-label="Rechercher"><Search size={18} strokeWidth={1.75} aria-hidden="true"/><span className="mb-search-label"> Rechercher</span></button>
         </form>
         <div className="mb-header-actions">
           <Link className="mb-action mb-action--track" href="/suivi-commande"><Truck size={22} strokeWidth={1.75} aria-hidden="true"/><span>Suivi commande</span></Link>
