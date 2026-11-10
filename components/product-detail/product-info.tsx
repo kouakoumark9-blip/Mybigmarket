@@ -1,6 +1,7 @@
 "use client";
 
 import { forwardRef } from "react";
+import Image from "next/image";
 import { Info, Minus, Plus, Trophy } from "lucide-react";
 import type { Product } from "@/lib/pdp/types";
 import { VariantPicker, type VariantState } from "@/components/product-detail/variant-picker";
@@ -43,6 +44,10 @@ export function PriceBlock({ product, compact = false }: { product: Product; com
 export const ProductInfo = forwardRef<HTMLDivElement, Props>(function ProductInfo({ product, variants, unitPrice, quantity, onQuantity, maxQuantity = 99, orderable = true }, priceRef) {
   return <section className="pd-info" aria-label="Informations sur le produit">
     <h1 className="pd-title" title={product.title}>{product.title}</h1>
+    {product.brand && <div className="pd-brand">
+      {product.brand.logo && <Image src={product.brand.logo} alt={`Logo ${product.brand.name}`} width={433} height={183} className="pd-brand-logo"/>}
+      <span>Marque : <b>{product.brand.name}</b>{product.brand.tagline ? <> · {product.brand.tagline}</> : null}</span>
+    </div>}
     <div className="pd-reputation">
       {product.reviewsCount > 0 ? <>
         <Stars value={product.rating}/>
