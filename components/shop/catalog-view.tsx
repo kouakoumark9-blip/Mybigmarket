@@ -66,8 +66,7 @@ export async function CatalogView({ basePath, title, intro, crumbs, params, cate
       </form>
       </aside>
       <div>
-        <div className="mb-toolbar"><span>{total} produit{total > 1 ? "s" : ""}{options.maxPrice ? ` · jusqu'à ${formatFcfa(options.maxPrice)}` : ""}</span>
-          <span>Trier : {SORT_LABELS.map(([value, label], index) => <span key={value}>{index > 0 && " · "}{filters.sort === value ? <b>{label}</b> : <Link className="mb-link" href={withParams(basePath, keep, { tri: value === "pertinence" ? undefined : value })}>{label}</Link>}</span>)}</span></div>
+        <div className="mb-toolbar"><span>{total} produit{total > 1 ? "s" : ""}{options.maxPrice ? ` · jusqu'à ${formatFcfa(options.maxPrice)}` : ""}</span></div>
         {items.length ? <div className="mb-section" style={{ margin: 0 }}><ProductGrid products={items}/></div> : <div className="mb-section"><p className="mb-empty">Aucun produit ne correspond. <Link className="mb-link" href={basePath}>Voir toute la sélection</Link> ou écrivez-nous sur WhatsApp pour le trouver.</p></div>}
         {pages > 1 && <nav className="mb-pager" aria-label="Pagination">{Array.from({ length: pages }, (_, index) => index + 1).map((number) => number === page ? <span key={number} aria-current="page">{number}</span> : <Link key={number} href={withParams(basePath, keep, { page: number === 1 ? undefined : String(number) })}>{number}</Link>)}</nav>}
       </div>
