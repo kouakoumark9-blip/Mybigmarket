@@ -43,7 +43,7 @@ export default async function HomePage() {
     </div>
 
     {tree.length > 0 && <section className="mb-section" aria-label="Catégories">
-      <div className="mb-section-head"><h2>Acheter par catégorie</h2></div>
+      <div className="mb-section-head"><div><span className="mb-eyebrow">Catalogue</span><h2>Acheter par catégorie</h2></div></div>
       <div className="mb-section-body"><div className="mb-cat-grid">
         {tree.map((category) => <Link key={category.slug} className="mb-cat-tile" href={`/${category.slug}`}>
           <span className="mb-cat-tile-img">{category.imageUrl ? <Image src={category.imageUrl} alt="" width={200} height={200}/> : <CategoryIcon slug={category.slug}/>}</span>

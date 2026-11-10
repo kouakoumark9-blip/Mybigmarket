@@ -10,7 +10,6 @@ import { useCart } from "@/components/cart-provider";
 import { ImageSearchDialog } from "@/components/image-search-dialog";
 import { Breadcrumb } from "@/components/product-detail/breadcrumb";
 import { ProductGallery } from "@/components/product-detail/product-gallery";
-import { SupplierCard } from "@/components/product-detail/supplier-card";
 import { ProductInfo } from "@/components/product-detail/product-info";
 import { VariantSheet, type VariantState } from "@/components/product-detail/variant-picker";
 import { BuyBox } from "@/components/product-detail/buy-box";
@@ -131,7 +130,6 @@ export function ProductDetailPage({ product, cartItem, publishedReviews = [], pa
                 <span><b>Options</b> {[selectedVariant?.label, product.designOptions.find((item) => item.id === design)?.label].filter(Boolean).join(" · ")}</span><ChevronRight size={18} strokeWidth={1.5}/>
               </button>}
             </div>
-            <div className="pd-area-supplier"><SupplierCard supplier={product.supplier}/></div>
           </div>
 
           <div className="pd-lower">
@@ -140,8 +138,7 @@ export function ProductDetailPage({ product, cartItem, publishedReviews = [], pa
             <AttributesTable items={product.attributes} id="pdp-attributes"/>
             <FaqBlock items={product.faq}/>
             <ProductCarousel title="Fréquemment achetés ensemble" items={product.boughtTogether} id="pd-together"/>
-            <ProductCarousel title="Produits populaires du fournisseur" items={product.supplierProducts} id="pd-supplier-products" anchorId="pdp-supplier-section"/>
-            {!product.supplierProducts.length && <div id="pdp-supplier-section" className="pd-section"><SupplierCard supplier={product.supplier} idPrefix="pd-supplier-lower"/></div>}
+            <ProductCarousel title="Autres produits de la boutique" items={product.supplierProducts} id="pd-supplier-products" anchorId="pdp-supplier-section"/>
             <ReviewsSection summary={reviews} id="pdp-reviews"/>
             <DescriptionSection description={product.description} id="pdp-description"/>
           </div>

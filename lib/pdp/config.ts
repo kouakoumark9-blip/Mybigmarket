@@ -34,7 +34,6 @@ export const pdpConfig = {
   tabs: [
     { id: "pdp-attributes", label: "Attribut" },
     { id: "pdp-reviews", label: "Avis" },
-    { id: "pdp-supplier-section", label: "Fournisseur" },
     { id: "pdp-description", label: "Description" },
   ],
   /** Nombre de vignettes de couleur affichées avant « +N ». */

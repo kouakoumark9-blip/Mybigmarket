@@ -1,5 +1,5 @@
 /*
- * MyBigMarket — couleurs du site (orange et bleu nuit)
+ * MyBigMarket — couleurs du site (orange Jumia et noir)
  * ---------------------------------------------------------------------------
  * C'est le SEUL fichier qui contient des valeurs de couleur. globals.css et
  * les composants n'utilisent que var(--color-*) ou les utilitaires Tailwind
@@ -13,22 +13,22 @@
   --brand-color:#f68b1e;
   --color-primary:var(--brand-color);
   --color-primary-hover:#e07a10;
-  --color-primary-strong:#b45309;       /* orange foncé (texte, liens : 5:1 sur blanc) */
-  --color-primary-soft:#fff4e5;         /* fond orange très clair */
-  --color-primary-muted:#fcd9a8;        /* bordures orangées */
-  --color-on-primary:#1b2a41;           /* texte bleu nuit sur les boutons orange (6:1) */
-  --color-focus-ring:#1b2a41;
+  --color-primary-strong:#a84e00;       /* orange foncé (texte, liens : 5,6:1 sur blanc) */
+  --color-primary-soft:#fef3e4;         /* fond orange très clair */
+  --color-primary-muted:#fbd5a0;        /* bordures orangées */
+  --color-on-primary:#111111;           /* texte noir sur les boutons orange (7:1, lisible) */
+  --color-focus-ring:#111111;
 
   /* Noir et neutres */
-  --color-text:#1b2a41;
+  --color-text:#111111;
   --color-text-muted:#5f666d;
   --color-text-subtle:#999fa5;
-  --color-border:#e3e5e8;
+  --color-border:#e5e6e8;
   --color-border-strong:#c8cbd0;
-  --color-bg:#f4f5f7;
+  --color-bg:#f1f1f2;
   --color-surface:#ffffff;
   --color-surface-2:#f0f1f3;
-  --color-surface-inverse:#1b2a41;
+  --color-surface-inverse:#313133;
   --color-on-inverse:#ffffff;
   --color-shadow:#000000;
   --color-static-white:#ffffff;
@@ -41,7 +41,7 @@
   --color-danger-soft:#fff0ef;
 
   /* Fiche produit */
-  --color-ink:#1b2a41;                  /* texte principal de la fiche */
+  --color-ink:#222222;                  /* texte principal de la fiche */
   --color-rating:#f5b400;               /* étoiles */
   --color-deal:#d0021b;                 /* badge « prix les plus bas » (blanc 5,9:1) */
   --color-verified:#16a34a;             /* vérification */
@@ -49,7 +49,7 @@
   --radius-pill:999px;
   --shadow-md:0 2px 6px color-mix(in srgb,var(--color-shadow) 6%,transparent),0 12px 32px color-mix(in srgb,var(--color-shadow) 10%,transparent);
   --shadow-card:0 1px 2px color-mix(in srgb,var(--color-shadow) 4%,transparent),0 4px 16px color-mix(in srgb,var(--color-shadow) 5%,transparent);
-  --font-pdp:"Roboto",Arial,sans-serif;
+  --font-pdp:"Inter",Arial,sans-serif;
 
   /* Contact WhatsApp (vert foncé : texte blanc lisible) */
   --color-whatsapp:#128c4a;

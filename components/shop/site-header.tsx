@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
-import { ChevronDown, Heart, Menu, MessageCircle, Search, ShoppingCart, Truck, X } from "lucide-react";
+import { ChevronDown, Menu, Search, ShoppingCart, Truck, X } from "lucide-react";
 import { useCart } from "@/components/cart-provider";
 import { SHOP, TOP_STRIP, whatsappLink } from "@/lib/shop/config";
 import { Logo } from "./logo";
@@ -48,12 +48,10 @@ export function SiteHeader({ categories }: { categories: MenuCategory[] }) {
         </form>
         <div className="mb-header-actions">
           <Link className="mb-action mb-action--track" href="/suivi-commande"><Truck size={22} strokeWidth={1.75} aria-hidden="true"/><span>Suivi commande</span></Link>
-          <Link className="mb-action mb-action--fav" href="/favoris"><Heart size={22} strokeWidth={1.75} aria-hidden="true"/><span>Favoris</span></Link>
           <Link className="mb-action" href="/panier" aria-label={`Panier, ${count} article${count > 1 ? "s" : ""}`}>
             <ShoppingCart size={22} strokeWidth={1.75} aria-hidden="true"/><span>Panier</span>
             {count > 0 && <span className="mb-action-count" aria-hidden="true">{count}</span>}
           </Link>
-          <a className="mb-header-wa" href={whatsappLink()} rel="noopener" aria-label="WhatsApp"><MessageCircle size={20} strokeWidth={1.75} aria-hidden="true"/><span>WhatsApp</span></a>
         </div>
       </div>
       <nav className="mb-nav" aria-label="Catégories">
@@ -62,8 +60,6 @@ export function SiteHeader({ categories }: { categories: MenuCategory[] }) {
             <button type="button"><Menu size={18} strokeWidth={1.75} aria-hidden="true"/> Toutes les catégories <ChevronDown size={16} strokeWidth={1.75} aria-hidden="true"/></button>
             <div className="mb-nav-drop"><CategoryMenu categories={categories} title="Toutes les catégories"/></div>
           </div>
-          {categories.map((item) => <Link key={item.slug} className="mb-nav-link" href={`/${item.slug}`}>{item.name}</Link>)}
-          <Link className="mb-nav-link mb-nav-link--promo" href="/promotions">Promotions</Link>
         </div>
       </nav>
     </header>

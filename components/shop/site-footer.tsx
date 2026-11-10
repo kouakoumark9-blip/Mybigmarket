@@ -21,6 +21,8 @@ export function SiteFooter() {
             <li><Link href="/livraison">Livraison</Link></li>
             <li><Link href="/retours-et-remboursements">Retours et remboursements</Link></li>
             <li><Link href="/contact">Contact</Link></li>
+            <li><Link href="/promotions">Promotions</Link></li>
+            <li><Link href="/favoris">Mes favoris</Link></li>
           </ul>
         </nav>
         <nav aria-label="Légal">
