@@ -65,6 +65,12 @@ function toShopProduct({ product, category, brand, image }: Row): ShopProduct {
 
 const visible = and(eq(products.status, "approved"), isNull(products.deletedAt));
 
+/** Produit rangé dans l'une de ces catégories : catégorie principale ou catégorie supplémentaire (table product_categories). */
+const inCategories = (ids: number[]): SQL => or(
+  inArray(products.categoryId, ids),
+  sql`exists (select 1 from product_categories pc where pc.product_id = ${products.id} and pc.category_id in (${sql.join(ids.map((id) => sql`${id}`), sql`, `)}))`,
+)!;
+
 function orderBy(sort: ProductFilters["sort"]) {
   switch (sort) {
     case "prix-croissant": return [asc(products.priceXof)];
@@ -77,7 +83,7 @@ function orderBy(sort: ProductFilters["sort"]) {
 function conditions(filters: ProductFilters): SQL[] {
   const list: SQL[] = [visible!];
   if (filters.slugs?.length) list.push(inArray(products.slug, filters.slugs));
-  if (filters.categoryIds?.length) list.push(inArray(products.categoryId, filters.categoryIds));
+  if (filters.categoryIds?.length) list.push(inCategories(filters.categoryIds));
   if (filters.q) { const term = `%${filters.q.replace(/[%_]/g, " ").trim()}%`; list.push(or(ilike(products.title, term), ilike(products.shortDescription, term), ilike(products.description, term))!); }
   if (filters.brand) list.push(eq(brands.slug, filters.brand));
   if (filters.power) list.push(eq(products.powerLabel, filters.power));
@@ -112,7 +118,7 @@ export async function listFilterOptions(categoryIds: number[]) {
   return safely("filtres", { brands: [] as Array<{ slug: string; name: string }>, powers: [] as string[], maxPrice: 0 }, async () => {
     const db = getDb();
     const rows = await db.select({ brandSlug: brands.slug, brandName: brands.name, power: products.powerLabel, price: products.priceXof }).from(products)
-      .leftJoin(brands, eq(brands.id, products.brandId)).where(and(visible, categoryIds.length ? inArray(products.categoryId, categoryIds) : undefined));
+      .leftJoin(brands, eq(brands.id, products.brandId)).where(and(visible, categoryIds.length ? inCategories(categoryIds) : undefined));
     const brandMap = new Map<string, string>();
     const powers = new Set<string>();
     let maxPrice = 0;
