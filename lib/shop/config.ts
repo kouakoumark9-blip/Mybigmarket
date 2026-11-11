@@ -10,7 +10,7 @@ export const SHOP = {
   email: "contact@mybigmarket.ci",
   hours: "Du lundi au samedi, de 8 h à 19 h",
   city: "Abidjan, Côte d'Ivoire",
-  /** Phrase d'identité reprise sur l'accueil, le pied de page, la page À propos et les données structurées (Google). */
+  /** Phrase d'identité : page À propos (texte) et données structurées de l'accueil (Google). Pas affichée ailleurs. */
   officialStatement: "MyBigMarket est le fournisseur officiel de la marque CIL (Compagnie Ivoirienne de Literie) en Côte d'Ivoire, ainsi que de lits, de matelas, d'oreillers et de canapés.",
   /** Seuil de promotion affiché sur les cartes : « -20 % ». */
   baseUrl: process.env.NEXT_PUBLIC_SITE_URL || "https://mybigmarket.vercel.app",
