@@ -72,7 +72,7 @@ jobs:
           for port in 3000; do
             timeout 90 bash -c "until [ \"\$(curl -s -o /dev/null -w '%{http_code}' http://localhost:$port/)\" != 000 ]; do sleep 1; done"
           done
-      - run: npx playwright install --with-deps chromium
+      - run: npx playwright install chromium
       - run: npx playwright test
       - if: failure()
         uses: actions/upload-artifact@v4
