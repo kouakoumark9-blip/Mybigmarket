@@ -12,7 +12,7 @@ test.describe("vitrine", () => {
     await expect(page.getByRole("region", { name: "Offres du moment" })).toBeVisible();
     await expect(page.getByRole("navigation", { name: "Catégories de la boutique" }).getByRole("link", { name: "Lits" })).toBeVisible();
     await expect(page.getByText("Paiement mobile money sécurisé")).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Meilleures ventes" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Nouveautés" })).toBeVisible();
     const text = (await page.locator("body").innerText()).toLowerCase();
     for (const forbidden of ["chine →", "prix indicatif", "livraison à confirmer", "vendu par", "afrique de l’ouest", "exemple de démonstration"]) expect(text).not.toContain(forbidden);
     console_.assertClean();

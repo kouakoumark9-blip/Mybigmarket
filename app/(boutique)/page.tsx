@@ -19,18 +19,13 @@ export const metadata: Metadata = {
 const ICONS = [Smartphone, Truck, ShieldCheck, Headset];
 
 export default async function HomePage() {
-  const [tree, bestRaw, freshRaw, pool] = await Promise.all([
+  const [tree, freshRaw, pool] = await Promise.all([
     getCategoryTree(),
-    listProducts({ flag: "best", limit: 12 }),
     listProducts({ sort: "nouveautes", limit: 12 }),
     listProducts({ limit: 30 }),
   ]);
-  // Une rangée complète de 6 produits par section ; « Nouveautés » ne répète pas « Meilleures ventes » quand le catalogue le permet.
-  const best = { ...bestRaw, items: [...bestRaw.items, ...pool.items.filter((item) => !bestRaw.items.some((own) => own.id === item.id))].slice(0, 6) };
-  const taken = new Set(best.items.map((item) => item.id));
-  const newest = [...freshRaw.items, ...pool.items.filter((item) => !freshRaw.items.some((own) => own.id === item.id))];
-  const unseen = newest.filter((item) => !taken.has(item.id));
-  const fresh = { ...freshRaw, items: (unseen.length >= 4 ? unseen : newest).slice(0, 6) };
+  // Une seule section de produits (deux rangées de 6 au plus) : les plus récents, complétés par le reste du catalogue.
+  const fresh = { ...freshRaw, items: [...freshRaw.items, ...pool.items.filter((item) => !freshRaw.items.some((own) => own.id === item.id))].slice(0, 12) };
   // Vignettes « Acheter par catégorie » : la photo du premier produit de chaque catégorie (seules celles qui ont une photo sont montrées).
   const wanted = ["lits/lits-enfants", "lits/lits-1-place", "lits/lits-2-places", "lits/lits-pliables", "lits/lits-avec-rangement", "matelas"];
   const flat = tree.flatMap((category) => [category, ...category.children]);
@@ -66,9 +61,8 @@ export default async function HomePage() {
     </div>
 
     <HomeCategoryTiles tiles={tiles}/>
-    <ProductSection title="Meilleures ventes" href="/produits?tri=pertinence" products={best.items}/>
     <ProductSection title="Nouveautés" href="/produits?tri=nouveautes" products={fresh.items}/>
-    {best.total + fresh.total === 0 && <p className="mb-empty">Le catalogue est en cours de mise à jour. Écrivez-nous sur WhatsApp pour connaître les produits disponibles.</p>}
+    {fresh.total === 0 && <p className="mb-empty">Le catalogue est en cours de mise à jour. Écrivez-nous sur WhatsApp pour connaître les produits disponibles.</p>}
     <HomeHowTo/>
   </div>;
 }
