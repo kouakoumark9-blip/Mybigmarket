@@ -792,3 +792,13 @@ html body{font-size:16px;line-height:1.55}
   .mb-cta{padding:18px 16px;flex-direction:column;align-items:stretch;text-align:left}.mb-cta-btn{justify-content:center}
   .mb-tiles li:nth-child(odd):last-child{display:none}
 }
+
+/* Drapeau de la Côte d'Ivoire sur l'accueil */
+.mb-flag{display:inline-block;vertical-align:middle;border-radius:3px;box-shadow:0 0 0 1px rgba(0,0,0,.14);flex:none}
+.mb-homecats-flag{margin-left:auto;display:inline-flex;align-items:center;gap:8px;font-size:15px;color:var(--color-text)}
+.mb-homecats-flag b{font-weight:700}
+@media (max-width:900px){
+  .mb-homecats{display:flex!important;justify-content:center;padding:2px 0 0;border:0}
+  .mb-homecats a{display:none}
+  .mb-homecats-flag{margin:0}
+}
