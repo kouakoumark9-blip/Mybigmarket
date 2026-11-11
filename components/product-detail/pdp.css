@@ -276,7 +276,7 @@
 
 /* ---------- Description ---------- */
 .pd-description{display:flex;flex-direction:column;gap:16px;max-width:100%}
-.pd-description p{max-width:75ch;font-size:15px;line-height:1.7}
+.pd-description p{max-width:75ch;font-size:15px;line-height:1.7;text-align:justify;text-justify:inter-word;hyphens:auto;-webkit-hyphens:auto;overflow-wrap:break-word}
 .pd-description img{width:100%;border-radius:var(--radius-media)}
 
 /* ---------- Modales et bottom sheet ---------- */
