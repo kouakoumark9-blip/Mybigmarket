@@ -10,7 +10,7 @@ export default function ImportPage() {
       <p><b>Colonnes :</b> {CSV_COLUMNS.join(", ")}.</p>
       <ul>
         <li><b>categorie</b> : adresse de la catégorie, par exemple <code>lits/lits-2-places</code> ou <code>lits</code>.</li>
-        <li><b>disponibilite</b> : <code>stock</code> (en stock à Abidjan) ou <code>commande</code> (avec <b>delai_jours</b>).</li>
+        <li><b>disponibilite</b> : <code>stock</code> (en stock) ou <code>commande</code> (avec <b>delai_jours</b>).</li>
         <li><b>caracteristiques</b> : séparées par <code>|</code>, par exemple <code>Dimensions : 140 x 190 cm|Matière : bois|Garantie : 1 an</code>.</li>
         <li><b>publie</b> : <code>oui</code> (par défaut) ou <code>non</code> pour un brouillon.</li>
         <li>Colonnes obligatoires : nom, categorie, prix, description. Séparateur ; ou , (le plus simple : enregistrer depuis Excel en « CSV »).</li>

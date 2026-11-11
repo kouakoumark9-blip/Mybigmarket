@@ -71,7 +71,7 @@ test.describe("vitrine", () => {
     await expect(page.locator(".pd-feedback").first()).toContainText("Ajouté au panier");
     await page.getByRole("link", { name: /^Panier/ }).first().click();
     await page.waitForURL(/\/panier/);
-    await expect(page.getByText("En stock à Abidjan").first()).toBeVisible();
+    await expect(page.getByText("En stock (livraison 24 à 72 h)").first()).toBeVisible();
     await page.getByRole("link", { name: "Commander", exact: true }).click();
     await page.getByLabel("Nom et prénom").fill("Awa Koné");
     await page.getByLabel("Téléphone").fill("07 12 34 56 78");
