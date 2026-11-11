@@ -1,7 +1,7 @@
 "use server";
 
 import { eq, sql } from "drizzle-orm";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { getDb } from "@/lib/db";
@@ -16,7 +16,7 @@ export type FormState = { error?: string; ok?: string };
 export type ImportState = { error?: string; report?: ImportReport };
 
 /** Les pages publiques se rafraîchissent tout de suite après une modification. */
-const refreshShop = () => { revalidatePath("/", "layout"); };
+const refreshShop = () => { revalidatePath("/", "layout"); updateTag("boutique"); };
 
 export async function loginAction(_previous: FormState, formData: FormData): Promise<FormState> {
   const result = await signInAdmin(String(formData.get("email") ?? ""), String(formData.get("password") ?? ""), String(formData.get("code") ?? ""));

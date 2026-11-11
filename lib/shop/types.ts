@@ -11,7 +11,7 @@ export type ShopProduct = {
   quantity: number; availability: string; leadTimeDays: number; availabilityLabel: string; inStock: boolean;
   badge: string | null; isBestSeller: boolean; isPlaceholder: boolean;
   powerLabel: string | null; energyClass: string | null; brand: string | null;
-  image: string | null; categoryName: string; categorySlug: string; createdAt: Date;
+  image: string | null; categoryName: string; categorySlug: string; createdAt: Date | string;
 };
 
 export type ProductSort = "pertinence" | "prix-croissant" | "prix-decroissant" | "nouveautes";
