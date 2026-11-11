@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { SHOP } from "@/lib/shop/config";
 import { notFound, permanentRedirect, redirect } from "next/navigation";
 import { getPdpProduct } from "@/lib/pdp/get-product";
 import { listOpenPaymentMethodCodes } from "@/lib/payments-open";
@@ -14,7 +15,7 @@ export const revalidate = 60;
 // Aucune fiche n'est préparée à la construction : chaque fiche est créée à la première visite puis gardée en cache.
 export function generateStaticParams() { return []; }
 
-const siteUrl = () => process.env.NEXT_PUBLIC_SITE_URL || "https://mybigmarket.example";
+const siteUrl = () => SHOP.baseUrl;
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
@@ -63,15 +64,10 @@ export default async function ProductPage({ params }: Props) {
     image: product.images.map((image) => `${siteUrl()}${image.src}`),
     category: product.category.label,
     brand: { "@type": "Brand", name: product.brand?.name ?? product.supplier.name, ...(product.brand?.logo ? { logo: `${siteUrl()}${product.brand.logo}` } : {}) },
-    offers: {
-      "@type": "AggregateOffer",
-      priceCurrency: product.currency,
-      lowPrice: product.priceMin,
-      highPrice: product.priceMax,
-      offerCount: Math.max(1, product.colorVariants.length),
-      availability: `https://schema.org/${product.availability}`,
-      url,
-    },
+    // Un seul prix : « Offer » (format attendu par Google pour l'affichage du prix) ; plusieurs prix : « AggregateOffer ».
+    offers: product.priceMin === product.priceMax
+      ? { "@type": "Offer", priceCurrency: product.currency, price: product.priceMin, priceValidUntil: `${new Date().getFullYear() + 1}-12-31`, itemCondition: "https://schema.org/NewCondition", availability: `https://schema.org/${product.availability}`, url, seller: { "@type": "Organization", name: "MyBigMarket" } }
+      : { "@type": "AggregateOffer", priceCurrency: product.currency, lowPrice: product.priceMin, highPrice: product.priceMax, offerCount: Math.max(1, product.colorVariants.length), availability: `https://schema.org/${product.availability}`, url },
     ...(reviewCount > 0 ? { aggregateRating: { "@type": "AggregateRating", ratingValue: product.rating, reviewCount, bestRating: 5, worstRating: 1 } } : {}),
   };
   const breadcrumbJsonLd = {
