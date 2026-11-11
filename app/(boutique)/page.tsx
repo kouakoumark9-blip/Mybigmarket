@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Headset, ShieldCheck, Smartphone, Truck } from "lucide-react";
 import { HomeCategories } from "@/components/shop/home-categories";
 import { HeroCarousel } from "@/components/shop/hero-carousel";
-import { HomeCategoryTiles, HomeHowTo, type CategoryTile } from "@/components/shop/home-extras";
+import { HomeCategoryTiles, type CategoryTile } from "@/components/shop/home-extras";
 import { ProductSection } from "@/components/shop/product-section";
 import { BANNERS } from "@/lib/shop/banners";
 import { REASSURANCE, SHOP } from "@/lib/shop/config";
@@ -63,6 +63,5 @@ export default async function HomePage() {
     <HomeCategoryTiles tiles={tiles}/>
     <ProductSection title="Nouveautés" href="/produits?tri=nouveautes" products={fresh.items}/>
     {fresh.total === 0 && <p className="mb-empty">Le catalogue est en cours de mise à jour. Écrivez-nous sur WhatsApp pour connaître les produits disponibles.</p>}
-    <HomeHowTo/>
   </div>;
 }
