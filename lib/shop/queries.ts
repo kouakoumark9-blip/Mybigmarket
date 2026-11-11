@@ -1,4 +1,5 @@
 import "server-only";
+import { unstable_cache } from "next/cache";
 import { and, asc, desc, eq, gt, ilike, inArray, isNull, or, sql, type SQL } from "drizzle-orm";
 import { getDb } from "@/lib/db";
 import { brands, categories, productImages, products } from "@/lib/db/schema";
@@ -17,10 +18,22 @@ async function safely<T>(label: string, fallback: T, run: () => Promise<T>): Pro
   }
 }
 
+/**
+ * Lectures de la vitrine mises en cache 60 s côté serveur (étiquette « boutique ») : les pages ne relisent pas la base
+ * à chaque visite, ce qui évite aussi le réveil de la base après une période d'inactivité.
+ * Une erreur n'est jamais mise en cache. Les modifications faites dans /gestion vident le cache tout de suite.
+ */
+export const SHOP_CACHE_TAG = "boutique";
+const cacheOptions = { revalidate: 60, tags: [SHOP_CACHE_TAG] };
+
 /* ───────── Catégories ───────── */
 
 export async function getCategoryTree(): Promise<ShopCategory[]> {
-  return safely("catégories", [], async () => {
+  return safely("catégories", [], () => cachedCategoryTree());
+}
+
+const cachedCategoryTree = unstable_cache(async (): Promise<ShopCategory[]> => {
+  {
     const rows = await getDb().select().from(categories).where(and(eq(categories.isActive, true), isNull(categories.deletedAt))).orderBy(asc(categories.sortOrder), asc(categories.name));
     const byId = new Map<number, ShopCategory>();
     for (const row of rows) byId.set(row.id, { id: row.id, name: row.name, slug: row.slug, parentId: row.parentId, imageUrl: row.imageUrl, sortOrder: row.sortOrder, metaTitle: row.metaTitle, metaDescription: row.metaDescription, introText: row.introText, bodyText: row.bodyText, faq: row.faq ?? [], children: [] });
@@ -30,8 +43,8 @@ export async function getCategoryTree(): Promise<ShopCategory[]> {
       if (parent) parent.children.push(category); else if (category.sortOrder < 90) roots.push(category);
     }
     return roots;
-  });
-}
+  }
+}, ["boutique-categories"], cacheOptions);
 
 /** Catégorie par chemin propre (« lits » ou « lits/lits-2-places »). */
 export async function getCategoryByPath(path: string): Promise<{ category: ShopCategory; parent: ShopCategory | null } | null> {
@@ -97,7 +110,11 @@ function conditions(filters: ProductFilters): SQL[] {
 }
 
 export async function listProducts(filters: ProductFilters = {}): Promise<{ items: ShopProduct[]; total: number }> {
-  return safely("produits", { items: [], total: 0 }, async () => {
+  return safely("produits", { items: [], total: 0 }, () => cachedProducts(filters));
+}
+
+const cachedProducts = unstable_cache(async (filters: ProductFilters): Promise<{ items: ShopProduct[]; total: number }> => {
+  {
     const db = getDb();
     const where = and(...conditions(filters));
     const size = filters.limit ?? filters.pageSize ?? 20;
@@ -110,12 +127,16 @@ export async function listProducts(filters: ProductFilters = {}): Promise<{ item
     const first = new Map<string, string>();
     for (const image of images) if (!first.has(image.productId)) first.set(image.productId, image.url);
     return { items: rows.map((row) => toShopProduct({ ...row, image: first.get(row.product.id) ?? null })), total };
-  });
-}
+  }
+}, ["boutique-produits"], cacheOptions);
 
 /** Marques et puissances présentes dans une sélection de catégories, pour les filtres. */
 export async function listFilterOptions(categoryIds: number[]) {
-  return safely("filtres", { brands: [] as Array<{ slug: string; name: string }>, powers: [] as string[], maxPrice: 0 }, async () => {
+  return safely("filtres", { brands: [] as Array<{ slug: string; name: string }>, powers: [] as string[], maxPrice: 0 }, () => cachedFilterOptions(categoryIds));
+}
+
+const cachedFilterOptions = unstable_cache(async (categoryIds: number[]) => {
+  {
     const db = getDb();
     const rows = await db.select({ brandSlug: brands.slug, brandName: brands.name, power: products.powerLabel, price: products.priceXof }).from(products)
       .leftJoin(brands, eq(brands.id, products.brandId)).where(and(visible, categoryIds.length ? inCategories(categoryIds) : undefined));
@@ -124,8 +145,8 @@ export async function listFilterOptions(categoryIds: number[]) {
     let maxPrice = 0;
     for (const row of rows) { if (row.brandSlug && row.brandName) brandMap.set(row.brandSlug, row.brandName); if (row.power) powers.add(row.power); maxPrice = Math.max(maxPrice, row.price); }
     return { brands: [...brandMap].map(([slug, name]) => ({ slug, name })).sort((a, b) => a.name.localeCompare(b.name, "fr")), powers: [...powers].sort((a, b) => a.localeCompare(b, "fr", { numeric: true })), maxPrice };
-  });
-}
+  }
+}, ["boutique-filtres"], cacheOptions);
 
 export async function listAllProductSlugs(): Promise<Array<{ slug: string; updatedAt: Date }>> {
   return safely("sitemap produits", [], async () => getDb().select({ slug: products.slug, updatedAt: products.updatedAt }).from(products).where(visible));

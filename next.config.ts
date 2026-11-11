@@ -41,6 +41,9 @@ const nextConfig: NextConfig = {
       { source: "/gestion/:path*", headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" }] },
       // Fichiers statiques : gardés une semaine par le navigateur et le réseau de diffusion (remplaçables sans attendre longtemps).
       { source: "/fonts/:path*", headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }] },
+      // Photos produit et logos : nom unique par fichier, mises en cache longtemps par le navigateur et le réseau de diffusion.
+      { source: "/produits/:folder/:file.webp", headers: [{ key: "Cache-Control", value: "public, max-age=2592000, stale-while-revalidate=86400" }] },
+      { source: "/marques/:file.webp", headers: [{ key: "Cache-Control", value: "public, max-age=2592000, stale-while-revalidate=86400" }] },
       { source: "/bannieres/:path*", headers: [{ key: "Cache-Control", value: "public, max-age=604800, stale-while-revalidate=86400" }] },
       { source: "/produits-fictifs/:path*", headers: [{ key: "Cache-Control", value: "public, max-age=604800, stale-while-revalidate=86400" }] },
     ];
