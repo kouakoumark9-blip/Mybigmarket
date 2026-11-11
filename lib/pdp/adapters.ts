@@ -22,7 +22,7 @@ export function demoToCard(product: DemoProduct): ProductCardData {
 }
 
 const FAQ: Product["faq"] = [
-  { question: "Quand vais-je être livré ?", answer: "Produit en stock à Abidjan : 24 à 72 h. Produit sur commande : le délai est indiqué sur la fiche et dans votre panier. Hors Abidjan, comptez quelques jours de plus." },
+  { question: "Quand vais-je être livré ?", answer: "Produit en stock : livraison en 24 à 72 h. Produit sur commande : le délai est indiqué sur la fiche et dans votre panier. Hors Abidjan, comptez quelques jours de plus." },
   { question: "Comment payer ?", answer: "Par mobile money : Orange Money, MTN MoMo, Moov Money ou Wave. Après votre commande, je vous envoie les instructions de paiement sur WhatsApp." },
   { question: "Puis-je retourner un produit ?", answer: "Oui, sous 7 jours si le produit ne convient pas ou arrive abîmé. Contactez-nous sur WhatsApp avec votre numéro de commande." },
 ];

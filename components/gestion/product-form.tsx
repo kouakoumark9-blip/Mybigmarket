@@ -52,7 +52,7 @@ export function ProductForm({ values, categories }: { values: ProductFormValues;
         <div className="gs-field"><label htmlFor="comparePriceXof">Ancien prix barré (FCFA)</label><input id="comparePriceXof" name="comparePriceXof" inputMode="numeric" defaultValue={values.comparePriceXof}/><small>Laissez vide s&apos;il n&apos;y a pas de promotion.</small></div>
         <div className="gs-field"><label htmlFor="availability">Disponibilité</label><select id="availability" name="availability" value={availability} onChange={(event) => setAvailability(event.target.value)}>{AVAILABILITY_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></div>
         {availability === "on_order" ? <div className="gs-field"><label htmlFor="leadTimeDays">Livraison sous (jours)</label><input id="leadTimeDays" name="leadTimeDays" type="number" min={1} max={365} defaultValue={values.leadTimeDays}/><small>Ce délai s&apos;affiche aux clients : n&apos;annoncez que ce que vous pouvez tenir.</small></div> : <input type="hidden" name="leadTimeDays" value={values.leadTimeDays}/>}
-        <div className="gs-field"><label htmlFor="quantity">Quantité en stock à Abidjan</label><input id="quantity" name="quantity" type="number" min={0} defaultValue={values.quantity}/></div>
+        <div className="gs-field"><label htmlFor="quantity">Quantité en stock</label><input id="quantity" name="quantity" type="number" min={0} defaultValue={values.quantity}/></div>
       </div>
       <label className="gs-check"><input type="checkbox" name="isBestSeller" defaultChecked={values.isBestSeller}/> Afficher dans « Meilleures ventes »</label>
     </div>
