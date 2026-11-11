@@ -18,7 +18,7 @@ test.describe("vitrine", () => {
     console_.assertClean();
   });
 
-  test("adresses propres des catégories, fil d'Ariane, filtres et FAQ", async ({ page }) => {
+  test("adresses propres des catégories, fil d’Ariane et filtres", async ({ page }) => {
     await page.goto("/lits");
     await expect(page.getByRole("heading", { level: 1, name: "Lits" })).toBeVisible();
     // Colonne « Catégorie » (ordinateur) : intertitres en gras et liens en dessous
@@ -26,7 +26,6 @@ test.describe("vitrine", () => {
     for (const title of ["Par taille", "Par type", "Par matière", "Packs"]) await expect(side.getByRole("heading", { name: title })).toBeVisible();
     await expect(side.getByRole("link", { name: "Lits 3 places" })).toBeVisible();
     await expect(page.getByRole("form", { name: "Filtres" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Questions fréquentes" })).toBeVisible();
     await expect(page).toHaveTitle(/Lits à Abidjan/);
     await expect(page.locator(".mb-cat-banner")).toHaveCount(1);
     await page.goto("/lits/lits-2-places");

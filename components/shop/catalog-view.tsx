@@ -25,11 +25,10 @@ type Props = {
   /** Catégorie principale dont on affiche les sous-catégories (colonne de gauche sur ordinateur, puces sur mobile). */
   tree?: ShopCategory;
   body?: string | null;
-  faq?: Array<{ question: string; answer: string }>;
 };
 
-/** Page de liste : titre, introduction, sous-catégories, filtres, tri, grille, pagination, texte explicatif et FAQ. */
-export async function CatalogView({ basePath, title, intro, crumbs, params, categoryIds, flag, tree, body, faq = [] }: Props) {
+/** Page de liste : titre, introduction, sous-catégories, filtres, tri, grille, pagination, texte explicatif. */
+export async function CatalogView({ basePath, title, intro, crumbs, params, categoryIds, flag, tree, body }: Props) {
   const filters = readFilters(params);
   const [{ items, total }, options] = await Promise.all([
     listProducts({ ...filters, categoryIds, flag, pageSize: PAGE_SIZE }),
@@ -74,6 +73,5 @@ export async function CatalogView({ basePath, title, intro, crumbs, params, cate
       </div>
     </div>
     {body && !hasFilters && <section className="mb-textblock"><h2>Bien choisir : {title.toLowerCase()}</h2>{body.split(/\n{2,}/).map((paragraph) => <p key={paragraph.slice(0, 40)}>{paragraph}</p>)}</section>}
-    {faq.length > 0 && !hasFilters && <section className="mb-textblock mb-faq"><h2>Questions fréquentes</h2>{faq.map((item) => <details key={item.question}><summary>{item.question}</summary><p>{item.answer}</p></details>)}</section>}
   </>;
 }

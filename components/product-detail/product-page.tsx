@@ -15,7 +15,6 @@ import { BuyBox } from "@/components/product-detail/buy-box";
 import { TabsBar, useScrollSpy } from "@/components/product-detail/tabs-bar";
 import { AttributesTable } from "@/components/product-detail/attributes-table";
 import { ProductCarousel } from "@/components/product-detail/product-carousel";
-import { FaqBlock } from "@/components/product-detail/faq-block";
 import { ReviewsSection } from "@/components/product-detail/reviews-section";
 import { DescriptionSection } from "@/components/product-detail/description-section";
 import { RecapSection } from "@/components/product-detail/recap-section";
@@ -136,7 +135,6 @@ export function ProductDetailPage({ product, cartItem, publishedReviews = [], pa
             <TabsBar ref={inlineTabsRef} tabs={pdpConfig.tabs} active={activeTab}/>
             <RecapSection summary={product.summary ?? ""} specs={product.keySpecs} highlights={product.highlights} id="pdp-recap"/>
             <AttributesTable items={product.attributes} id="pdp-attributes"/>
-            <FaqBlock items={product.faq}/>
             <ProductCarousel title="Fréquemment achetés ensemble" items={product.boughtTogether} id="pd-together"/>
             <ProductCarousel title="Autres produits de la boutique" items={product.supplierProducts} id="pd-supplier-products" anchorId="pdp-supplier-section"/>
             <ReviewsSection summary={reviews} id="pdp-reviews"/>

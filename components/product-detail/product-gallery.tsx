@@ -122,11 +122,9 @@ export function ProductGallery({ images, videoUrl, label, activeIndex, onSelect,
       <span className="pd-stage-count" aria-hidden="true">{index + 1}/{count}</span>
     </div>
 
-    {lightbox && active.kind === "image" && <div className="pd-lightbox" role="dialog" aria-modal="true" aria-label="Image agrandie" onClick={() => setLightbox(false)}>
+    {lightbox && active.kind === "image" && <div className="pd-lightbox" role="dialog" aria-modal="true" aria-label="Image agrandie" onClick={() => setLightbox(false)} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
       <button type="button" className="pd-lightbox-close" onClick={() => setLightbox(false)} aria-label="Fermer" autoFocus><X size={22} strokeWidth={1.5}/></button>
-      <button type="button" className="pd-lightbox-prev" onClick={(event) => { event.stopPropagation(); go(-1); }} aria-label="Image précédente"><ChevronLeft size={26} strokeWidth={1.5}/></button>
       <PdpImage src={active.src} alt={active.alt} width={1400} height={1400} sizes="90vw" onClick={(event) => event.stopPropagation()}/>
-      <button type="button" className="pd-lightbox-next" onClick={(event) => { event.stopPropagation(); go(1); }} aria-label="Image suivante"><ChevronRight size={26} strokeWidth={1.5}/></button>
     </div>}
   </div>;
 }
