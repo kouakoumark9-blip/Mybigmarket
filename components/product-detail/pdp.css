@@ -434,3 +434,18 @@ body.pd-lock{overflow:hidden}
 .pd-brand b{color:var(--color-text,#111)}
 .pd-brand img.pd-brand-logo{flex:none;display:block;height:52px!important;width:auto!important;max-width:140px!important;object-fit:contain;border:1px solid var(--color-border,#e5e7eb);border-radius:8px;padding:4px;background:#fff}
 @media (max-width:600px){.pd-brand{font-size:13px;gap:10px}.pd-brand img.pd-brand-logo{height:46px!important}}
+
+/* ───── Fiche produit sur téléphone : plus courte, plus claire ───── */
+@media (max-width:760px){
+  /* La bande « Livraison / Paiement / WhatsApp » est répétée plus bas dans la fiche : on la retire ici pour que la photo remonte. */
+  body:has(.pd-mobile-bar) .mb-strip{display:none}
+  /* Le récapitulatif répétait la disponibilité, la marque, la livraison, le paiement et les retours déjà visibles sous le prix. */
+  .pd-recap-specs,.pd-recap-points{display:none}
+  /* « En un coup d'œil » : trois lignes nettes avec une coche, plutôt qu'une liste en retrait. */
+  .pd-highlights{list-style:none;padding:0;gap:0;border:1px solid var(--color-border,#e5e7eb);border-radius:12px;overflow:hidden;background:#fff}
+  .pd-highlights li{position:relative;padding:11px 14px 11px 40px;font-size:14.5px;line-height:1.5}
+  .pd-highlights li+li{border-top:1px solid var(--color-border,#e5e7eb)}
+  .pd-highlights li::before{content:"✓";position:absolute;left:14px;top:11px;width:18px;height:18px;border-radius:50%;display:grid;place-items:center;background:var(--color-primary-soft,#fff1e0);color:var(--color-primary-strong,#b45309);font-size:11px;font-weight:800}
+  .pd-block{margin-top:14px}
+  .pd-block-title{margin-bottom:8px}
+}
