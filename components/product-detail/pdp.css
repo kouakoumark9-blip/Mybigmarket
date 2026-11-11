@@ -368,7 +368,9 @@ body.pd-lock{overflow:hidden}
   .pd-gallery{grid-template-columns:minmax(0,1fr)}
   .pd-thumbs{display:none}
   .pd-stage{border-radius:0}
-  .pd-stage-prev,.pd-stage-next{display:none}
+  /* Téléphone : flèches toujours visibles pour faire défiler les photos (le balayage du doigt reste possible) */
+  .pd-stage-prev,.pd-stage-next{display:grid;opacity:1;width:42px;height:42px;background:color-mix(in srgb,var(--color-surface) 92%,transparent);-webkit-tap-highlight-color:transparent}
+  .pd-stage-prev{left:10px}.pd-stage-next{right:10px}
   .pd-stage-count{display:block}
   .pd-stage-media{cursor:default}
   .pd-stage-media.is-zooming img{transform:none}
