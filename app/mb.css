@@ -797,3 +797,22 @@ html body{font-size:16px;line-height:1.55}
 .mb-flag{display:inline-block;vertical-align:middle;border-radius:3px;box-shadow:0 0 0 1px rgba(0,0,0,.14);flex:none}
 .mb-logo-top{display:inline-flex;align-items:center;gap:9px}
 @media (max-width:600px){.mb-logo-top .mb-flag{width:24px;height:16px}.mb-logo-top{gap:7px}}
+
+/* Mobile : les sous-catégories tiennent sur une ligne défilante au-dessus des produits (la colonne « Catégorie » est réservée à l'ordinateur) */
+.mb-catchips{display:none}
+@media (max-width:900px){
+  .mb-catside{display:none}
+  .mb-cat-layout{grid-template-columns:minmax(0,1fr)!important}
+  .mb-catchips{display:block;margin:4px -12px 14px;min-width:0}
+  .mb-catchips>ul{list-style:none;margin:0;padding:2px 12px 6px;display:flex;align-items:center;gap:8px;overflow-x:auto;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .mb-catchips>ul::-webkit-scrollbar{display:none}
+  .mb-catchips ul{list-style:none;margin:0;padding:0}
+  .mb-catchips li{flex:none}
+  .mb-catchips-group{display:flex;align-items:center;gap:8px;padding-left:10px;margin-left:2px;border-left:1px solid var(--color-border)}
+  .mb-catchips-group>ul{display:flex;gap:8px}
+  .mb-catchips-title{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#6a7078;white-space:nowrap}
+  .mb-catchip{display:inline-flex;align-items:center;min-height:40px;padding:0 16px;border:1px solid var(--color-border);border-radius:999px;background:#fff;font-size:14.5px;font-weight:500;color:var(--color-text);white-space:nowrap;text-decoration:none;scroll-snap-align:center}
+  .mb-catchip--all{background:var(--color-surface-inverse,#2f3033);border-color:transparent;color:#fff;font-weight:700}
+  .mb-catchip[aria-current="page"]{background:var(--color-primary-soft);border-color:var(--color-primary);color:var(--color-primary-strong);font-weight:700}
+  .mb-catchip--all[aria-current="page"]{background:var(--color-primary-soft);border-color:var(--color-primary);color:var(--color-primary-strong)}
+}

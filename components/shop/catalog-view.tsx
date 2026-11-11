@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { CategorySidebar } from "./category-sidebar";
+import { CategoryChips } from "./category-chips";
 import { CATEGORY_GUIDES } from "@/lib/shop/category-groups";
 import { categoryBanner } from "@/lib/shop/category-banners";
 import { Breadcrumbs, type Crumb } from "./breadcrumbs";
@@ -46,6 +47,7 @@ export async function CatalogView({ basePath, title, intro, crumbs, params, cate
     <h1 className="mb-title">{filters.q ? `Résultats pour « ${filters.q} »` : title}</h1>
     {intro && !filters.q && <p className="mb-intro">{intro}</p>}
     {!filters.q && CATEGORY_GUIDES[basePath.replace(/^\//, "")] && <p className="mb-intro"><Link className="mb-link" href={CATEGORY_GUIDES[basePath.replace(/^\//, "")].href}>{CATEGORY_GUIDES[basePath.replace(/^\//, "")].label} →</Link></p>}
+    {tree && tree.children.length > 0 && <CategoryChips root={tree} currentSlug={basePath.replace(/^\//, "")}/>}
     <div className="mb-cat-layout" id="produits">
       <aside className="mb-side">
       {tree && tree.children.length > 0 && <CategorySidebar root={tree} currentSlug={basePath.replace(/^\//, "")}/>}
