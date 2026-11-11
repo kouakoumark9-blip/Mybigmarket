@@ -11,7 +11,7 @@ export const revalidate = 60;
 
 export const metadata: Metadata = {
   title: { absolute: "MyBigMarket : lits à Abidjan et en Côte d'Ivoire" },
-  description: "MyBigMarket, fournisseur officiel de la marque CIL en Côte d'Ivoire : lits, matelas, oreillers et canapés à Abidjan et partout en Côte d'Ivoire. Prix en FCFA, paiement par mobile money.",
+  description: "Lits 1 place, 2 places, 2,5 places et 3 places, lits enfants, superposés, pliables, en bois ou en métal, à Abidjan et partout en Côte d'Ivoire. Prix en FCFA, paiement par mobile money.",
   alternates: { canonical: "/" },
 };
 
@@ -41,7 +41,6 @@ export default async function HomePage() {
 
     <ProductSection title="Meilleures ventes" href="/produits?tri=pertinence" products={best.items}/>
     <ProductSection title="Nouveautés" href="/produits?tri=nouveautes" products={fresh.items}/>
-    <section className="mb-official" aria-label="Fournisseur officiel de la marque CIL"><h2>Fournisseur officiel de la marque CIL en Côte d&apos;Ivoire</h2><p>{SHOP.officialStatement}</p></section>
     {best.total + fresh.total === 0 && <p className="mb-empty">Le catalogue est en cours de mise à jour. Écrivez-nous sur WhatsApp pour connaître les produits disponibles.</p>}
   </div>;
 }
