@@ -17,9 +17,10 @@ export const LEGAL = {
 export const INFO_PAGES: InfoPage[] = [
   {
     slug: "a-propos", title: "À propos de MyBigMarket", metaTitle: "À propos | MyBigMarket, boutique en ligne à Abidjan",
-    description: "MyBigMarket est une boutique en ligne d'Abidjan : lits de toutes tailles, lits enfants, superposés, en bois ou en métal, livrés partout en Côte d'Ivoire.",
+    description: "MyBigMarket est le fournisseur officiel de la marque CIL en Côte d'Ivoire : lits, matelas, oreillers et canapés, livrés partout en Côte d'Ivoire.",
     intro: "MyBigMarket est une boutique en ligne basée à Abidjan. Je vends moi-même les produits que vous voyez sur le site.",
     sections: [
+      { h: "Fournisseur officiel de la marque CIL", p: ["MyBigMarket est le fournisseur officiel de la marque CIL (Compagnie Ivoirienne de Literie) en Côte d'Ivoire, ainsi que de lits, de matelas, d'oreillers et de canapés."] },
       { h: "Qui vend ?", p: ["C'est une seule et même boutique : les produits sont choisis, achetés et préparés par moi, et vous parlez toujours à la même personne, avant et après l'achat.", "Une partie des produits est en stock, livrable en 24 à 72 h. Les autres sont commandés auprès de fournisseurs à l'étranger : dans ce cas, la fiche indique « Sur commande » avec le délai de livraison."] },
       { h: "Ce que vous trouvez ici", ul: ["Lits par taille : 1 place, 2 places, 2,5 places, 3 places", "Lits par type : enfants, superposés, pliables, mezzanine, avec chevets, avec rangement", "Lits en bois et lits en métal", "Packs lit + matelas", "Matelas par taille (1 place à 3 places, bébé) et par type (orthopédique, mousse, mémoire de forme, ressorts, médical)", "Surmatelas et protège-matelas"] },
       { h: "Une question avant d'acheter ?", p: ["Écrivez-moi sur WhatsApp : je réponds du lundi au samedi, de 8 h à 19 h. Je peux vous aider à choisir la taille de lit qui convient à votre chambre."] },

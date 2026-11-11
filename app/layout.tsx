@@ -7,7 +7,7 @@ import "./mb.css";
 export const metadata: Metadata = {
   metadataBase: new URL(SHOP.baseUrl),
   title: { default: "MyBigMarket : lits à Abidjan et en Côte d'Ivoire", template: "%s | MyBigMarket" },
-  description: "Boutique en ligne à Abidjan : lits de toutes tailles, lits enfants, superposés, pliables, en bois ou en métal. Livraison partout en Côte d'Ivoire, paiement par mobile money.",
+  description: "MyBigMarket, fournisseur officiel de la marque CIL en Côte d'Ivoire : lits, matelas, oreillers et canapés à Abidjan. Livraison partout en Côte d'Ivoire, paiement par mobile money.",
   openGraph: { type: "website", locale: "fr_CI", siteName: "MyBigMarket", title: "MyBigMarket : boutique en ligne à Abidjan", description: "Lits de toutes tailles, lits enfants, superposés, en bois ou en métal. Livraison partout en Côte d'Ivoire, paiement par mobile money." },
   icons: { icon: "/favicon.svg", shortcut: "/favicon.svg" },
 };

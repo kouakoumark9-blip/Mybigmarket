@@ -8,7 +8,8 @@ export function SiteFooter() {
       <div className="mb-wrap mb-footer-grid">
         <div>
           <h2>MyBigMarket</h2>
-          <p>Boutique en ligne à Abidjan : lits de toutes tailles, livrés partout en Côte d&apos;Ivoire. Paiement par mobile money.</p>
+          <p>{SHOP.officialStatement}</p>
+          <p>Boutique en ligne à Abidjan, livraison partout en Côte d&apos;Ivoire. Paiement par mobile money.</p>
           <p><b>WhatsApp et appels :</b> <a href={whatsappLink()} rel="noopener">{SHOP.phoneDisplay}</a></p>
           <p><b>Horaires :</b> {SHOP.hours}</p>
           <p><b>E-mail :</b> <a href={`mailto:${SHOP.email}`}>{SHOP.email}</a></p>

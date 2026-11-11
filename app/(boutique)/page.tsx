@@ -11,7 +11,7 @@ export const revalidate = 60;
 
 export const metadata: Metadata = {
   title: { absolute: "MyBigMarket : lits à Abidjan et en Côte d'Ivoire" },
-  description: "Lits 1 place, 2 places, 2,5 places et 3 places, lits enfants, superposés, pliables, en bois ou en métal, à Abidjan et partout en Côte d'Ivoire. Prix en FCFA, paiement par mobile money.",
+  description: "MyBigMarket, fournisseur officiel de la marque CIL en Côte d'Ivoire : lits, matelas, oreillers et canapés à Abidjan et partout en Côte d'Ivoire. Prix en FCFA, paiement par mobile money.",
   alternates: { canonical: "/" },
 };
 
@@ -27,7 +27,7 @@ export default async function HomePage() {
   // Chaque rangée montre au moins 10 produits quand le catalogue le permet : on complète avec le reste du catalogue.
   const best = { ...bestRaw, items: [...bestRaw.items, ...pool.items.filter((item) => !bestRaw.items.some((own) => own.id === item.id))].slice(0, 10) };
   const menu = tree.map((category) => ({ name: category.name, slug: category.slug }));
-  const organization = { "@context": "https://schema.org", "@type": "Store", name: SHOP.name, url: SHOP.baseUrl, telephone: `+${SHOP.whatsappNumber}`, email: SHOP.email, address: { "@type": "PostalAddress", addressLocality: "Abidjan", addressCountry: "CI" }, areaServed: "CI", currenciesAccepted: "XOF", paymentAccepted: "Mobile money (Orange Money, MTN MoMo, Moov Money, Wave)" };
+  const organization = { "@context": "https://schema.org", "@type": "Store", name: SHOP.name, url: SHOP.baseUrl, description: SHOP.officialStatement, brand: { "@type": "Brand", name: "CIL", alternateName: "Compagnie Ivoirienne de Literie" }, knowsAbout: ["Lits", "Matelas", "Oreillers", "Canapés"], makesOffer: ["Lits", "Matelas", "Oreillers", "Canapés"].map((name) => ({ "@type": "Offer", itemOffered: { "@type": "Product", name, brand: { "@type": "Brand", name: "CIL" } } })), telephone: `+${SHOP.whatsappNumber}`, email: SHOP.email, address: { "@type": "PostalAddress", addressLocality: "Abidjan", addressCountry: "CI" }, areaServed: "CI", currenciesAccepted: "XOF", paymentAccepted: "Mobile money (Orange Money, MTN MoMo, Moov Money, Wave)" };
   return <div className="mb-wrap mb-page" id="contenu" role="main">
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organization) }}/>
     <h1 className="mb-sr">MyBigMarket, boutique en ligne à Abidjan</h1>
@@ -41,6 +41,7 @@ export default async function HomePage() {
 
     <ProductSection title="Meilleures ventes" href="/produits?tri=pertinence" products={best.items}/>
     <ProductSection title="Nouveautés" href="/produits?tri=nouveautes" products={fresh.items}/>
+    <section className="mb-official" aria-label="Fournisseur officiel de la marque CIL"><h2>Fournisseur officiel de la marque CIL en Côte d&apos;Ivoire</h2><p>{SHOP.officialStatement}</p></section>
     {best.total + fresh.total === 0 && <p className="mb-empty">Le catalogue est en cours de mise à jour. Écrivez-nous sur WhatsApp pour connaître les produits disponibles.</p>}
   </div>;
 }
