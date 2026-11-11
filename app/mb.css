@@ -752,3 +752,8 @@ html body{font-size:16px;line-height:1.55}
   .mb-search button{width:48px;padding:0;justify-content:center;border-radius:0 7px 7px 0}
   .mb-search .mb-search-label{display:none}
 }
+
+/* Fiche produit sur mobile : le bouton WhatsApp reste visible au-dessus de la barre « Commander » */
+@media (max-width:760px){
+  body:has(.pd-mobile-bar) .mb-wa-float{bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:95}
+}
