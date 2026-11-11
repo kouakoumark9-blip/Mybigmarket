@@ -757,3 +757,8 @@ html body{font-size:16px;line-height:1.55}
 @media (max-width:760px){
   body:has(.pd-mobile-bar) .mb-wa-float{bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:95}
 }
+
+/* Bloc d'identité : fournisseur officiel de la marque CIL */
+.mb-official{margin:32px 0 8px;padding:20px 24px;border:1px solid #e3e6e9;border-radius:8px;background:#fff}
+.mb-official h2{margin:0 0 8px;font-size:20px;line-height:1.3}
+.mb-official p{margin:0;font-size:16px;line-height:1.7;color:#3a4047}
