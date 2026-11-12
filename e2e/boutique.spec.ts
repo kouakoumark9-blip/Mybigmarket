@@ -83,10 +83,18 @@ test.describe("vitrine", () => {
     await page.getByRole("radio", { name: /Orange Money/ }).check();
     await page.getByRole("button", { name: "Confirmer la commande" }).click();
     await page.waitForURL(/\/commande\/confirmation\/MBM-/);
-    const reference = page.url().split("/").pop()!;
+    const reference = new URL(page.url()).pathname.split("/").pop()!;
     await expect(page.getByRole("link", { name: "Envoyer ma commande sur WhatsApp" })).toHaveAttribute("href", new RegExp(`wa\\.me/.*${reference}`));
-    await page.goto(`/suivi-commande?numero=${reference}&telephone=0712345678`);
+    // Suivi : numéro + téléphone saisis dans le formulaire (jamais dans l'adresse), puis lien signé vers cette seule commande.
+    await page.goto("/suivi-commande");
+    await page.getByLabel("Numéro de commande").fill(reference);
+    await page.getByLabel("Téléphone").fill("0712345678");
+    await page.getByRole("button", { name: "Voir ma commande" }).click();
     await expect(page.getByText(`Commande ${reference}`)).toBeVisible();
+    expect(page.url()).not.toContain("0712345678");
+    // Un numéro de commande seul, sans le lien signé, n'ouvre rien.
+    await page.goto(`/suivi-commande?numero=${reference}`);
+    await expect(page.getByText(`Commande ${reference}`)).toHaveCount(0);
   });
 
   test("la fiche produit fonctionne et affiche le délai de livraison", async ({ page }) => {

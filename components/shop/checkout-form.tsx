@@ -35,9 +35,9 @@ export function CheckoutForm() {
         payment: String(data.get("payment") ?? ""),
         cart: items.map((item) => ({ slug: item.slug, qty: item.qty })),
       });
-      if (result.error || !result.reference) { setError(result.error ?? "La commande n'a pas pu être enregistrée."); window.scrollTo({ top: 0, behavior: "smooth" }); return; }
+      if (result.error || !result.reference || !result.accessKey) { setError(result.error ?? "La commande n'a pas pu être enregistrée."); window.scrollTo({ top: 0, behavior: "smooth" }); return; }
       clearCart();
-      router.push(`/commande/confirmation/${result.reference}`);
+      router.push(`/commande/confirmation/${result.reference}?k=${result.accessKey}`);
     });
   }
 

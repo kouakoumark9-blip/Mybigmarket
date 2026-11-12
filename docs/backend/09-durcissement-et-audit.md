@@ -195,3 +195,29 @@ Chaque exigence du cahier des charges, avec la preuve automatisée correspondant
 | `tests/db-diagram-sync.test.ts` | diagramme à jour |
 | `tests/repository-hygiene.test.ts` | secrets et `.env.example` |
 | `e2e/*.spec.ts` | parcours dans un navigateur, sur builds de production et PostgreSQL |
+
+## Revue de sécurité de la vitrine (novembre 2026) : de l'accueil au paiement
+
+Revue selon l'OWASP Top 10 et la logique de la norme PCI-DSS (la boutique ne traite aucune donnée de carte).
+
+| Domaine | Constat | Mesure |
+|---|---|---|
+| Transport | HSTS déjà envoyé ; pas de redirection explicite en dehors de Vercel | Redirection permanente HTTP vers HTTPS dans `next.config.ts` (production, en-tête `x-forwarded-proto`) ; `upgrade-insecure-requests` dans la CSP |
+| CSP | `img-src https:` laissait charger n'importe quelle image externe (exfiltration par balise image) | `img-src` limité à notre origine, `data:`, `blob:` et au stockage de fichiers Vercel ; reste `'unsafe-inline'` pour les scripts (hydratation Next.js des pages en cache : une CSP à jeton exigerait de rendre chaque page dynamique) |
+| Isolation | Pas de `Cross-Origin-Resource-Policy` | `Cross-Origin-Resource-Policy: same-site`, `X-Permitted-Cross-Domain-Policies: none` (en plus de `X-Frame-Options: DENY`, `nosniff`, `Referrer-Policy`, `Permissions-Policy`, COOP) |
+| Cookies | Administration : `HttpOnly`, `Secure`, `SameSite=Strict`. Auth.js : valeurs par défaut | `useSecureCookies` forcé en production pour Auth.js |
+| CSRF | Server Actions : contrôle d'origine intégré à Next.js ; API : en-tête `Origin` contrôlé pour toute écriture depuis un navigateur ; cookie admin `SameSite=Strict` | Aucun changement nécessaire |
+| Entrées | Validation Zod côté serveur ; requêtes Drizzle paramétrées (aucun `sql.raw` sur des données clients) | Nettoyage des saisies libres de la commande (`cleanText` : caractères de contrôle et chevrons retirés) ; React échappe l'affichage |
+| Limites de débit | Connexion, inscription, formulaires, commande, recherche | Ajout du suivi de commande : 20 essais par heure et par IP |
+| Données clients | Confirmation de commande ouverte par le seul numéro de commande | Lien signé (HMAC) obligatoire ; suivi en POST puis lien signé ; pages panier, commande, confirmation et suivi en `no-store` et `noindex` |
+| Paiement | Aucun champ de carte ; paiement mobile money confirmé à la main ; passerelles (CinetPay, GeniusPay) par redirection | Test automatique : aucun champ de carte dans le formulaire ni dans le schéma de commande |
+| Webhooks | Signature HMAC vérifiée en temps constant, horodatage contrôlé, doublons rejetés, signature invalide : 401 sans effet | Aucun changement nécessaire |
+| Secrets | Seule `NEXT_PUBLIC_SITE_URL` est publique (adresse du site) ; journaux avec masquage des champs sensibles | Test d'hygiène existant (aucun secret dans le dépôt) |
+| RGPD | Aucun bandeau d'information | Bandeau d'information sur le stockage strictement nécessaire (panier, favoris) ; aucun traceur publicitaire ni mesure d'audience. Si un outil d'audience est ajouté un jour, il faudra un vrai choix Accepter / Refuser avant son chargement |
+
+### Configuration à faire hors du code
+
+- Vercel : marquer `BLOB_READ_WRITE_TOKEN` comme variable « Sensitive » (elle est lisible depuis la ligne de commande) ; les variables de base de données fournies par l'intégration Neon sont gérées par l'intégration.
+- Ne jamais définir `ALLOW_MOCK_PAYMENTS` en production.
+- Renseigner `CINETPAY_SECRET_KEY` (ou le secret de la passerelle utilisée) avant d'ouvrir un paiement en ligne : sans lui, tous les webhooks sont refusés.
+- Activer la double authentification sur les comptes GitHub, Vercel et Neon.

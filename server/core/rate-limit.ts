@@ -28,6 +28,8 @@ export const RATE_LIMIT_POLICIES = {
   "shop.quote": { limit: 30, windowSeconds: 60 },
   // Commandes de la boutique : 8 par heure et par adresse IP.
   "shop.order": { limit: 8, windowSeconds: 60 * 60 },
+  // Suivi de commande (numéro + téléphone) : 20 essais par heure et par adresse IP.
+  "shop.track": { limit: 20, windowSeconds: 60 * 60 },
   "admin.default": { limit: 600, windowSeconds: 60 },
   "admin.write": { limit: 120, windowSeconds: 60 },
   "admin.ai": { limit: 10, windowSeconds: 60 },

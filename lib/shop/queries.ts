@@ -151,3 +151,14 @@ const cachedFilterOptions = unstable_cache(async (categoryIds: number[]) => {
 export async function listAllProductSlugs(): Promise<Array<{ slug: string; updatedAt: Date }>> {
   return safely("sitemap produits", [], async () => getDb().select({ slug: products.slug, updatedAt: products.updatedAt }).from(products).where(visible));
 }
+
+/** Photo ronde de chaque catégorie (menu du bas sur téléphone) : celle du premier produit de la catégorie, ou rien. */
+export async function getCategoryThumbs(tree: ShopCategory[]): Promise<Record<string, string | null>> {
+  const all = tree.flatMap((category) => [category, ...category.children]);
+  const entries = await Promise.all(all.map(async (category) => {
+    const { items } = await listProducts({ categoryIds: categoryIdsOf(category), limit: 1 });
+    const image = items[0]?.image;
+    return [category.slug, image && !image.endsWith(".svg") ? image : null] as const;
+  }));
+  return Object.fromEntries(entries);
+}

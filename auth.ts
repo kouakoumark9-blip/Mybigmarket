@@ -13,6 +13,8 @@ const credentialsSchema = z.object({ email: z.string().email(), password: z.stri
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   session: { strategy: "jwt", maxAge: 60 * 60 * 24 * 14 },
+  // Cookies de session : toujours « Secure » en production (en plus de HttpOnly et SameSite=Lax appliqués par défaut).
+  useSecureCookies: process.env.NODE_ENV === "production",
   pages: { signIn: "/connexion" },
   providers: [Credentials({
     credentials: { email: { label: "E-mail", type: "email" }, password: { label: "Mot de passe", type: "password" } },
