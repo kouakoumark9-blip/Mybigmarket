@@ -59,7 +59,8 @@ export function MobileTabBar({ categories }: { categories: Category[] }) {
     <div className={`mb-catsheet${open ? " is-open" : ""}`} id="mb-cat-sheet" onClick={(event) => { if (event.target === event.currentTarget) setOpen(false); }}>
       <div className="mb-catsheet-panel" role="dialog" aria-modal="true" aria-label="Catégories">
         <div className="mb-catsheet-head"><h2>Catégories</h2><button type="button" onClick={() => setOpen(false)} aria-label="Fermer"><X size={22} strokeWidth={1.75}/></button></div>
-        <div className="mb-catsheet-body">
+        {/* Le contenu n'existe dans la page que lorsque la feuille est ouverte : rien de caché, rien de lu à tort (lecteurs d'écran, tests). */}
+        {open && <div className="mb-catsheet-body">
           {categories.map((root) => <section key={root.slug} aria-label={root.name}>
             <h3>{root.name}</h3>
             <ul className="mb-roundgrid"><li><Link href={`/${root.slug}`}><Round item={root}/><span>Tous les {root.name.toLowerCase()}</span></Link></li></ul>
@@ -69,7 +70,7 @@ export function MobileTabBar({ categories }: { categories: Category[] }) {
               <ul className="mb-roundgrid">{group.items.map((child) => <li key={child.slug}><Link href={`/${child.slug}`} aria-current={pathname === `/${child.slug}` ? "page" : undefined}><Round item={child}/><span>{child.name}</span></Link></li>)}</ul>
             </div>)}
           </section>)}
-        </div>
+        </div>}
       </div>
     </div>
   </>;
