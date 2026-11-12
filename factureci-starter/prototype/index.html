@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>FactureCI – Votre facture en 30 secondes</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&display=swap">
+<style>
+:root{--bg:#F5F8F4;--card:#fff;--ink:#12261C;--mut:#5B6B62;--line:#D9E2DB;--g:#0E6B43;--on:#fff;--o:#F77F00;--gs:#E3F1E9;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0E1712;--card:#16231B;--ink:#E8F1EA;--mut:#9FB3A6;--line:#2A3A30;--g:#3FBF85;--on:#07120C;--o:#FF9A2E;--gs:#1C3327;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0E1712;--card:#16231B;--ink:#E8F1EA;--mut:#9FB3A6;--line:#2A3A30;--g:#3FBF85;--on:#07120C;--o:#FF9A2E;--gs:#1C3327;color-scheme:dark}
+*,*::before,*::after{box-sizing:inherit}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:'Bricolage Grotesque',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:16px;line-height:1.45}
+.wrap{max-width:560px;margin:0 auto;padding:16px 16px 48px}
+header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.logo{font-weight:800;font-size:22px;letter-spacing:-.02em}.logo span{color:var(--o)}
+nav{display:flex;gap:4px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:3px}
+nav button{border:0;background:none;color:var(--mut);font:inherit;font-weight:600;font-size:14px;padding:7px 12px;border-radius:9px;cursor:pointer}
+nav button.on{background:var(--g);color:var(--on)}
+.bar{height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin:4px 0 6px}.bar i{display:block;height:100%;background:var(--o);transition:width .3s}
+.stp{color:var(--mut);font-size:14px;margin:0 0 14px}
+h2{font-size:24px;line-height:1.15;letter-spacing:-.02em;margin:0 0 14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:14px}
+label{display:block;font-weight:600;font-size:14px;margin:12px 0 5px}label:first-child{margin-top:0}
+input,select{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1.5px solid var(--line);border-radius:10px;padding:11px 12px;min-height:46px}
+input:focus,select:focus,button:focus-visible{outline:3px solid var(--o);outline-offset:1px}
+.row{display:grid;grid-template-columns:1fr 64px 112px 36px;gap:6px;align-items:center;margin-bottom:8px}
+.row input{padding:9px 8px;min-height:44px}
+.x{border:0;background:none;color:var(--mut);font-size:22px;cursor:pointer;min-height:44px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 12px}
+.chip{border:1.5px solid var(--line);background:var(--card);color:var(--ink);border-radius:20px;padding:6px 12px;font:inherit;font-size:13px;cursor:pointer}
+.btn{display:flex;align-items:center;justify-content:center;width:100%;min-height:50px;border:0;border-radius:12px;font:inherit;font-weight:800;font-size:16px;cursor:pointer;background:var(--g);color:var(--on);margin-top:8px}
+.btn.o{background:var(--o);color:#1b1000}.btn.ghost{background:none;color:var(--g);border:1.5px solid var(--g)}
+.link{background:none;border:0;color:var(--g);font:inherit;font-weight:600;cursor:pointer;padding:8px 0}
+.tot{display:flex;justify-content:space-between;font-weight:800;font-size:20px;border-top:2px solid var(--ink);padding-top:10px;margin-top:6px}
+.sw{display:flex;align-items:center;gap:10px;font-weight:600}.sw input{width:22px;height:22px;min-height:0}
+.tr{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px dashed var(--line)}.tr:last-child{border:0}
+.msg{color:#B3261E;font-weight:600;min-height:22px;margin:6px 0 0}
+#pv{background:#fff;color:#111;border:1px solid #cfd8d2;border-radius:6px;padding:18px;font-size:13px;line-height:1.4;margin:6px 0 14px}
+#pv h3{margin:0;font-size:22px;color:#0E6B43;letter-spacing:-.01em}
+#pv table{width:100%;border-collapse:collapse;margin:10px 0}#pv th{background:#0E6B43;color:#fff;text-align:left;padding:6px}#pv td{padding:6px;border-bottom:1px solid #e3e8e5}
+#pv .r{text-align:right}#pv .gt{font-weight:800;font-size:16px}
+.inv{border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px;background:var(--card)}
+.inv b{font-size:17px}.mut{color:var(--mut);font-size:14px}
+.pill{display:inline-block;border-radius:20px;padding:3px 10px;font-size:12px;font-weight:700;background:var(--gs);color:var(--g)}.pill.w{background:#FFE9CF;color:#8a4a00}
+.tg{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.tg button{border:1.5px solid var(--line);background:var(--bg);color:var(--ink);border-radius:10px;padding:8px 10px;font:inherit;font-size:13px;cursor:pointer;min-height:40px}
+.tg button.p{background:var(--g);color:var(--on);border-color:var(--g)}
+#pv .lg{max-height:56px;max-width:170px;display:block;margin-bottom:6px}.chip.on{background:var(--g);color:var(--on);border-color:var(--g)}
+@media print{body *{visibility:hidden}#pv,#pv *{visibility:visible}#pv{position:absolute;left:0;top:0;width:100%;border:0}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header><div class="logo">Facture<span>CI</span></div>
+<nav><button id="t1" class="on" onclick="go('new')">Nouvelle</button><button id="t2" onclick="go('list')">Mes factures</button></nav></header>
+<main id="app"></main>
+</div>
+<script>
+const $=s=>document.querySelector(s);
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fmt=n=>(Math.round(n)||0).toLocaleString('fr-FR').replace(/[\u202f\u00a0]/g,' ')+' FCFA';
+const LS={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+let co=LS.get('co',{name:'Kouakou Brou Jean-Marc',rccm:'',pay:'Wave / Orange Money / MTN / Moov'});
+let inv=LS.get('inv',[]);
+let view='new';
+let d=fresh();
+function fresh(){return{step:1,client:'Monsieur Brou',phone:'',lines:[{t:'Création de mini boutique e-commerce',q:1,p:60000}],split:true,n:4,dep:20000,saved:null,type:'FAC',disc:0,tva:0,due:'',note:co.note||'Merci pour votre confiance.',email:'',addr:'',pm:co.pm||['Wave','Espèces']}}
+const total=()=>d.lines.reduce((s,l)=>s+(+l.q||0)*(+l.p||0),0);
+const disc=()=>Math.round(total()*(+d.disc||0)/100),tvaA=()=>Math.round((total()-disc())*(+d.tva||0)/100),ttc=()=>total()-disc()+tvaA();
+function w(n){const u=['zéro','un','deux','trois','quatre','cinq','six','sept','huit','neuf','dix','onze','douze','treize','quatorze','quinze','seize','dix-sept','dix-huit','dix-neuf'],t=['','','vingt','trente','quarante','cinquante','soixante'];
+function f(n){if(n<20)return u[n];if(n<70){const a=Math.floor(n/10),b=n%10;return t[a]+(b?(b==1?' et un':'-'+u[b]):'')}if(n<80){const b=n-60;return 'soixante'+(b==11?' et onze':'-'+u[b])}if(n<100){const b=n-80;return 'quatre-vingt'+(b?'-'+u[b]:'s')}
+if(n<1000){const c=Math.floor(n/100),r=n%100;return (c>1?u[c]+' ':'')+'cent'+(r?' '+f(r):(c>1?'s':''))}
+if(n<1e6){const k=Math.floor(n/1000),r=n%1000;return (k>1?f(k)+' ':'')+'mille'+(r?' '+f(r):'')}
+const m=Math.floor(n/1e6),r=n%1e6;return f(m)+' million'+(m>1?'s':'')+(r?' '+f(r):'')}
+return f(Math.round(n))}
+function lg(inp){const f=inp.files[0];if(!f)return;const r=new FileReader();r.onload=e=>{const im=new Image();im.onload=()=>{const k=Math.min(1,240/im.width),c=document.createElement('canvas');c.width=im.width*k;c.height=im.height*k;c.getContext('2d').drawImage(im,0,0,c.width,c.height);co.logo=c.toDataURL('image/png');LS.set('co',co);const p=$('#lgp');p.src=co.logo;p.style.display=''};im.src=e.target.result};r.readAsDataURL(f)}
+function amounts(){
+  const T=ttc();if(d.type==='BL')return[];
+  if(!d.split||d.n<2)return[T];
+  const dep=Math.max(0,Math.min(+d.dep||0,T)),m=d.n-1,rest=T-dep,base=Math.floor(rest/m/100)*100;
+  const a=[dep];for(let i=0;i<m-1;i++)a.push(base);a.push(rest-base*(m-1));return a;
+}
+const lab=(i,n)=>n===1?'Paiement comptant':i===0?'Acompte':i===n-1?'Solde':'Tranche '+(i+1);
+const nextNum=()=>d.saved!=null?inv[d.saved].num:d.type+'-2026-'+String(inv.filter(x=>x.num.startsWith(d.type)).length+1).padStart(3,'0');
+const today=()=>new Date().toLocaleDateString('fr-FR');
+
+function go(v){view=v;$('#t1').className=v==='new'?'on':'';$('#t2').className=v==='list'?'on':'';render()}
+function render(){view==='list'?list():step()}
+
+function step(){
+  const s=d.step,A=$('#app');
+  const head=`<div class="bar"><i style="width:${s*33.4}%"></i></div><p class="stp">Étape ${s} sur 3</p>`;
+  if(s===1){A.innerHTML=head+`<h2>Pour qui est ce document ?</h2><div class="chips"><button class="chip ${d.type==='FAC'?'on':''}" onclick="d.type='FAC';render()">Facture</button><button class="chip ${d.type==='DEV'?'on':''}" onclick="d.type='DEV';render()">Devis</button><button class="chip ${d.type==='BL'?'on':''}" onclick="d.type='BL';render()">Bon de livraison</button></div>
+  <div class="card"><label>Nom du client</label><input value="${esc(d.client)}" oninput="d.client=this.value" placeholder="Ex. Monsieur Brou">
+  <label>WhatsApp du client</label><input type="tel" inputmode="tel" value="${esc(d.phone)}" oninput="d.phone=this.value" placeholder="07 00 00 00 00"><label>E-mail du client (facultatif)</label><input type="email" inputmode="email" value="${esc(d.email)}" oninput="d.email=this.value" placeholder="client@exemple.com">${d.type==='BL'?`<label>Adresse de livraison</label><input value="${esc(d.addr)}" oninput="d.addr=this.value" placeholder="Quartier, commune, repère">`:''}</div>
+  <div class="card"><label>Votre nom ou entreprise</label><input value="${esc(co.name)}" oninput="co.name=this.value;LS.set('co',co)">
+  
+  <label>RCCM / N° compte contribuable (facultatif)</label><input value="${esc(co.rccm)}" oninput="co.rccm=this.value;LS.set('co',co)"><label>Logo (facultatif)</label><input type="file" accept="image/*" onchange="lg(this)"><img id="lgp" alt="Logo" src="${co.logo||''}" style="max-height:56px;margin-top:8px;${co.logo?'':'display:none'}"></div>
+  <p class="msg" id="msg"></p><button class="btn" onclick="nx()">Continuer</button>`}
+  if(s===2){A.innerHTML=head+`<h2>Qu’avez-vous vendu ?</h2>
+  <div class="chips">${['Création de site web','Prestation de service','Vente de marchandises'].map(t=>`<button class="chip" onclick="tpl('${t}')">${t}</button>`).join('')}</div>
+  <div class="card" id="ls"></div><button class="link" onclick="d.lines.push({t:'',q:1,p:0});lines()">+ Ajouter une ligne</button>
+  <p class="msg" id="msg"></p><button class="btn" onclick="nx()">Continuer</button><button class="link" onclick="d.step=1;render()">Retour</button>`;lines()}
+  if(s===3&&d.type==='BL'){A.innerHTML=head+`<h2>Votre bon de livraison</h2><div class="card"><label>Livré par (facultatif)</label><input value="${esc(d.by||'')}" oninput="d.by=this.value;tr()"><label>Note</label><input value="${esc(d.note)}" oninput="d.note=this.value;tr()"></div><div id="pv"></div>
+  <button class="btn o" onclick="wa()">Envoyer sur WhatsApp</button><button class="btn" onclick="em()">Envoyer par e-mail</button><button class="btn ghost" onclick="sv(true)">Enregistrer</button><button class="btn ghost" onclick="sv();window.print()">Imprimer / PDF</button><button class="link" onclick="d.step=2;render()">Retour</button><p class="msg" id="msg"></p>`;tr();return}
+  if(s===3){A.innerHTML=head+`<h2>Conditions et paiement</h2><div class="card"><label>Remise (%)</label><input type="number" inputmode="numeric" placeholder="0" value="${d.disc||''}" oninput="d.disc=+this.value;tr()"><label>TVA</label><select onchange="d.tva=+this.value;tr()"><option value="0">Non applicable</option><option value="18" ${d.tva==18?'selected':''}>18 %</option></select><label>Date d’échéance</label><input type="date" value="${d.due}" oninput="d.due=this.value;tr()"><label>Note ou conditions</label><input value="${esc(d.note)}" oninput="d.note=this.value;co.note=this.value;LS.set('co',co);tr()"></div>
+  <div class="card"><label class="sw"><input type="checkbox" ${d.split?'checked':''} onchange="d.split=this.checked;render()">Paiement en tranches</label>
+  ${d.split?`<label>Nombre de tranches</label><select onchange="d.n=+this.value;render()">${[1,2,3,4,5,6].map(n=>`<option value="${n}" ${n===d.n?'selected':''}>${n===1?'1 (paiement comptant)':n}</option>`).join('')}</select>
+  ${d.n>1?`<label>Premier versement (acompte)</label><input type="number" inputmode="numeric" value="${d.dep}" oninput="d.dep=+this.value;tr()">`:''}`:''}
+  <div id="trl" style="margin-top:12px"></div></div>
+  <div class="card"><label>Moyens de paiement acceptés</label><div class="chips" id="pmc"></div><div id="pmn"></div></div>
+  <h2 style="font-size:19px">Aperçu</h2><div id="pv"></div>
+  <button class="btn o" onclick="wa()">Envoyer sur WhatsApp</button>
+  <button class="btn" onclick="em()">Envoyer par e-mail</button>
+  <button class="btn ghost" onclick="sv(true)">Enregistrer</button>
+  <button class="btn ghost" onclick="sv();window.print()">Imprimer / PDF</button>
+  <button class="link" onclick="d.step=2;render()">Retour</button><p class="msg" id="msg"></p>`;pmr();tr()}
+}
+function lines(){
+  $('#ls').innerHTML=d.lines.map((l,i)=>`<div class="row" ${d.type==='BL'?'style="grid-template-columns:1fr 64px 36px"':''}><input placeholder="Description" value="${esc(l.t)}" oninput="d.lines[${i}].t=this.value">
+  <input type="number" inputmode="numeric" aria-label="Quantité" value="${l.q}" oninput="d.lines[${i}].q=+this.value;ut()">
+  ${d.type==='BL'?'':`<input type="number" inputmode="numeric" aria-label="Prix" placeholder="Prix" value="${l.p||''}" oninput="d.lines[${i}].p=+this.value;ut()">`}
+  <button class="x" aria-label="Supprimer" onclick="if(d.lines.length>1){d.lines.splice(${i},1);lines()}">×</button></div>`).join('')+`${d.type==='BL'?'':'<div class="tot"><span>Total</span><span id="tt"></span></div>'}`;ut()}
+const ut=()=>{const e=$('#tt');if(e)e.textContent=fmt(total())};
+function tpl(t){const l=d.lines.find(x=>!x.t)||(d.lines.push({t:'',q:1,p:0}),d.lines[d.lines.length-1]);l.t=t;lines()}
+function nx(){
+  if(d.step===1&&!d.client.trim()){$('#msg').textContent='Entrez le nom du client.';return}
+  if(d.step===2&&d.type!=='BL'&&total()<=0){$('#msg').textContent='Ajoutez au moins une ligne avec un prix.';return}
+  d.step++;render();window.scrollTo(0,0)}
+function tr(){if(d.type==='BL'){bl();return}
+  const a=amounts();
+  $('#trl').innerHTML=a.map((x,i)=>`<div class="tr"><span>${lab(i,a.length)}</span><b>${fmt(x)}</b></div>`).join('');
+  $('#pv').innerHTML=`${co.logo?`<img class="lg" src="${co.logo}" alt="">`:''}<h3>${esc(co.name)}</h3><div>${co.rccm?esc(co.rccm):''}</div>
+  <p><b>${d.type==='DEV'?'DEVIS':'FACTURE'} ${nextNum()}</b> · ${today()}${d.due?' · Échéance : '+new Date(d.due).toLocaleDateString('fr-FR'):''}<br>Client : <b>${esc(d.client)}</b></p>
+  <table><tr><th>Désignation</th><th class="r">Qté</th><th class="r">Total</th></tr>
+  ${d.lines.filter(l=>l.t||l.p).map(l=>`<tr><td>${esc(l.t)}</td><td class="r">${l.q}</td><td class="r">${fmt(l.q*l.p)}</td></tr>`).join('')}</table>
+  <div class="r">Sous-total : ${fmt(total())}</div>${d.disc>0?`<div class="r">Remise ${d.disc} % : − ${fmt(disc())}</div>`:''}${d.tva>0?`<div class="r">TVA ${d.tva} % : ${fmt(tvaA())}</div>`:''}<div class="r gt">TOTAL À PAYER : ${fmt(ttc())}</div><p><i>Arrêté à la somme de : ${w(ttc())} francs CFA.</i></p><p>${esc(d.note)}</p>
+  ${a.length>1?`<p><b>Paiement en ${a.length} tranches</b></p><table>${a.map((x,i)=>`<tr><td>${lab(i,a.length)}</td><td class="r">${fmt(x)}</td></tr>`).join('')}</table>`:''}<p><b>Moyens de paiement :</b> ${esc(payStr())}</p><div style="display:flex;justify-content:space-between;margin-top:26px"><span>Le prestataire<br><br>__________</span><span>Cachet et signature du client<br><br>__________</span></div>`}
+function sv(show){
+  const a=amounts(),old=d.saved!=null?inv[d.saved]:null;
+  const o={num:nextNum(),date:today(),client:d.client,phone:d.phone,email:d.email,total:d.type==='BL'?0:ttc(),data:JSON.parse(JSON.stringify({type:d.type,lines:d.lines,disc:d.disc,tva:d.tva,due:d.due,note:d.note,split:d.split,n:d.n,dep:d.dep,pm:d.pm,addr:d.addr,by:d.by})),
+    tr:a.map((x,i)=>({a:x,l:lab(i,a.length),paid:old&&old.tr.length===a.length?old.tr[i].paid:false}))};
+  if(old)inv[d.saved]=o;else{inv.unshift(o);d.saved=0}
+  LS.set('inv',inv);if(show){$('#msg').style.color='var(--g)';$('#msg').textContent='Facture enregistrée dans « Mes factures ».'}
+}
+function wa(){
+  sv();const a=amounts(),o=inv[d.saved];
+  let t=`Bonjour ${d.client},\nVoici votre ${d.type==='DEV'?'devis':d.type==='BL'?'bon de livraison':'facture'} ${o.num} de ${co.name}.${d.type==='BL'?'':'\nMontant total : '+fmt(ttc())+'.'}`;
+  if(a.length>1)t+='\n\nPaiement en tranches :\n'+a.map((x,i)=>`- ${lab(i,a.length)} : ${fmt(x)}`).join('\n');
+  t+=`\n\n${d.type==='BL'?'':'Paiement : '+payStr()}\nMerci pour votre confiance.`;
+  let n=(d.phone||'').replace(/\D/g,'');if(n.length===10)n='225'+n;
+  window.open('https://wa.me/'+n+'?text='+encodeURIComponent(t),'_blank');
+}
+function list(){
+  const A=$('#app');
+  if(!inv.length){A.innerHTML=`<h2>Mes factures</h2><div class="card"><p class="mut">Aucune facture pour l’instant. Créez la première en 3 étapes.</p><button class="btn" onclick="go('new')">Créer une facture</button></div>`;return}
+  const enc=inv.reduce((s,o)=>s+o.tr.filter(t=>t.paid).reduce((a,t)=>a+t.a,0),0),tt=inv.reduce((s,o)=>s+o.total,0);
+  A.innerHTML=`<h2>Mes factures</h2><div class="card" style="display:flex;justify-content:space-between;gap:10px"><div><div class="mut">Encaissé</div><b style="font-size:20px;color:var(--g)">${fmt(enc)}</b></div><div style="text-align:right"><div class="mut">À encaisser</div><b style="font-size:20px;color:var(--o)">${fmt(tt-enc)}</b></div></div>`+inv.map((o,i)=>{
+    const paid=o.tr.filter(t=>t.paid).reduce((s,t)=>s+t.a,0),rest=o.total-paid;
+    return`<div class="inv"><div style="display:flex;justify-content:space-between;align-items:center"><b>${esc(o.client)}</b><span class="pill ${rest&&o.tr.length?'w':''}">${!o.tr.length?'Livré':rest?'Reste '+fmt(rest):'Soldée'}</span></div>
+    <div class="mut">${o.num} · ${o.date}${o.tr.length?' · '+fmt(o.total):''}</div>
+    <div class="tg">${o.tr.map((t,j)=>`<button class="${t.paid?'p':''}" onclick="tg(${i},${j})">${t.paid?'✓ ':''}${t.l} ${fmt(t.a)}</button>`).join('')}</div><button class="link" onclick="dup(${i})">Dupliquer</button>${o.data&&o.data.type!=='BL'?`<button class="link" onclick="dup(${i},'BL')" style="margin-left:14px">Créer le bon de livraison</button>`:''}</div>`}).join('')+
+  `<button class="btn" onclick="d=fresh();go('new')">Nouvelle facture</button>`}
+const PM=['Wave','Orange Money','MTN Money','Moov Money','Espèces','Virement','Chèque'],MM=['Wave','Orange Money','MTN Money','Moov Money'];
+const payStr=()=>d.pm.map(m=>m+(MM.includes(m)&&(co.nums||{})[m]?' : '+co.nums[m]:'')).join(' · ')||'À convenir';
+function pmr(){
+  $('#pmc').innerHTML=PM.map((m,i)=>`<button class="chip ${d.pm.includes(m)?'on':''}" onclick="tpm(${i})">${m}</button>`).join('');
+  $('#pmn').innerHTML=d.pm.filter(m=>MM.includes(m)).map(m=>`<label>Numéro ${m}</label><input type="tel" inputmode="tel" placeholder="07 00 00 00 00" value="${esc((co.nums||{})[m]||'')}" oninput="co.nums=co.nums||{};co.nums['${m}']=this.value;LS.set('co',co);tr()">`).join('')}
+function tpm(i){const m=PM[i],k=d.pm.indexOf(m);k<0?d.pm.push(m):d.pm.splice(k,1);co.pm=d.pm;LS.set('co',co);pmr();tr()}
+function em(){
+  const g=$('#msg');g.style.color='';
+  if(!/.+@.+\..+/.test(d.email.trim())){g.textContent='Ajoutez l’e-mail du client à l’étape 1.';return}
+  sv();const a=amounts(),o=inv[d.saved],k=d.type==='DEV'?'devis':d.type==='BL'?'bon de livraison':'facture';
+  let t=`Bonjour ${d.client},\n\nVoici votre ${k} ${o.num} de ${co.name}.${d.type==='BL'?'':'\nMontant total : '+fmt(ttc())+'.'}`;
+  if(a.length>1)t+='\n\nPaiement en tranches :\n'+a.map((x,i)=>`- ${lab(i,a.length)} : ${fmt(x)}`).join('\n');
+  if(d.due)t+='\n\nÉchéance : '+new Date(d.due).toLocaleDateString('fr-FR');
+  t+=`${d.type==='BL'?'':'\n\nMoyens de paiement : '+payStr()}\n\n${d.note}\n\nCordialement,\n${co.name}`;
+  window.open('mailto:'+d.email.trim()+'?subject='+encodeURIComponent(o.num+' – '+co.name)+'&body='+encodeURIComponent(t),'_blank');
+}
+function bl(){$('#pv').innerHTML=`${co.logo?`<img class="lg" src="${co.logo}" alt="">`:''}<h3>${esc(co.name)}</h3><div>${co.rccm?esc(co.rccm):''}</div>
+  <p><b>BON DE LIVRAISON ${nextNum()}</b> · ${today()}<br>Client : <b>${esc(d.client)}</b>${d.addr?'<br>Adresse : '+esc(d.addr):''}${d.by?'<br>Livré par : '+esc(d.by):''}</p>
+  <table><tr><th>Désignation</th><th class="r">Qté</th></tr>${d.lines.filter(l=>l.t).map(l=>`<tr><td>${esc(l.t)}</td><td class="r">${l.q}</td></tr>`).join('')}</table>
+  <p>${esc(d.note)}</p><div style="display:flex;justify-content:space-between;margin-top:26px"><span>Le livreur<br><br>__________</span><span>Reçu par (nom, date, signature)<br><br>__________</span></div>`}
+function dup(i,t){const o=inv[i];d=Object.assign(fresh(),o.data?JSON.parse(JSON.stringify(o.data)):{},{client:o.client,phone:o.phone,email:o.email||'',step:o.data?3:1,saved:null},t?{type:t}:{});go('new')}
+function tg(i,j){inv[i].tr[j].paid=!inv[i].tr[j].paid;LS.set('inv',inv);list()}
+render();
+</script>
+</body>
+</html>
