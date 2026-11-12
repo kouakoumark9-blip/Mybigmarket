@@ -67,7 +67,7 @@ export default async function ProductPage({ params }: Props) {
     // Un seul prix : « Offer » (format attendu par Google pour l'affichage du prix) ; plusieurs prix : « AggregateOffer ».
     offers: product.priceMin === product.priceMax
       ? { "@type": "Offer", priceCurrency: product.currency, price: product.priceMin, priceValidUntil: `${new Date().getFullYear() + 1}-12-31`, itemCondition: "https://schema.org/NewCondition", availability: `https://schema.org/${product.availability}`, url, seller: { "@type": "Organization", name: "MyBigMarket" } }
-      : { "@type": "AggregateOffer", priceCurrency: product.currency, lowPrice: product.priceMin, highPrice: product.priceMax, offerCount: Math.max(1, product.colorVariants.length), availability: `https://schema.org/${product.availability}`, url },
+      : { "@type": "AggregateOffer", priceCurrency: product.currency, lowPrice: product.priceMin, highPrice: product.priceMax, offerCount: Math.max(1, product.colorVariants.length, product.designOptions.length), availability: `https://schema.org/${product.availability}`, url },
     ...(reviewCount > 0 ? { aggregateRating: { "@type": "AggregateRating", ratingValue: product.rating, reviewCount, bestRating: 5, worstRating: 1 } } : {}),
   };
   const breadcrumbJsonLd = {

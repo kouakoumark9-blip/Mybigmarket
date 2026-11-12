@@ -3,7 +3,7 @@ import { randomInt } from "node:crypto";
 import { and, eq, inArray, isNull, sql } from "drizzle-orm";
 import { z } from "zod";
 import { getDb } from "@/lib/db";
-import { products, shopOrderItems, shopOrders } from "@/lib/db/schema";
+import { productVariants, products, shopOrderItems, shopOrders } from "@/lib/db/schema";
 import { availabilityLabel } from "./availability";
 import { DELIVERY_ZONES, deliveryFee } from "./delivery";
 
@@ -33,7 +33,7 @@ export const orderSchema = z.object({
   address: z.string().transform(cleanText).pipe(z.string().min(5, "Indiquez une adresse précise (quartier, rue, repère).").max(300)),
   note: z.string().transform(cleanText).pipe(z.string().max(500)).optional().default(""),
   payment: z.enum(["orange_money", "mtn_momo", "moov_money", "wave"], { message: "Choisissez votre moyen de paiement mobile money." }),
-  cart: z.array(z.object({ slug: z.string().regex(/^[a-z0-9-]{1,210}$/), qty: z.number().int().min(1).max(99) })).min(1, "Votre panier est vide.").max(30),
+  cart: z.array(z.object({ slug: z.string().regex(/^[a-z0-9-]{1,210}$/), qty: z.number().int().min(1).max(99), variant: z.number().int().positive().optional() })).min(1, "Votre panier est vide.").max(30),
 });
 export type OrderInput = z.infer<typeof orderSchema>;
 
@@ -44,24 +44,39 @@ export async function createShopOrder(input: OrderInput): Promise<PlacedOrder> {
   const phone = normalizePhone(input.phone);
   if (!phone) throw new OrderError("Numéro de téléphone invalide : 10 chiffres, par exemple 07 12 34 56 78.");
   const commune = DELIVERY_ZONES.some((zone) => zone.commune === input.commune) ? input.commune : "Autre ville de Côte d'Ivoire";
-  const quantities = new Map<string, number>();
-  for (const line of input.cart) quantities.set(line.slug, (quantities.get(line.slug) ?? 0) + line.qty);
+  // Une ligne = un produit, et sa taille quand il en a : les mêmes pièces ajoutées deux fois sont regroupées.
+  const wanted = new Map<string, { slug: string; variant: number | null; qty: number }>();
+  for (const line of input.cart) {
+    const key = `${line.slug}#${line.variant ?? 0}`;
+    const known = wanted.get(key);
+    wanted.set(key, { slug: line.slug, variant: line.variant ?? null, qty: (known?.qty ?? 0) + line.qty });
+  }
+  const slugs = [...new Set([...wanted.values()].map((line) => line.slug))];
 
   return getDb().transaction(async (tx) => {
-    const rows = await tx.select().from(products).where(and(inArray(products.slug, [...quantities.keys()]), eq(products.status, "approved"), isNull(products.deletedAt)));
-    if (rows.length !== quantities.size) throw new OrderError("Un produit de votre panier n'est plus disponible. Retirez-le puis recommencez.");
+    const rows = await tx.select().from(products).where(and(inArray(products.slug, slugs), eq(products.status, "approved"), isNull(products.deletedAt)));
+    if (rows.length !== slugs.length) throw new OrderError("Un produit de votre panier n'est plus disponible. Retirez-le puis recommencez.");
     for (const row of rows) if (row.isPlaceholder) throw new OrderError("Ce produit n'est pas encore disponible à la commande. Écrivez-nous sur WhatsApp pour le commander.");
 
+    const sizes = await tx.select().from(productVariants).where(and(inArray(productVariants.productId, rows.map((row) => row.id)), eq(productVariants.isActive, true), isNull(productVariants.deletedAt)));
     let subtotal = 0;
     const lines: Array<{ productId: string; title: string; unit: number; qty: number; label: string }> = [];
-    for (const row of rows) {
-      const qty = quantities.get(row.slug)!;
+    for (const { slug, variant, qty } of wanted.values()) {
+      const row = rows.find((item) => item.slug === slug)!;
+      const size = variant ? sizes.find((item) => item.id === variant && item.productId === row.id) : undefined;
+      if (variant && !size) throw new OrderError(`La taille choisie pour « ${row.title} » n'est plus disponible. Retirez le produit puis recommencez.`);
+      if (!variant && sizes.some((item) => item.productId === row.id)) throw new OrderError(`Choisissez une taille pour « ${row.title} ». Retirez le produit puis recommencez.`);
       if (row.availability !== "on_order") {
+        if (size) {
+          const updatedSize = await tx.update(productVariants).set({ stock: sql`${productVariants.stock} - ${qty}` }).where(and(eq(productVariants.id, size.id), sql`${productVariants.stock} >= ${qty}`)).returning({ id: productVariants.id });
+          if (!updatedSize.length) throw new OrderError(`Stock insuffisant pour « ${row.title} – ${size.value} ». Réduisez la quantité ou écrivez-nous sur WhatsApp.`);
+        }
         const updated = await tx.update(products).set({ quantity: sql`${products.quantity} - ${qty}`, updatedAt: new Date() }).where(and(eq(products.id, row.id), sql`${products.quantity} >= ${qty}`)).returning({ id: products.id });
         if (!updated.length) throw new OrderError(`Stock insuffisant pour « ${row.title} ». Réduisez la quantité ou écrivez-nous sur WhatsApp.`);
       }
-      subtotal += row.priceXof * qty;
-      lines.push({ productId: row.id, title: row.title, unit: row.priceXof, qty, label: availabilityLabel(row.availability, row.leadTimeDays) });
+      const unit = size ? (size.priceXof ?? row.priceXof + size.priceDeltaXof) : row.priceXof;
+      subtotal += unit * qty;
+      lines.push({ productId: row.id, title: size ? `${row.title} – ${size.value}`.slice(0, 190) : row.title, unit, qty, label: availabilityLabel(row.availability, row.leadTimeDays) });
     }
     const fee = deliveryFee(commune);
     for (let attempt = 0; ; attempt += 1) {

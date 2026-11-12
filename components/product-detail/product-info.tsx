@@ -48,6 +48,7 @@ export const ProductInfo = forwardRef<HTMLDivElement, Props>(function ProductInf
       {product.brand.logo && <Image src={product.brand.logo} alt={`Logo ${product.brand.name}`} width={433} height={183} className="pd-brand-logo"/>}
       <span>Marque : <b>{product.brand.name}</b>{product.brand.tagline ? <> · {product.brand.tagline}</> : null}</span>
     </div>}
+    {product.designOptions.length > 0 && <div className="pd-size-top"><VariantPicker product={product} state={variants} idPrefix="pd-top"/></div>}
     <div className="pd-reputation">
       {product.reviewsCount > 0 ? <>
         <Stars value={product.rating}/>
