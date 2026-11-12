@@ -23,6 +23,19 @@ describe("en-têtes de sécurité", () => {
     expect(directive(policy, "form-action")).toEqual(["'self'"]);
     expect(directive(policy, "base-uri")).toEqual(["'self'"]);
     expect(policy).toContain("upgrade-insecure-requests");
+    // Images : jamais « https: » en vrac, seulement notre origine et le stockage Vercel.
+    expect(directive(policy, "img-src")).not.toContain("https:");
+    expect(directive(policy, "img-src").filter((source) => source.startsWith("http"))).toEqual(["https://*.public.blob.vercel-storage.com"]);
+  });
+
+  it("envoie les en-têtes de transport et d'isolation attendus", () => {
+    const headers = asMap(securityHeaders());
+    expect(headers["strict-transport-security"]).toContain("max-age=63072000");
+    expect(headers["x-frame-options"]).toBe("DENY");
+    expect(headers["x-content-type-options"]).toBe("nosniff");
+    expect(headers["referrer-policy"]).toBe("strict-origin-when-cross-origin");
+    expect(headers["cross-origin-resource-policy"]).toBe("same-site");
+    expect(headers["x-permitted-cross-domain-policies"]).toBe("none");
   });
 
   it("n'assouplit la politique qu'en développement ou en prévisualisation", () => {

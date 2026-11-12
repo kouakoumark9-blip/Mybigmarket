@@ -15,6 +15,8 @@ const nextConfig: NextConfig = {
   async redirects() {
     // Anciennes adresses du site (place de marché) : redirigées vers l'équivalent, ou vers l'accueil.
     return [
+      // HTTPS imposé : toute requête arrivée en HTTP clair (en-tête x-forwarded-proto) est redirigée vers HTTPS, en production seulement.
+      ...(process.env.NODE_ENV === "production" ? [{ source: "/:path*", has: [{ type: "header" as const, key: "x-forwarded-proto", value: "http" }, { type: "host" as const, value: "(?<host>.*)" }], destination: "https://:host/:path*", permanent: true }] : []),
       { source: "/surmatelas-protege-matelas", destination: "/matelas/surmatelas-protege-matelas", permanent: true },
       { source: "/comment-ca-marche", destination: "/comment-commander", permanent: true },
       { source: "/conditions", destination: "/conditions-de-vente", permanent: true },

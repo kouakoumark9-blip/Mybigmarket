@@ -2,7 +2,7 @@
  * En-têtes de sécurité HTTP de la boutique (appliqués à toutes les réponses par next.config.ts).
  *
  * - Content-Security-Policy : ressources limitées à notre origine. Exceptions :
- *   - images https (photos des vendeurs et du stockage de fichiers) ;
+ *   - images du stockage de fichiers Vercel (https://*.public.blob.vercel-storage.com) ;
  *   - vidéos YouTube sans cookie (blocs CMS) ;
  *   - barre d'outils Vercel, sur les déploiements de prévisualisation seulement.
  *   Les scripts en ligne restent permis : Next.js les utilise pour hydrater les pages statiques.
@@ -26,7 +26,8 @@ export function contentSecurityPolicy(options: SecurityHeaderOptions = {}): stri
     "default-src": ["'self'"],
     "script-src": ["'self'", "'unsafe-inline'", ...(options.dev ? ["'unsafe-eval'"] : []), ...toolbar.script],
     "style-src": ["'self'", "'unsafe-inline'"],
-    "img-src": ["'self'", "data:", "blob:", "https:", ...toolbar.img],
+    // Images : notre origine et le stockage de fichiers Vercel seulement (plus « tout https : » : une image tierce ne peut plus servir à exfiltrer des données).
+    "img-src": ["'self'", "data:", "blob:", "https://*.public.blob.vercel-storage.com", ...toolbar.img],
     "font-src": ["'self'", "data:", ...toolbar.font],
     "connect-src": ["'self'", ...(options.dev ? ["ws:", "wss:"] : []), ...toolbar.connect],
     "media-src": ["'self'", "blob:"],
@@ -53,6 +54,8 @@ export function securityHeaders(options: SecurityHeaderOptions = {}): Array<{ ke
     { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
     { key: "Permissions-Policy", value: PERMISSIONS_POLICY },
     { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
+    { key: "Cross-Origin-Resource-Policy", value: "same-site" },
+    { key: "X-Permitted-Cross-Domain-Policies", value: "none" },
     ...(options.dev ? [] : [{ key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains" }]),
   ];
 }

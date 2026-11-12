@@ -837,3 +837,16 @@ html body{font-size:16px;line-height:1.55}
   .mb-drawer-info>span{display:block;margin-bottom:6px;font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#6a7078}
   .mb-drawer li.mb-drawer-info>a{border-bottom:0;padding:7px 0;font-size:14px;color:#4a5057}
 }
+
+/* Information cookies / stockage local */
+.mb-cookie{position:fixed;z-index:200;left:16px;right:16px;bottom:16px;max-width:760px;margin-inline:auto;display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:14px;background:#1f2328;color:#fff;box-shadow:0 8px 30px rgba(0,0,0,.28)}
+.mb-cookie svg{flex:none;color:#7ee0a3}
+.mb-cookie p,.mb-cookie b{color:#fff!important}
+.mb-cookie p{margin:0;font-size:14px;line-height:1.5;flex:1}
+.mb-cookie a{color:#fff;text-decoration:underline}
+.mb-cookie button{flex:none;min-height:42px;padding:0 18px;border:0;border-radius:10px;background:var(--color-primary);color:#111;font-weight:800;font-size:14.5px;cursor:pointer}
+@media (max-width:900px){
+  .mb-cookie{left:10px;right:10px;bottom:calc(70px + env(safe-area-inset-bottom,0px));flex-wrap:wrap;gap:10px}
+  body:has(.pd-mobile-bar) .mb-cookie{bottom:calc(144px + env(safe-area-inset-bottom,0px))}
+  .mb-cookie svg{display:none}.mb-cookie p{flex-basis:100%}.mb-cookie button{width:100%}
+}

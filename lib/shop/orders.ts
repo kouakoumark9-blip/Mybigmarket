@@ -23,12 +23,15 @@ export function newReference(date = new Date()) {
   return `MBM-${day}-${Array.from({ length: 4 }, () => ALPHABET[randomInt(ALPHABET.length)]).join("")}`;
 }
 
+/** Nettoie une saisie libre : retire les caractères de contrôle et les chevrons (< >) qui servent aux injections de balises. */
+export const cleanText = (value: string) => value.replace(/[\u0000-\u001f\u007f<>]/g, " ").replace(/\s+/g, " ").trim();
+
 export const orderSchema = z.object({
-  name: z.string().trim().min(2, "Indiquez votre nom.").max(120),
+  name: z.string().transform(cleanText).pipe(z.string().min(2, "Indiquez votre nom.").max(120)),
   phone: z.string().trim().min(1, "Indiquez votre numéro de téléphone."),
-  commune: z.string().trim().min(1, "Choisissez votre commune.").max(80),
-  address: z.string().trim().min(5, "Indiquez une adresse précise (quartier, rue, repère).").max(300),
-  note: z.string().trim().max(500).optional().default(""),
+  commune: z.string().transform(cleanText).pipe(z.string().min(1, "Choisissez votre commune.").max(80)),
+  address: z.string().transform(cleanText).pipe(z.string().min(5, "Indiquez une adresse précise (quartier, rue, repère).").max(300)),
+  note: z.string().transform(cleanText).pipe(z.string().max(500)).optional().default(""),
   payment: z.enum(["orange_money", "mtn_momo", "moov_money", "wave"], { message: "Choisissez votre moyen de paiement mobile money." }),
   cart: z.array(z.object({ slug: z.string().regex(/^[a-z0-9-]{1,210}$/), qty: z.number().int().min(1).max(99) })).min(1, "Votre panier est vide.").max(30),
 });
