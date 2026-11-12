@@ -7,13 +7,16 @@ import { shopOrderItems, shopOrders } from "@/lib/db/schema";
 import { SHOP, paymentLabel, whatsappLink } from "@/lib/shop/config";
 import { formatFcfa } from "@/lib/shop/format";
 import { statusLabel } from "@/lib/shop/orders";
+import { isValidOrderAccessKey } from "@/lib/shop/order-access";
 
 export const metadata: Metadata = { title: "Commande enregistrée", robots: { index: false } };
 export const dynamic = "force-dynamic";
 
-export default async function ConfirmationPage({ params }: { params: Promise<{ reference: string }> }) {
+export default async function ConfirmationPage({ params, searchParams }: { params: Promise<{ reference: string }>; searchParams: Promise<{ k?: string }> }) {
   const { reference } = await params;
-  if (!/^MBM-\d{6}-[A-Z0-9]{4}$/.test(reference) || !process.env.DATABASE_URL) notFound();
+  const { k } = await searchParams;
+  // Sans la clé du lien reçu à la commande, on ne montre rien : le numéro seul ne donne pas accès aux données du client.
+  if (!/^MBM-\d{6}-[A-Z0-9]{4}$/.test(reference) || !process.env.DATABASE_URL || !isValidOrderAccessKey(reference, k)) notFound();
   const db = getDb();
   const [order] = await db.select().from(shopOrders).where(eq(shopOrders.reference, reference)).limit(1);
   if (!order) notFound();

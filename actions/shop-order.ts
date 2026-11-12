@@ -5,8 +5,9 @@ import { db as serviceDb } from "@/server/core/db";
 import { clientIp } from "@/server/core/http/request-context";
 import { enforceRateLimit } from "@/server/core/rate-limit";
 import { createShopOrder, orderSchema, OrderError } from "@/lib/shop/orders";
+import { orderAccessKey } from "@/lib/shop/order-access";
 
-export type PlaceOrderState = { error?: string; reference?: string };
+export type PlaceOrderState = { error?: string; reference?: string; accessKey?: string };
 
 export async function placeOrderAction(payload: unknown): Promise<PlaceOrderState> {
   const parsed = orderSchema.safeParse(payload);
@@ -14,7 +15,7 @@ export async function placeOrderAction(payload: unknown): Promise<PlaceOrderStat
   try {
     await enforceRateLimit(serviceDb, "shop.order", `ip:${clientIp(await headers()) ?? "unknown"}`);
     const order = await createShopOrder(parsed.data);
-    return { reference: order.reference };
+    return { reference: order.reference, accessKey: orderAccessKey(order.reference) };
   } catch (error) {
     if (error instanceof OrderError) return { error: error.message };
     if ((error as { code?: string }).code === "RATE_LIMITED") return { error: "Trop de commandes depuis cette connexion. Réessayez dans un moment ou écrivez-nous sur WhatsApp." };

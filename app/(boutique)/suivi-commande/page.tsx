@@ -5,6 +5,10 @@ import { getDb } from "@/lib/db";
 import { shopOrderItems, shopOrders } from "@/lib/db/schema";
 import { SHOP, whatsappLink } from "@/lib/shop/config";
 import { formatFcfa } from "@/lib/shop/format";
+import { headers } from "next/headers";
+import { db as serviceDb } from "@/server/core/db";
+import { clientIp } from "@/server/core/http/request-context";
+import { enforceRateLimit } from "@/server/core/rate-limit";
 import { normalizePhone, statusLabel } from "@/lib/shop/orders";
 
 export const metadata: Metadata = { title: "Suivi de commande", description: "Suivez votre commande MyBigMarket avec votre numéro de commande et votre téléphone.", alternates: { canonical: "/suivi-commande" } };
@@ -17,7 +21,12 @@ export default async function TrackingPage({ searchParams }: { searchParams: Pro
   let order: typeof shopOrders.$inferSelect | undefined;
   let items: Array<typeof shopOrderItems.$inferSelect> = [];
   const searched = Boolean(reference || telephone);
+  let limited = false;
   if (reference && phone && process.env.DATABASE_URL) {
+    // Limite les essais pour empêcher de deviner un numéro de commande et un téléphone.
+    try { await enforceRateLimit(serviceDb, "shop.track", `ip:${clientIp(await headers()) ?? "unknown"}`); } catch (error) { if ((error as { code?: string }).code === "RATE_LIMITED") limited = true; else throw error; }
+  }
+  if (reference && phone && !limited && process.env.DATABASE_URL) {
     const db = getDb();
     [order] = await db.select().from(shopOrders).where(and(eq(shopOrders.reference, reference), eq(shopOrders.phone, phone))).limit(1);
     if (order) items = await db.select().from(shopOrderItems).where(eq(shopOrderItems.orderId, order.id));
@@ -36,6 +45,7 @@ export default async function TrackingPage({ searchParams }: { searchParams: Pro
       <div className="mb-summary-row mb-summary-row--total"><span>Total</span><span>{formatFcfa(order.totalXof)}</span></div>
       <p style={{ margin: "10px 0 0" }}><a className="mb-link" href={whatsappLink(`Bonjour, je voudrais des nouvelles de la commande ${order.reference}.`)} rel="noopener">Une question ? WhatsApp {SHOP.phoneDisplay}</a></p>
     </div></section>}
-    {searched && !order && <div className="mb-notice mb-notice--error" style={{ marginTop: 16, maxWidth: 560 }} role="alert">Aucune commande ne correspond à ce numéro et à ce téléphone. Vérifiez-les, ou écrivez-moi sur WhatsApp.</div>}
+    {limited && <div className="mb-notice mb-notice--error" style={{ marginTop: 16, maxWidth: 560 }} role="alert">Trop de recherches depuis cette connexion. Réessayez dans quelques minutes, ou écrivez-moi sur WhatsApp.</div>}
+    {searched && !order && !limited && <div className="mb-notice mb-notice--error" style={{ marginTop: 16, maxWidth: 560 }} role="alert">Aucune commande ne correspond à ce numéro et à ce téléphone. Vérifiez-les, ou écrivez-moi sur WhatsApp.</div>}
   </div>;
 }

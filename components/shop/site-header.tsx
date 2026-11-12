@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
-import { ChevronDown, Menu, Search, ShoppingCart, Truck, X } from "lucide-react";
+import { ChevronDown, Home, Menu, Search, ShoppingCart, Truck, X } from "lucide-react";
 import { useCart } from "@/components/cart-provider";
 import { SHOP, TOP_STRIP, whatsappLink } from "@/lib/shop/config";
 import { Logo } from "./logo";
@@ -63,6 +63,7 @@ export function SiteHeader({ categories }: { categories: MenuCategory[] }) {
       <div className="mb-drawer-panel" role="dialog" aria-modal="true" aria-label="Menu">
         <div className="mb-drawer-head"><span>Catégories</span><button type="button" onClick={() => setOpen(false)} aria-label="Fermer le menu"><X size={22} strokeWidth={1.75}/></button></div>
         <ul>
+          <li><Link className="mb-drawer-home" href="/" onClick={() => setOpen(false)}><Home size={20} strokeWidth={1.6} aria-hidden="true"/>Accueil</Link></li>
           {categories.map((item) => <li key={item.slug}>
             {item.children.length ? <details><summary><CategoryIcon slug={item.slug}/>{item.name}</summary>
               <Link href={`/${item.slug}`} onClick={() => setOpen(false)}>Tout dans {item.name}</Link>
@@ -75,6 +76,9 @@ export function SiteHeader({ categories }: { categories: MenuCategory[] }) {
           <li><Link href="/suivi-commande" onClick={() => setOpen(false)}>Suivi de commande</Link></li>
           <li><Link href="/favoris" onClick={() => setOpen(false)}>Favoris</Link></li>
           <li><Link href="/contact" onClick={() => setOpen(false)}>Contact</Link></li>
+          <li className="mb-drawer-info"><span>Informations</span>
+            <Link href="/a-propos" onClick={() => setOpen(false)}>À propos</Link><Link href="/livraison" onClick={() => setOpen(false)}>Livraison</Link><Link href="/retours-et-remboursements" onClick={() => setOpen(false)}>Retours et remboursements</Link><Link href="/conditions-de-vente" onClick={() => setOpen(false)}>Conditions de vente</Link><Link href="/confidentialite" onClick={() => setOpen(false)}>Confidentialité</Link><Link href="/mentions-legales" onClick={() => setOpen(false)}>Mentions légales</Link>
+          </li>
         </ul>
       </div>
     </div>
