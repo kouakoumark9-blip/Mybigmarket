@@ -129,6 +129,7 @@
 .pd-block{margin-top:22px}
 .pd-block-title{display:flex;align-items:center;gap:6px;margin:0 0 10px;font-size:15px;font-weight:700}
 .pd-variants{display:flex;flex-direction:column;gap:18px}
+.pd-size-top{display:none}
 .pd-variant-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
 .pd-variant-head h3{font-size:15px;font-weight:700}
 .pd-variant-head h3 span{font-weight:400;color:var(--color-text-muted)}
@@ -381,6 +382,8 @@ body.pd-lock{overflow:hidden}
   .pd-title{font-size:17px}
   .pd-price{font-size:24px}
   .pd-info .pd-variants{display:none}
+  .pd-info .pd-size-top .pd-variants{display:flex}
+  .pd-size-top{display:block;margin:4px 0 12px}
   .pd-variant-summary{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;margin-top:16px;padding:14px 16px;border:1px solid var(--color-border);border-radius:var(--radius-media);background:var(--color-surface);text-align:left;cursor:pointer}
   .pd-variant-summary b{margin-right:6px}
   .pd-specs{grid-template-columns:repeat(2,minmax(0,1fr))}
