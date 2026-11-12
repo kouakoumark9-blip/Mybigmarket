@@ -458,3 +458,20 @@ body.pd-lock{overflow:hidden}
   .pd-mobile-bar.is-single{grid-template-columns:1fr}
   .pd-mobile-bar.is-single .pd-btn{min-height:50px;font-size:16px;font-weight:800;gap:10px}
 }
+
+/* Prix toujours visible : barre fixée en bas de la fiche, sur ordinateur comme sur téléphone */
+.pd-mobile-bar.has-price{position:fixed;z-index:90;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:flex-end;gap:20px;padding:10px max(24px,env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) max(24px,env(safe-area-inset-left,0px));background:var(--color-surface);border-top:1px solid var(--color-border);box-shadow:var(--shadow-md);font-family:var(--font-pdp)}
+.pd-bar-price{display:flex;flex-direction:column;line-height:1.15;margin:0 auto 0 0;min-width:0}
+.pd-bar-price span{font-size:12.5px;color:var(--color-text-muted,#5f666d)}
+.pd-bar-price b{font-size:22px;font-weight:800;letter-spacing:-.3px;color:var(--color-text,#111)}
+.pd-mobile-bar.has-price .pd-btn{width:auto;min-width:260px;min-height:48px;font-size:16px;font-weight:800;gap:10px}
+@media (min-width:761px){
+  body:has(.pd-mobile-bar.has-price){padding-bottom:84px}
+  body:has(.pd-mobile-bar.has-price) .mb-wa-float{bottom:92px;z-index:95}
+}
+@media (max-width:760px){
+  .pd-mobile-bar.is-single.has-price{display:grid;grid-template-columns:auto 1fr;align-items:center;gap:14px;padding:10px max(16px,env(safe-area-inset-right,0px)) 10px max(16px,env(safe-area-inset-left,0px))}
+  .pd-bar-price{margin:0}
+  .pd-bar-price b{font-size:19px}
+  .pd-mobile-bar.is-single.has-price .pd-btn{width:100%;min-width:0;min-height:50px}
+}

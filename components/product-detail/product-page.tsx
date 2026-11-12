@@ -152,7 +152,7 @@ export function ProductDetailPage({ product, cartItem, publishedReviews = [], pa
     </div>
 
     <FloatingActions/>
-    <MobileActionBar slug={product.slug} onOrder={order} onAddToCart={addToCart} orderable={!cartItem.isDemo} title={product.title}/>
+    <MobileActionBar slug={product.slug} onOrder={order} onAddToCart={addToCart} orderable={!cartItem.isDemo} title={product.title} price={unitPrice} sizeLabel={selectedSize?.label}/>
     <VariantSheet product={product} state={variants} open={sheetOpen} onClose={closeSheet}/>
   </main>;
 }
