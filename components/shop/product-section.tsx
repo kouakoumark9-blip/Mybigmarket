@@ -10,5 +10,6 @@ export function ProductSection({ title, href, products, promo = false }: { title
       {href && <Link className="mb-link" href={href}>Voir tout</Link>}
     </div>
     <ProductGrid products={products}/>
+    {href && <div className="mb-section-more"><Link className="mb-btn mb-btn--block" href={href}>Voir tous les produits</Link></div>}
   </section>;
 }

@@ -850,3 +850,36 @@ html body{font-size:16px;line-height:1.55}
   body:has(.pd-mobile-bar) .mb-cookie{bottom:calc(144px + env(safe-area-inset-bottom,0px))}
   .mb-cookie svg{display:none}.mb-cookie p{flex-basis:100%}.mb-cookie button{width:100%}
 }
+
+/* Accueil sur téléphone : moins de hauteur perdue, rangées qu'on fait glisser, cartes plus compactes */
+.mb-section-more{display:none}
+@media (max-width:700px){
+  .mb-strip{display:none}
+  .mb-home-stack{gap:14px}
+  /* Rassurances : une seule ligne qui défile, titre seul */
+  .mb-home-stack .mb-reassurance{display:flex;gap:8px;overflow-x:auto;scroll-snap-type:x proximity;padding:2px 2px 6px;margin:0 -2px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .mb-home-stack .mb-reassurance::-webkit-scrollbar{display:none}
+  .mb-home-stack .mb-reassurance>div{flex:0 0 auto;scroll-snap-align:start;display:flex;align-items:center;gap:8px;padding:7px 14px;min-height:0;line-height:1.2;border:1px solid var(--color-border);border-left:1px solid var(--color-border);border-radius:999px;background:#fff;white-space:nowrap}
+  .mb-home-stack .mb-reassurance>div:first-child{padding-left:14px;border-left:1px solid var(--color-border)}
+  .mb-home-stack .mb-reassurance>div>svg{width:18px;height:18px}
+  .mb-home-stack .mb-reassurance b{font-size:12.5px;font-weight:700;letter-spacing:0;text-transform:none}
+  .mb-home-stack .mb-reassurance span{display:none}
+  /* Catégories : rangée qu'on fait glisser, la suivante dépasse pour montrer qu'il y en a d'autres */
+  .mb-tiles{padding:12px 0 14px 12px;margin:14px 0;overflow:hidden}
+  .mb-tiles-head{padding-right:12px}
+  .mb-tiles-head h2{margin-bottom:10px}
+  .mb-tiles ul{display:flex!important;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;padding:0 12px 4px 0;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .mb-tiles ul::-webkit-scrollbar{display:none}
+  .mb-tiles li{flex:0 0 38%;min-width:128px;scroll-snap-align:start}
+  .mb-tiles li:nth-child(odd):last-child{display:block}
+  .mb-tile-img{aspect-ratio:4/3}
+  .mb-tile-name{font-size:14px}
+  .mb-tile-count{font-size:12px}
+  /* Cartes produit : étiquette de stock plus petite, moins d'espace perdu */
+  .mb-card-title{font-size:13.5px;min-height:36px;margin:7px 0 3px}
+  .mb-avail{margin:4px 0 0;font-size:11.5px;line-height:1.3;min-height:0}
+  .mb-section .mb-grid{gap:16px 10px}
+  .mb-price-old:empty{display:none}
+  .mb-section-more{display:block;padding:4px 14px 18px}
+  .mb-section-more .mb-btn{min-height:46px;font-size:15px;font-weight:700}
+}
