@@ -84,11 +84,14 @@ export function ProductDetailPage({ product, cartItem, publishedReviews = [], pa
 
   const variants: VariantState = { color, design, onColor: selectColor, onDesign: setDesign, onOpenSheet: () => setSheetOpen(true) };
   const selectedVariant = product.colorVariants.find((item) => item.id === color);
-  const unitPrice = selectedVariant?.priceXof ?? product.priceMin;
+  const selectedSize = cartItem.variants?.find((item) => String(item.id) === design);
+  const unitPrice = selectedSize?.priceXof ?? selectedVariant?.priceXof ?? product.priceMin;
+  // Avec des tailles, le prix affiché est celui de la taille choisie (et non la fourchette).
+  const shown = useMemo(() => (selectedSize ? { ...product, priceMin: selectedSize.priceXof, priceMax: selectedSize.priceXof } : product), [product, selectedSize]);
 
   const [quantity, setQuantity] = useState(1);
-  const order = () => { addItem(cartItem, quantity); router.push("/checkout"); };
-  const addToCart = () => { addItem(cartItem, quantity); setFeedback(quantity > 1 ? `${quantity} articles ajoutés au panier.` : "Ajouté au panier."); };
+  const order = () => { addItem(cartItem, quantity, selectedSize); router.push("/checkout"); };
+  const addToCart = () => { addItem(cartItem, quantity, selectedSize); setFeedback(quantity > 1 ? `${quantity} articles ajoutés au panier.` : "Ajouté au panier."); };
 
   // Boîte d'achat compacte quand le prix sort de l'écran ; onglets flottants après le bloc principal.
   useEffect(() => {
@@ -123,7 +126,7 @@ export function ProductDetailPage({ product, cartItem, publishedReviews = [], pa
               <ProductGallery images={images} videoUrl={product.videoUrl} label={product.imageLabel} activeIndex={activeImage} onSelect={setActiveImage} favoriteItem={cartItem}/>
             </div>
             <div className="pd-area-info">
-              <ProductInfo ref={priceRef} product={product} variants={variants} unitPrice={unitPrice} quantity={quantity} onQuantity={setQuantity} maxQuantity={cartItem.availability === "on_order" ? 99 : Math.max(1, cartItem.quantity)} orderable={!cartItem.isDemo}/>
+              <ProductInfo ref={priceRef} product={shown} variants={variants} unitPrice={unitPrice} quantity={quantity} onQuantity={setQuantity} maxQuantity={cartItem.availability === "on_order" ? 99 : Math.max(1, selectedSize ? selectedSize.quantity : cartItem.quantity)} orderable={!cartItem.isDemo}/>
               {(product.colorVariants.length > 0 || product.designOptions.length > 0) && <button type="button" className="pd-variant-summary" onClick={() => setSheetOpen(true)}>
                 <span><b>Options</b> {[selectedVariant?.label, product.designOptions.find((item) => item.id === design)?.label].filter(Boolean).join(" · ")}</span><ChevronRight size={18} strokeWidth={1.5}/>
               </button>}
@@ -143,7 +146,7 @@ export function ProductDetailPage({ product, cartItem, publishedReviews = [], pa
         </div>
 
         <div className="pd-right">
-          <BuyBox product={product} variants={variants} compact={compact} onOrder={order} onAddToCart={addToCart} feedback={feedback} orderable={!cartItem.isDemo} paymentsOpen={paymentsOpen} paymentMethods={paymentMethods}/>
+          <BuyBox product={shown} variants={variants} compact={compact} onOrder={order} onAddToCart={addToCart} feedback={feedback} orderable={!cartItem.isDemo} paymentsOpen={paymentsOpen} paymentMethods={paymentMethods}/>
         </div>
       </div>
     </div>

@@ -1,7 +1,7 @@
 import "server-only";
 import { and, asc, eq, inArray, isNull } from "drizzle-orm";
 import { getDb } from "@/lib/db";
-import { brands, categories, productAttributes, productImages, products } from "@/lib/db/schema";
+import { brands, categories, productAttributes, productImages, productVariants, products } from "@/lib/db/schema";
 import type { DemoProduct } from "@/lib/demo-data";
 import { availabilityLabel } from "@/lib/shop/availability";
 
@@ -26,10 +26,16 @@ async function queryCatalog(): Promise<DemoProduct[]> {
     .where(and(eq(products.status, "approved"), isNull(products.deletedAt))).limit(500);
   if (!rows.length) return [];
   const ids = rows.map((row) => row.product.id);
-  const [images, attributes] = await Promise.all([
+  const [images, attributes, variants] = await Promise.all([
     db.select().from(productImages).where(inArray(productImages.productId, ids)).orderBy(asc(productImages.sortOrder)),
     db.select().from(productAttributes).where(inArray(productAttributes.productId, ids)).orderBy(asc(productAttributes.sortOrder)),
+    db.select().from(productVariants).where(and(inArray(productVariants.productId, ids), eq(productVariants.isActive, true), isNull(productVariants.deletedAt))).orderBy(asc(productVariants.position), asc(productVariants.id)),
   ]);
+  const variantMap = new Map<string, NonNullable<DemoProduct["variants"]>>();
+  for (const variant of variants) {
+    const base = rows.find((row) => row.product.id === variant.productId)?.product.priceXof ?? 0;
+    variantMap.set(variant.productId, [...(variantMap.get(variant.productId) ?? []), { id: variant.id, label: variant.value, priceXof: variant.priceXof ?? base + variant.priceDeltaXof, quantity: variant.stock }]);
+  }
   const allCategories = new Map((await db.select().from(categories)).map((row) => [row.id, row]));
   const trailOf = (categoryId: number) => {
     const trail: Array<{ label: string; href: string }> = [];
@@ -53,6 +59,7 @@ async function queryCatalog(): Promise<DemoProduct[]> {
     isPlaceholder: product.isPlaceholder, shortDescription: product.shortDescription, brandName: brand, brandLogo, brandTagline, categoryTrail: trailOf(product.categoryId),
     extraAttributes: attributeMap.get(product.id) ?? [],
     seoTitle: product.seoTitle, seoDescription: product.seoDescription,
+    ...(variantMap.has(product.id) ? { variants: variantMap.get(product.id) } : {}),
   }));
 }
 

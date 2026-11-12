@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Minus, Plus, ShoppingCart, Trash2 } from "lucide-react";
-import { useCart } from "@/components/cart-provider";
+import { lineKey, useCart } from "@/components/cart-provider";
 import { formatFcfa } from "@/lib/shop/format";
 
 export function CartView() {
@@ -20,21 +20,21 @@ export function CartView() {
   return <div className="mb-two">
     <section className="mb-box" aria-label="Articles du panier">
       <h2>Articles ({items.reduce((sum, item) => sum + item.qty, 0)})</h2>
-      {items.map((item) => <article key={item.slug} className="mb-line">
+      {items.map((item) => <article key={lineKey(item)} className="mb-line">
         <Link href={`/produits/${item.slug}`} className="mb-line-img">{item.imageUrl ? <Image src={item.imageUrl} alt="" width={84} height={84} unoptimized={item.imageUrl.endsWith(".svg")}/> : null}</Link>
         <div>
           <h3><Link href={`/produits/${item.slug}`}>{item.title}</Link></h3>
           <p className={`mb-avail${item.availability !== "on_order" ? " mb-avail--stock" : ""}`} style={{ margin: "0 0 8px", minHeight: 0 }}>{item.availabilityLabel ?? "Livraison à confirmer"}</p>
           <div className="mb-qty">
-            <button type="button" aria-label={`Diminuer la quantité de ${item.title}`} onClick={() => setQuantity(item.slug, item.qty - 1)}><Minus size={14} strokeWidth={1.75}/></button>
-            <input type="number" min={1} value={item.qty} aria-label={`Quantité de ${item.title}`} onChange={(event) => setQuantity(item.slug, Number(event.target.value) || 1)}/>
-            <button type="button" aria-label={`Augmenter la quantité de ${item.title}`} onClick={() => setQuantity(item.slug, item.qty + 1)}><Plus size={14} strokeWidth={1.75}/></button>
+            <button type="button" aria-label={`Diminuer la quantité de ${item.title}`} onClick={() => setQuantity(lineKey(item), item.qty - 1)}><Minus size={14} strokeWidth={1.75}/></button>
+            <input type="number" min={1} value={item.qty} aria-label={`Quantité de ${item.title}`} onChange={(event) => setQuantity(lineKey(item), Number(event.target.value) || 1)}/>
+            <button type="button" aria-label={`Augmenter la quantité de ${item.title}`} onClick={() => setQuantity(lineKey(item), item.qty + 1)}><Plus size={14} strokeWidth={1.75}/></button>
           </div>
           {item.isPlaceholder && <p className="mb-notice mb-notice--error" style={{ marginTop: 8 }}>Fiche fictive : ce produit ne peut pas être commandé.</p>}
         </div>
         <div className="mb-line-side">
           <div className="mb-price">{formatFcfa(item.priceXof * item.qty)}</div>
-          <button type="button" className="mb-remove" onClick={() => removeItem(item.slug)}><Trash2 size={14} strokeWidth={1.75} aria-hidden="true"/> Retirer</button>
+          <button type="button" className="mb-remove" onClick={() => removeItem(lineKey(item))}><Trash2 size={14} strokeWidth={1.75} aria-hidden="true"/> Retirer</button>
         </div>
       </article>)}
     </section>

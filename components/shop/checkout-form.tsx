@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition, type FormEvent } from "react";
-import { useCart } from "@/components/cart-provider";
+import { lineKey, useCart } from "@/components/cart-provider";
 import { placeOrderAction } from "@/actions/shop-order";
 import { DELIVERY_ZONES, findZone } from "@/lib/shop/delivery";
 import { PAYMENT_METHODS } from "@/lib/shop/config";
@@ -33,7 +33,7 @@ export function CheckoutForm() {
         name: String(data.get("name") ?? ""), phone: String(data.get("phone") ?? ""), commune: String(data.get("commune") ?? ""),
         address: String(data.get("address") ?? ""), note: String(data.get("note") ?? ""),
         payment: String(data.get("payment") ?? ""),
-        cart: items.map((item) => ({ slug: item.slug, qty: item.qty })),
+        cart: items.map((item) => ({ slug: item.slug, qty: item.qty, ...(item.variantId ? { variant: item.variantId } : {}) })),
       });
       if (result.error || !result.reference || !result.accessKey) { setError(result.error ?? "La commande n'a pas pu être enregistrée."); window.scrollTo({ top: 0, behavior: "smooth" }); return; }
       clearCart();
@@ -77,11 +77,11 @@ export function CheckoutForm() {
     <aside className="mb-box" aria-label="Votre commande">
       <h2>Votre commande</h2>
       <div className="mb-box-body">
-        {items.map((item) => <div key={item.slug} className="mb-summary-row"><span>{item.qty} × {item.title}</span><b>{formatFcfa(item.qty * item.priceXof)}</b></div>)}
+        {items.map((item) => <div key={lineKey(item)} className="mb-summary-row"><span>{item.qty} × {item.title}</span><b>{formatFcfa(item.qty * item.priceXof)}</b></div>)}
         <div className="mb-summary-row" style={{ borderTop: "1px solid var(--color-border)", marginTop: 6, paddingTop: 10 }}><span>Sous-total</span><b>{formatFcfa(total)}</b></div>
         <div className="mb-summary-row"><span>Livraison</span><b>{zone ? formatFcfa(fee) : "Choisissez votre commune"}</b></div>
         <div className="mb-summary-row mb-summary-row--total"><span>Total à payer</span><span>{formatFcfa(total + fee)}</span></div>
-        <ul style={{ margin: "12px 0 0", padding: "0 0 0 18px", fontSize: 12.5, color: "#5b6577" }}>{items.map((item) => <li key={item.slug}>{item.title} : {item.availabilityLabel}</li>)}</ul>
+        <ul style={{ margin: "12px 0 0", padding: "0 0 0 18px", fontSize: 12.5, color: "#5b6577" }}>{items.map((item) => <li key={lineKey(item)}>{item.title} : {item.availabilityLabel}</li>)}</ul>
         <button type="submit" className="mb-btn mb-btn--block" disabled={pending} style={{ marginTop: 14 }}>{pending ? "Envoi…" : "Confirmer la commande"}</button>
         <p style={{ margin: "10px 0 0", fontSize: 12.5, color: "#5b6577" }}>Après validation, je vous envoie sur WhatsApp les instructions pour régler par mobile money.</p>
       </div>

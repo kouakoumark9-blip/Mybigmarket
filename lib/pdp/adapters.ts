@@ -40,7 +40,9 @@ export function catalogToProduct(product: DemoProduct, all: DemoProduct[], descr
     ...(product.powerLabel ? [{ label: "Puissance", value: product.powerLabel }] : []),
     ...(product.energyClass ? [{ label: "Classe énergétique", value: product.energyClass }] : []),
   ];
-  const inStock = product.availability !== "on_order" && product.quantity > 0;
+  const variants = product.variants ?? [];
+  const prices = variants.map((variant) => variant.priceXof);
+  const inStock = product.availability !== "on_order" && (variants.length ? variants.some((variant) => variant.quantity > 0) : product.quantity > 0);
   return {
     id: product.slug,
     slug: product.slug,
@@ -51,14 +53,15 @@ export function catalogToProduct(product: DemoProduct, all: DemoProduct[], descr
     rating: 0,
     reviewsCount: 0,
     soldCount: 0,
-    priceMin: product.priceXof,
-    priceMax: product.priceXof,
+    priceMin: prices.length ? Math.min(...prices) : product.priceXof,
+    priceMax: prices.length ? Math.max(...prices) : product.priceXof,
     currency: "XOF",
     unit: "pièce",
     lowestPriceBadge: percent ? `Promotion : -${percent} %` : undefined,
     availability: inStock ? "InStock" : "PreOrder",
     colorVariants: [],
-    designOptions: [],
+    designOptions: variants.map((variant) => ({ id: String(variant.id), label: variant.label })),
+    ...(variants.length ? { designLabel: "Taille" } : {}),
     keySpecs: specs,
     summary: product.shortDescription || description.split(/\n{2,}/)[0] || "",
     highlights: [

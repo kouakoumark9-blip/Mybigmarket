@@ -12,6 +12,10 @@ export type DemoProduct = {
   comparePriceXof?: number | null; availability?: string; availabilityLabel?: string; powerLabel?: string | null;
   energyClass?: string | null; badge?: string | null; isPlaceholder?: boolean; shortDescription?: string | null;
   brandName?: string | null; brandLogo?: string | null; brandTagline?: string | null; categoryTrail?: Array<{ label: string; href: string }>; extraAttributes?: Array<{ label: string; value: string }>; seoTitle?: string | null; seoDescription?: string | null; images?: string[];
+  /** Déclinaisons (tailles) : chacune a son prix et son stock. */
+  variants?: Array<{ id: number; label: string; priceXof: number; quantity: number }>;
+  /** Ligne de panier : déclinaison choisie. */
+  variantId?: number; variantLabel?: string;
   tiers?: Array<{ minQuantity: number; maxQuantity: number | null; unitPriceXof: number; label: string }>;
 };
 
