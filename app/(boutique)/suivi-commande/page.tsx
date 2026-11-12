@@ -1,43 +1,37 @@
 import type { Metadata } from "next";
-import { and, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { Breadcrumbs } from "@/components/shop/breadcrumbs";
 import { getDb } from "@/lib/db";
 import { shopOrderItems, shopOrders } from "@/lib/db/schema";
 import { SHOP, whatsappLink } from "@/lib/shop/config";
 import { formatFcfa } from "@/lib/shop/format";
-import { headers } from "next/headers";
-import { db as serviceDb } from "@/server/core/db";
-import { clientIp } from "@/server/core/http/request-context";
-import { enforceRateLimit } from "@/server/core/rate-limit";
-import { normalizePhone, statusLabel } from "@/lib/shop/orders";
+import { trackOrderAction } from "@/actions/shop-order";
+import { isValidOrderAccessKey } from "@/lib/shop/order-access";
+import { statusLabel } from "@/lib/shop/orders";
 
 export const metadata: Metadata = { title: "Suivi de commande", description: "Suivez votre commande MyBigMarket avec votre numéro de commande et votre téléphone.", alternates: { canonical: "/suivi-commande" } };
 export const dynamic = "force-dynamic";
 
-export default async function TrackingPage({ searchParams }: { searchParams: Promise<{ numero?: string; telephone?: string }> }) {
-  const { numero = "", telephone = "" } = await searchParams;
+export default async function TrackingPage({ searchParams }: { searchParams: Promise<{ numero?: string; k?: string; erreur?: string }> }) {
+  const { numero = "", k, erreur } = await searchParams;
   const reference = numero.trim().toUpperCase();
-  const phone = normalizePhone(telephone);
   let order: typeof shopOrders.$inferSelect | undefined;
   let items: Array<typeof shopOrderItems.$inferSelect> = [];
-  const searched = Boolean(reference || telephone);
-  let limited = false;
-  if (reference && phone && process.env.DATABASE_URL) {
-    // Limite les essais pour empêcher de deviner un numéro de commande et un téléphone.
-    try { await enforceRateLimit(serviceDb, "shop.track", `ip:${clientIp(await headers()) ?? "unknown"}`); } catch (error) { if ((error as { code?: string }).code === "RATE_LIMITED") limited = true; else throw error; }
-  }
-  if (reference && phone && !limited && process.env.DATABASE_URL) {
+  // La commande ne s'affiche qu'avec le lien signé délivré après la saisie du numéro et du téléphone.
+  if (reference && isValidOrderAccessKey(reference, k) && process.env.DATABASE_URL) {
     const db = getDb();
-    [order] = await db.select().from(shopOrders).where(and(eq(shopOrders.reference, reference), eq(shopOrders.phone, phone))).limit(1);
+    [order] = await db.select().from(shopOrders).where(eq(shopOrders.reference, reference)).limit(1);
     if (order) items = await db.select().from(shopOrderItems).where(eq(shopOrderItems.orderId, order.id));
   }
+  const limited = erreur === "limite";
+  const searched = erreur === "introuvable" || Boolean(reference && !order);
   return <div className="mb-wrap mb-page" id="contenu" role="main">
     <Breadcrumbs items={[{ label: "Accueil", href: "/" }, { label: "Suivi de commande" }]}/>
     <h1 className="mb-title">Suivi de commande</h1>
     <p className="mb-intro">Saisissez le numéro reçu à la commande (par exemple MBM-250101-AB12) et le téléphone utilisé.</p>
-    <form className="mb-box" method="get" style={{ maxWidth: 560 }}><div className="mb-box-body mb-form">
-      <div className="mb-field"><label htmlFor="s-num">Numéro de commande</label><input id="s-num" name="numero" className="mb-input" defaultValue={numero} placeholder="MBM-250101-AB12" required/></div>
-      <div className="mb-field"><label htmlFor="s-tel">Téléphone</label><input id="s-tel" name="telephone" className="mb-input" type="tel" inputMode="tel" defaultValue={telephone} placeholder="07 12 34 56 78" required/></div>
+    <form className="mb-box" action={trackOrderAction} style={{ maxWidth: 560 }}><div className="mb-box-body mb-form">
+      <div className="mb-field"><label htmlFor="s-num">Numéro de commande</label><input id="s-num" name="numero" className="mb-input" defaultValue={reference} placeholder="MBM-250101-AB12" required/></div>
+      <div className="mb-field"><label htmlFor="s-tel">Téléphone</label><input id="s-tel" name="telephone" className="mb-input" type="tel" inputMode="tel" autoComplete="tel" placeholder="07 12 34 56 78" required/></div>
       <button className="mb-btn" type="submit">Voir ma commande</button>
     </div></form>
     {order && <section className="mb-box" style={{ marginTop: 16, maxWidth: 560 }} aria-live="polite"><h2>Commande {order.reference} : {statusLabel(order.status)}</h2><div className="mb-box-body">
