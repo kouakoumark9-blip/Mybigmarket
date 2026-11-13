@@ -4,7 +4,6 @@ import { HomeCategories } from "@/components/shop/home-categories";
 import { HeroCarousel } from "@/components/shop/hero-carousel";
 import { HomeCategoryTiles, type CategoryTile } from "@/components/shop/home-extras";
 import { ProductSection } from "@/components/shop/product-section";
-import { ShuffledSection } from "@/components/shop/shuffled-section";
 import { BANNERS } from "@/lib/shop/banners";
 import { REASSURANCE, SHOP } from "@/lib/shop/config";
 import { categoryIdsOf, getCategoryTree, listProducts } from "@/lib/shop/queries";
@@ -20,15 +19,11 @@ export const metadata: Metadata = {
 const ICONS = [Smartphone, Truck, ShieldCheck, Headset];
 
 export default async function HomePage() {
-  const [tree, freshRaw, pool, cheapRaw] = await Promise.all([
+  const [tree, freshRaw, pool] = await Promise.all([
     getCategoryTree(),
     listProducts({ sort: "nouveautes", limit: 12 }),
     listProducts({ limit: 30 }),
-    listProducts({ sort: "prix-croissant", limit: 30 }),
   ]);
-  // Les prix les plus bas : uniquement des produits en stock et commandables, du moins cher au plus cher.
-  // Réserve des produits les moins chers : 8 d'entre eux sont montrés, et ils changent à chaque visite.
-  const cheapPool = cheapRaw.items.filter((item) => item.inStock && !item.isPlaceholder && item.image).slice(0, 10);
   // Une seule section de produits (deux rangées de 6 au plus) : les plus récents, complétés par le reste du catalogue.
   const fresh = { ...freshRaw, items: [...freshRaw.items, ...pool.items.filter((item) => !freshRaw.items.some((own) => own.id === item.id))].slice(0, 12) };
   // Vignettes « Acheter par catégorie » : la photo du premier produit de chaque catégorie (seules celles qui ont une photo sont montrées).
@@ -66,7 +61,6 @@ export default async function HomePage() {
     </div>
 
     <HomeCategoryTiles tiles={tiles}/>
-    <ShuffledSection title="Prix les plus bas" href="/produits?tri=prix-croissant" pool={cheapPool} count={8}/>
     <ProductSection title="Nouveautés" href="/produits?tri=nouveautes" products={fresh.items}/>
     {fresh.total === 0 && <p className="mb-empty">Le catalogue est en cours de mise à jour. Écrivez-nous sur WhatsApp pour connaître les produits disponibles.</p>}
   </div>;
