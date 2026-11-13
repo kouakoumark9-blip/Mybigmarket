@@ -3,6 +3,7 @@ import { unstable_cache } from "next/cache";
 import { and, asc, desc, eq, gt, ilike, inArray, isNull, or, sql, type SQL } from "drizzle-orm";
 import { getDb } from "@/lib/db";
 import { brands, categories, productImages, products } from "@/lib/db/schema";
+import { categoryBanner } from "./category-banners";
 import { availabilityLabel, isInStock } from "./availability";
 import { discountPercent } from "./format";
 import type { ProductFilters, ShopCategory, ShopProduct } from "./types";
@@ -158,7 +159,8 @@ export async function getCategoryThumbs(tree: ShopCategory[]): Promise<Record<st
   const entries = await Promise.all(all.map(async (category) => {
     const { items } = await listProducts({ categoryIds: categoryIdsOf(category), limit: 1 });
     const image = items[0]?.image;
-    return [category.slug, image && !image.endsWith(".svg") ? image : null] as const;
+    // Pas encore de produit dans la catégorie : on prend sa bannière, si elle en a une.
+    return [category.slug, image && !image.endsWith(".svg") ? image : categoryBanner(category.slug)?.src ?? null] as const;
   }));
   return Object.fromEntries(entries);
 }
