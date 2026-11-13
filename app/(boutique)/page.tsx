@@ -28,9 +28,7 @@ export default async function HomePage() {
   // Les prix les plus bas : uniquement des produits en stock et commandables, du moins cher au plus cher.
   const cheap = cheapRaw.items.filter((item) => item.inStock && !item.isPlaceholder && item.image).slice(0, 8);
   // Une seule section de produits (deux rangées de 6 au plus) : les plus récents, complétés par le reste du catalogue.
-  // Un produit déjà montré dans « Prix les plus bas » n'est pas répété dans « Nouveautés » : chaque section montre des produits différents.
-  const shownCheap = new Set(cheap.map((item) => item.id));
-  const fresh = { ...freshRaw, items: [...freshRaw.items, ...pool.items.filter((item) => !freshRaw.items.some((own) => own.id === item.id))].filter((item) => !shownCheap.has(item.id)).slice(0, 12) };
+  const fresh = { ...freshRaw, items: [...freshRaw.items, ...pool.items.filter((item) => !freshRaw.items.some((own) => own.id === item.id))].slice(0, 12) };
   // Vignettes « Acheter par catégorie » : la photo du premier produit de chaque catégorie (seules celles qui ont une photo sont montrées).
   const wanted = ["lits/lits-enfants", "lits/lits-1-place", "lits/lits-2-places", "lits/lits-pliables", "lits/lits-avec-rangement", "matelas"];
   const flat = tree.flatMap((category) => [category, ...category.children]);
