@@ -883,3 +883,79 @@ html body{font-size:16px;line-height:1.55}
   .mb-section-more{display:block;padding:4px 14px 18px}
   .mb-section-more .mb-btn{min-height:46px;font-size:15px;font-weight:700}
 }
+
+/* ───────── Finition professionnelle (ordinateur et téléphone) ───────── */
+:root{--mb-ink:#16181d;--mb-muted:#5d6470;--mb-line:#e6e8ec;--mb-soft:#f6f7f9}
+body{color:var(--mb-ink);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+/* Bandeau et en-tête : plus bas, plus sobres */
+body .mb-strip{background:#1c1f26;color:#cfd3da;font-size:12.5px}
+body .mb-strip .mb-wrap{min-height:34px}
+body .mb-strip-msg>span+span::before{content:"";display:inline-block;width:1px;height:11px;margin:0 14px;background:#4a505c;vertical-align:-1px}
+body .mb-strip-msg>span{font-weight:500}
+body .mb-header{box-shadow:none;border-bottom:1px solid var(--mb-line)}
+body .mb-header-main{padding:14px 0;gap:32px}
+body .mb-search{height:46px;border-radius:8px;border:1px solid #cfd3da;background:#fff;padding:0;transition:border-color .15s,box-shadow .15s}
+body .mb-search:focus-within{border-color:var(--color-primary);box-shadow:0 0 0 3px rgba(247,143,30,.18)}
+body .mb-search input{padding:0 16px}
+body .mb-search button{border-radius:0 7px 7px 0;padding:0 24px;font-weight:700}
+body .mb-action{border-radius:8px;font-weight:600}
+/* Une seule barre de navigation : « Toutes les catégories » puis les rubriques */
+body .mb-nav{border-bottom:1px solid var(--mb-line)}
+body .mb-nav .mb-wrap{min-height:46px;align-items:stretch;gap:2px}
+body .mb-nav-all{margin-right:10px}
+body .mb-nav-all>button{height:100%;border:0;border-right:1px solid var(--mb-line);border-radius:0;background:none;padding:0 22px 0 0;font-weight:700;font-size:14.5px}
+body .mb-nav-all>button:hover,body .mb-nav-all:focus-within>button{background:none;color:var(--color-primary-strong)}
+body .mb-nav a.mb-nav-link{padding:0 14px;font-size:14.5px;font-weight:500;color:var(--mb-ink)}
+body .mb-homecats{display:none}
+/* Titres de section : sobres, sans filet orange */
+body .mb-section-head{padding:0 0 14px;border:0;background:none}
+body .mb-section-head h2,body .mb-tiles-head h2{font-size:24px;font-weight:700;letter-spacing:-.4px;padding-left:0;color:var(--mb-ink)}
+body .mb-section-head h2::before,body .mb-tiles-head h2::before{display:none}
+body .mb-section-head .mb-eyebrow{display:none}
+body .mb-section-head .mb-link{font-size:14px;font-weight:600;color:var(--mb-ink);text-decoration:none;border-bottom:1px solid currentColor;padding-bottom:1px}
+body .mb-section-head .mb-link:hover{color:var(--color-primary-strong)}
+body .mb-section{background:none;border:0;box-shadow:none;border-radius:0;margin-top:48px}
+body .mb-section .mb-grid{padding:0}
+body .mb-tiles{padding:0;background:none;border:0;margin:48px 0 0}
+body .mb-tiles-head h2{margin-bottom:16px}
+body .mb-tile-img{border-radius:8px;border:0}
+body .mb-tile-name{font-size:15px;font-weight:600}
+body .mb-tile-count{color:var(--mb-muted);font-size:13px}
+/* Rassurances : une rangée nette entre deux filets */
+body .mb-home-stack .mb-reassurance{padding:0;margin:0;border-top:1px solid var(--mb-line);border-bottom:1px solid var(--mb-line);border-radius:0}
+body .mb-home-stack .mb-reassurance>div{padding:18px 24px}
+body .mb-home-stack .mb-reassurance b{font-size:14px;font-weight:700;letter-spacing:0;text-transform:none;color:var(--mb-ink)}
+body .mb-home-stack .mb-reassurance span{display:block;font-size:13px;color:var(--mb-muted);text-transform:none;letter-spacing:0}
+body .mb-home-stack .mb-reassurance>div>svg{color:var(--color-primary-strong)}
+body .mb-hero{border-radius:8px}
+/* Cartes produit : image sur fond neutre, texte net, prix en noir */
+body .mb-card,body .mb-card:hover{padding:0;border:0;background:none;box-shadow:none}
+body .mb-card-img{border-radius:8px;background:var(--mb-soft)}
+body .mb-card-img img{transition:transform .35s ease}
+body .mb-card:hover .mb-card-img img{transform:scale(1.03)}
+body .mb-card-title{margin:12px 0 6px;font-size:14.5px;font-weight:500;line-height:1.4;color:var(--mb-ink)}
+body .mb-card-title a:hover{color:var(--color-primary-strong);text-decoration:none}
+body .mb-price{font-size:18px;font-weight:700;color:var(--mb-ink);letter-spacing:-.2px}
+body .mb-avail{margin:6px 0 0;font-size:12.5px;min-height:0;color:var(--mb-muted);font-weight:500}
+body .mb-avail--stock{color:#177a3c;font-weight:600}
+body .mb-avail--stock::before{content:"";flex:none;width:7px;height:7px;border-radius:50%;background:#1fa04f}
+/* Boutons */
+body .mb-btn,body .pd-btn{border-radius:6px}
+@media (max-width:700px){
+  body .mb-header-main{padding:8px 0;gap:10px}
+  body .mb-section{margin-top:32px}
+  body .mb-tiles{margin-top:32px}
+  body .mb-section-head h2,body .mb-tiles-head h2{font-size:20px}
+  body .mb-home-stack .mb-reassurance{border:0;display:flex}
+  body .mb-home-stack .mb-reassurance>div{border:1px solid var(--mb-line);border-radius:999px;padding:7px 14px}
+  body .mb-home-stack .mb-reassurance span{display:none}
+  body .mb-price{font-size:17px}
+  body .mb-search button{padding:0 16px;min-width:52px}
+  body .mb-home-stack .mb-reassurance{align-items:flex-start;align-content:flex-start;height:auto;min-height:0;grid-template-columns:none}
+  body .mb-home-stack .mb-reassurance>div{flex-direction:row;min-height:0;height:auto;align-items:center;gap:8px}
+  body .mb-home-stack .mb-reassurance>div>div{display:block;line-height:1.2}
+  body .mb-home-stack .mb-reassurance b{margin:0;line-height:1.2;font-size:13px}
+}
+
+body .mb-page .mb-section-head h2,body .mb-page .mb-tiles-head h2{display:block!important}
+body .mb-page .mb-section-head h2::before,body .mb-page .mb-tiles-head h2::before{content:none!important;display:none!important}

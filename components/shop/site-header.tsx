@@ -56,6 +56,10 @@ export function SiteHeader({ categories }: { categories: MenuCategory[] }) {
             <button type="button"><Menu size={18} strokeWidth={1.75} aria-hidden="true"/> Toutes les catégories <ChevronDown size={16} strokeWidth={1.75} aria-hidden="true"/></button>
             <div className="mb-nav-drop"><CategoryMenu categories={categories} title="Toutes les catégories"/></div>
           </div>
+          {categories.map((item) => <Link key={item.slug} className="mb-nav-link" href={`/${item.slug}`}>{item.name}</Link>)}
+          <span className="mb-nav-spacer"/>
+          <Link className="mb-nav-link" href="/livraison">Livraison</Link>
+          <Link className="mb-nav-link" href="/contact">Contact</Link>
         </div>
       </nav>
     </header>

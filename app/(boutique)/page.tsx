@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Headset, ShieldCheck, Smartphone, Truck } from "lucide-react";
-import { HomeCategories } from "@/components/shop/home-categories";
 import { HeroCarousel } from "@/components/shop/hero-carousel";
 import { HomeCategoryTiles, type CategoryTile } from "@/components/shop/home-extras";
 import { ProductSection } from "@/components/shop/product-section";
@@ -45,7 +44,6 @@ export default async function HomePage() {
     usedImages.add(pick.image);
     tiles.push({ name: entry.category.name, href: `/${entry.category.slug}`, image: pick.image, count: entry.total });
   }
-  const menu = tree.map((category) => ({ name: category.name, slug: category.slug }));
   const organization = { "@context": "https://schema.org", "@type": "Store", name: SHOP.name, url: SHOP.baseUrl, image: `${SHOP.baseUrl}/og-mybigmarket.jpg`, openingHoursSpecification: [{ "@type": "OpeningHoursSpecification", dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"], opens: "08:00", closes: "19:00" }], description: SHOP.officialStatement, brand: { "@type": "Brand", name: "CIL", alternateName: "Compagnie Ivoirienne de Literie" }, knowsAbout: ["Lits", "Matelas", "Oreillers", "Canapés"], makesOffer: ["Lits", "Matelas", "Oreillers", "Canapés"].map((name) => ({ "@type": "Offer", itemOffered: { "@type": "Product", name, brand: { "@type": "Brand", name: "CIL" } } })), telephone: `+${SHOP.whatsappNumber}`, email: SHOP.email, address: { "@type": "PostalAddress", addressLocality: "Abidjan", addressCountry: "CI" }, areaServed: "CI", currenciesAccepted: "XOF", paymentAccepted: "Mobile money (Orange Money, MTN MoMo, Moov Money, Wave)" };
   const website = { "@context": "https://schema.org", "@type": "WebSite", name: SHOP.name, url: SHOP.baseUrl, inLanguage: "fr-CI", potentialAction: { "@type": "SearchAction", target: { "@type": "EntryPoint", urlTemplate: `${SHOP.baseUrl}/produits?q={search_term_string}` }, "query-input": "required name=search_term_string" } };
   return <div className="mb-wrap mb-page" id="contenu" role="main">
@@ -53,7 +51,6 @@ export default async function HomePage() {
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(website) }}/>
     <h1 className="mb-sr">MyBigMarket, boutique en ligne à Abidjan</h1>
     <div className="mb-home-stack">
-      <HomeCategories categories={menu}/>
       <HeroCarousel banners={BANNERS}/>
       <div className="mb-reassurance" style={{ margin: 0 }}>
         {REASSURANCE.map((item, index) => { const Icon = ICONS[index]; return <div key={item.title}><Icon size={32} strokeWidth={1.25} aria-hidden="true"/><div><b>{item.title}</b><span>{item.text}</span></div></div>; })}
